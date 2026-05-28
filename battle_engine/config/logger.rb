@@ -15,6 +15,12 @@ module BattleEngine
       end
     end
 
+    %i[debug? info? warn? error? fatal?].each do |query_method|
+      define_method(query_method) do
+        @loggers.any? { |l| l.public_send(query_method) }
+      end
+    end
+
     def level=(level)
       @loggers.each { |l| l.level = level }
     end

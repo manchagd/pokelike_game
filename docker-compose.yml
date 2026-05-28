@@ -4,7 +4,7 @@ services:
     container_name: pokelike_postgres
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
+      POSTGRES_PASSWORD: admin
     ports:
       - "5432:5432"
     volumes:
