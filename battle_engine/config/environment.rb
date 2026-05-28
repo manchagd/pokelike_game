@@ -12,7 +12,10 @@ require_relative "rabbitmq"
 
 # Setup Zeitwerk autoloader for app/ directory
 loader = Zeitwerk::Loader.new
-loader.push_dir(File.expand_path("../app", __dir__))
+app_dir = File.expand_path("../app", __dir__)
+loader.push_dir(app_dir)
+loader.ignore("#{app_dir}/models")
+loader.push_dir("#{app_dir}/models")
 loader.setup
 
 BattleEngine.logger.info("[Environment] Loaded (#{AppConfig.app_env})")
