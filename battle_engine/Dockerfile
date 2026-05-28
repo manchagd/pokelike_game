@@ -9,4 +9,4 @@ RUN bundle install
 
 COPY . .
 
-CMD ["ruby", "boot.rb"]
+CMD ["ruby", "start.rb"]

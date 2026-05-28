@@ -12,10 +12,3 @@ BattleEngine::Database.connect!
 BattleEngine::RabbitMQ.connect!
 
 BattleEngine.logger.info("[Boot] battle_engine ready (#{AppConfig.app_env})")
-
-# Graceful shutdown
-trap("INT")  { BattleEngine.logger.info("[Boot] Shutting down (SIGINT)...");  BattleEngine::RabbitMQ.disconnect!; exit }
-trap("TERM") { BattleEngine.logger.info("[Boot] Shutting down (SIGTERM)..."); BattleEngine::RabbitMQ.disconnect!; exit }
-
-# Start the consumer (blocks the main thread)
-Consumers::BattleEventsConsumer.new.start

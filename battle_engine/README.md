@@ -58,27 +58,36 @@ Todos los scripts están en `scripts/` y se ejecutan con `ruby scripts/<nombre>`
 | `console` | Abre una sesión **Pry** con el entorno completo cargado |
 | `publish_sample_message` | Publica un mensaje de prueba en la cola `battle_events` de RabbitMQ |
 
-## Arquitectura de Boot
+## Arquitectura de Boot y Ejecución
 
-El flujo de carga es:
+El flujo se divide en dos scripts para permitir que las utilidades y consolas carguen el entorno sin lanzar el consumer:
 
 ```
-boot.rb
-  ├── dotenv/load          (carga .env si existe)
-  └── config/environment.rb
-        ├── app_config.rb   (lee ENV vars)
-        ├── logger.rb       (stdout + archivo log)
-        ├── database.rb     (ActiveRecord → PostgreSQL)
-        ├── rabbitmq.rb     (Bunny → RabbitMQ)
-        └── Zeitwerk        (autoload de app/)
+boot.rb (Carga de entorno y conexiones)
+  ├── dotenv/load              (carga .env si existe)
+  ├── config/environment.rb
+  │     ├── app_config.rb      (lee ENV vars)
+  │     ├── logger.rb          (stdout + archivo log)
+  │     ├── database.rb        (ActiveRecord → PostgreSQL)
+  │     ├── rabbitmq.rb        (Bunny → RabbitMQ)
+  │     └── Zeitwerk           (autoload de app/)
+  ├── Database.connect!
+  └── RabbitMQ.connect!
+
+start.rb (Entrypoint de ejecución del servicio)
+  ├── boot.rb                  (carga y conecta)
+  ├── trap SIGINT / SIGTERM    (graceful shutdown)
+  └── BattleEventsConsumer.start  ← se queda vivo escuchando
 ```
 
-1. **`boot.rb`** — Entry point. Carga dotenv (solo si existe `.env`), requiere `config/environment.rb`, y conecta a la DB.
-2. **`config/app_config.rb`** — Módulo que lee variables de entorno con valores por defecto.
-3. **`config/logger.rb`** — Logger dual: escribe a `STDOUT` y a `log/<APP_ENV>.log`.
-4. **`config/database.rb`** — Establece la conexión ActiveRecord con PostgreSQL.
-5. **`config/rabbitmq.rb`** — Maneja la conexión Bunny (connect/disconnect/channel).
-6. **`config/environment.rb`** — Orquesta la carga: requiere los módulos anteriores y configura Zeitwerk para autoload de `app/`.
+1. **`boot.rb`** — Entry point de inicialización. Carga variables de entorno, carga los módulos de configuración, inicializa Zeitwerk para autoloading, y abre las conexiones a la base de datos y a RabbitMQ. Es requerido por todos los scripts.
+2. **`start.rb`** — Script de arranque del servicio. Requiere `boot.rb`, define manejadores de señales para un apagado limpio (graceful shutdown) y arranca el loop del consumer.
+3. **`config/app_config.rb`** — Módulo que lee variables de entorno con valores por defecto.
+4. **`config/logger.rb`** — Logger dual: escribe a `STDOUT` y a `log/<APP_ENV>.log`.
+5. **`config/database.rb`** — Establece la conexión ActiveRecord con PostgreSQL.
+6. **`config/rabbitmq.rb`** — Maneja la conexión Bunny (connect/disconnect/channel).
+7. **`config/environment.rb`** — Orquesta la carga: requiere los módulos anteriores y configura Zeitwerk para autoload de `app/`.
+8. **`app/consumers/battle_events_consumer.rb`** — Consumer que escucha la cola `battle_events` y loggea los mensajes recibidos.
 
 ## Variables de entorno
 
@@ -94,9 +103,10 @@ boot.rb
 ```
 battle_engine/
 ├── Gemfile              # Dependencias Ruby
-├── Dockerfile           # Imagen Docker
+├── Dockerfile           # Imagen Docker (ejecuta start.rb)
 ├── .env.example         # Variables de entorno (ejemplo)
-├── boot.rb              # Entry point
+├── boot.rb              # Inicialización y conexiones
+├── start.rb             # Ejecución (arranca el consumer)
 ├── README.md            # Este archivo
 │
 ├── config/
@@ -106,12 +116,14 @@ battle_engine/
 │   ├── rabbitmq.rb      # Conexión RabbitMQ
 │   └── logger.rb        # Logger dual
 │
+├── app/
+│   └── consumers/
+│       └── battle_events_consumer.rb  # Consumer RabbitMQ
+│
 ├── db/
 │   ├── schema.rb        # Esquema ActiveRecord
 │   ├── migrate/         # Migraciones
 │   └── seeds.rb         # Datos iniciales
-│
-├── app/                 # Modelos, servicios (autoloaded por Zeitwerk)
 │
 ├── scripts/             # Utilidades CLI
 │   ├── db_create
@@ -126,19 +138,41 @@ battle_engine/
 └── log/                 # Archivos de log (ignorados por git)
 ```
 
-## Verificación
+## Quick Start (Docker)
+
+Desde la raíz del proyecto (`pokelike_game/`):
 
 ```bash
-# Verificar conexión a la DB
-ruby scripts/db_create
-ruby scripts/db_migrate
+# 1. Levantar PostgreSQL y RabbitMQ
+docker compose up -d postgres rabbitmq
 
-# Verificar conexión a RabbitMQ
-ruby scripts/publish_sample_message
+# 2. Crear la base de datos y correr migraciones
+docker compose run --rm battle_engine ruby scripts/db_setup
 
-# Consola interactiva
-ruby scripts/console
+# 3. Levantar battle_engine (se queda escuchando en la cola battle_events)
+docker compose up -d battle_engine
 
-# RabbitMQ Management UI
-open http://localhost:15672   # user: guest / pass: admin
+# 4. Ver los logs — deberías ver "Listening on queue 'battle_events'..."
+docker compose logs -f battle_engine
+
+# 5. En otra terminal, publicar un mensaje de prueba
+docker compose exec battle_engine ruby scripts/publish_sample_message
+
+# 6. En los logs verás:
+#    [Consumer] Received event: battle_started
+#    [Consumer] Payload: {trainer_id: 1, opponent_id: 2, ...}
 ```
+
+### Parar todo
+
+```bash
+docker compose down           # para los containers
+docker compose down -v        # para los containers Y borra los volúmenes (DB + RabbitMQ)
+```
+
+### RabbitMQ Management UI
+
+```bash
+open http://localhost:15672    # user: guest / pass: admin
+```
+
