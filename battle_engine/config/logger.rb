@@ -34,7 +34,7 @@ module BattleEngine
 
   def logger
     @logger ||= begin
-      log_dir = File.expand_path("../../log", __dir__)
+      log_dir = File.expand_path("../log", __dir__)
       Dir.mkdir(log_dir) unless Dir.exist?(log_dir)
 
       file_logger = Logger.new(File.join(log_dir, "#{AppConfig.app_env}.log"))
