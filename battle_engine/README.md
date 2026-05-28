@@ -51,6 +51,7 @@ Todos los scripts están en `scripts/` y se ejecutan con `ruby scripts/<nombre>`
 |---|---|
 | `db_create` | Crea la base de datos (`battle_engine_<APP_ENV>`) |
 | `db_drop` | Elimina la base de datos |
+| `db_create_migration` | Genera una nueva migración con timestamp (ej. `ruby scripts/db_create_migration create_users`) |
 | `db_migrate` | Ejecuta migraciones pendientes |
 | `db_rollback` | Revierte la última migración. Acepta argumento: `ruby scripts/db_rollback 3` |
 | `db_seed` | Ejecuta `db/seeds.rb` |
@@ -128,6 +129,7 @@ battle_engine/
 ├── scripts/             # Utilidades CLI
 │   ├── db_create
 │   ├── db_drop
+│   ├── db_create_migration
 │   ├── db_migrate
 │   ├── db_rollback
 │   ├── db_seed
