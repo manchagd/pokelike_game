@@ -9,4 +9,4 @@ BattleEngine.logger.info("[DB] Running migrations from #{migrations_path}")
 
 ActiveRecord::MigrationContext.new(migrations_path).migrate
 
-BattleEngine.logger.info("[DB] Migrations complete")
+BattleEngine::Database.dump_schema!

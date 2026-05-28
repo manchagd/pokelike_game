@@ -10,4 +10,4 @@ BattleEngine.logger.info("[DB] Rolling back #{steps} migration(s)")
 
 ActiveRecord::MigrationContext.new(migrations_path).rollback(steps)
 
-BattleEngine.logger.info("[DB] Rollback complete")
+BattleEngine::Database.dump_schema!
