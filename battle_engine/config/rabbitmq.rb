@@ -12,9 +12,9 @@ module BattleEngine
     end
 
     def connect!
-      connection.start
-      BattleEngine.logger.info("[RabbitMQ] Connected to #{AppConfig.rabbitmq_url}")
-      connection
+      connection.tap(&:start).tap do
+        BattleEngine.logger.info("[RabbitMQ] Connected to #{AppConfig.rabbitmq_url}")
+      end
     end
 
     def channel
