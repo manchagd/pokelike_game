@@ -39,12 +39,9 @@ module BattleEngine
 
       file_logger = Logger.new(File.join(log_dir, "#{AppConfig.app_env}.log"))
       stdout_logger = Logger.new($stdout)
-
       level = Logger.const_get(AppConfig.log_level.upcase)
-      file_logger.level = level
-      stdout_logger.level = level
 
-      MultiLogger.new(file_logger, stdout_logger)
+      MultiLogger.new(file_logger, stdout_logger).tap { it.level = level }
     end
   end
 end
