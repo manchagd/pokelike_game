@@ -3,6 +3,7 @@
 require "active_support"
 require "active_support/core_ext"
 require "zeitwerk"
+require "json"
 
 # Load configuration
 require_relative "app_config"
