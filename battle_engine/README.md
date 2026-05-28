@@ -21,7 +21,7 @@ cp .env.example .env
 bundle install
 
 # 3. Crea la base de datos, corre migraciones y seeds
-ruby scripts/db_setup
+bundle exec rake db:setup
 ```
 
 ## Setup con Docker (desde la raíz del proyecto)
@@ -31,33 +31,33 @@ ruby scripts/db_setup
 docker compose up -d postgres rabbitmq
 
 # Crea la base de datos
-docker compose run battle_engine ruby scripts/db_create
+docker compose run battle_engine bundle exec rake db:create
 
 # Corre migraciones
-docker compose run battle_engine ruby scripts/db_migrate
+docker compose run battle_engine bundle exec rake db:migrate
 
 # Seeds
-docker compose run battle_engine ruby scripts/db_seed
+docker compose run battle_engine bundle exec rake db:seed
 
 # O todo junto:
-docker compose run battle_engine ruby scripts/db_setup
+docker compose run battle_engine bundle exec rake db:setup
 ```
 
-## Scripts disponibles
+## Tareas Rake disponibles
 
-Todos los scripts están en `scripts/` y se ejecutan con `ruby scripts/<nombre>`:
+Todas las utilidades están definidas en el `Rakefile` y se ejecutan usando `bundle exec rake <tarea>`:
 
-| Script | Descripción |
+| Tarea Rake | Descripción |
 |---|---|
-| `db_create` | Crea la base de datos (`battle_engine_<APP_ENV>`) |
-| `db_drop` | Elimina la base de datos |
-| `db_create_migration` | Genera una nueva migración con timestamp (ej. `ruby scripts/db_create_migration create_users`) |
-| `db_migrate` | Ejecuta migraciones pendientes |
-| `db_rollback` | Revierte la última migración. Acepta argumento: `ruby scripts/db_rollback 3` |
-| `db_seed` | Ejecuta `db/seeds.rb` |
-| `db_setup` | Ejecuta create + migrate + seed en secuencia |
-| `console` | Abre una sesión **Pry** con el entorno completo cargado |
-| `publish_sample_message` | Publica un mensaje de prueba en la cola `battle_events` de RabbitMQ |
+| `db:create` | Crea la base de datos (`battle_engine_<APP_ENV>`) |
+| `db:drop` | Elimina la base de datos |
+| `db:create_migration[name]` | Genera una nueva migración con timestamp (ej. `bundle exec rake db:create_migration[create_users]`) |
+| `db:migrate` | Ejecuta migraciones pendientes y actualiza `db/schema.rb` |
+| `db:rollback[steps]` | Revierte la(s) última(s) migración(es) y actualiza `db/schema.rb`. Ej: `bundle exec rake db:rollback[3]` (default: 1) |
+| `db:seed` | Ejecuta `db/seeds.rb` |
+| `db:setup` | Ejecuta create + migrate + seed en secuencia |
+| `console` | Abre una sesión interactiva **Pry** con el entorno completo cargado |
+| `rabbitmq:publish_sample` | Publica un mensaje de prueba en la cola `battle_events` de RabbitMQ |
 
 ## Arquitectura de Boot y Ejecución
 
@@ -126,16 +126,7 @@ battle_engine/
 │   ├── migrate/         # Migraciones
 │   └── seeds.rb         # Datos iniciales
 │
-├── scripts/             # Utilidades CLI
-│   ├── db_create
-│   ├── db_drop
-│   ├── db_create_migration
-│   ├── db_migrate
-│   ├── db_rollback
-│   ├── db_seed
-│   ├── db_setup
-│   ├── console
-│   └── publish_sample_message
+├── Rakefile             # Utilidades CLI centralizadas (Rake tasks)
 │
 └── log/                 # Archivos de log (ignorados por git)
 ```
@@ -149,7 +140,7 @@ Desde la raíz del proyecto (`pokelike_game/`):
 docker compose up -d postgres rabbitmq
 
 # 2. Crear la base de datos y correr migraciones
-docker compose run --rm battle_engine ruby scripts/db_setup
+docker compose run --rm battle_engine bundle exec rake db:setup
 
 # 3. Levantar battle_engine (se queda escuchando en la cola battle_events)
 docker compose up -d battle_engine
@@ -158,7 +149,7 @@ docker compose up -d battle_engine
 docker compose logs -f battle_engine
 
 # 5. En otra terminal, publicar un mensaje de prueba
-docker compose exec battle_engine ruby scripts/publish_sample_message
+docker compose exec battle_engine bundle exec rake rabbitmq:publish_sample
 
 # 6. En los logs verás:
 #    [Consumer] Received event: battle_started
