@@ -1,0 +1,12 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require_relative "../boot"
+
+seeds_file = File.expand_path("../db/seeds.rb", __dir__)
+
+BattleEngine.logger.info("[DB] Seeding database...")
+
+load(seeds_file)
+
+BattleEngine.logger.info("[DB] Seeding complete")

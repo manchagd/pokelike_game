@@ -1,0 +1,18 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require_relative "../config/app_config"
+require_relative "../config/logger"
+
+require "active_record"
+
+db_name = "battle_engine_#{AppConfig.app_env}"
+
+BattleEngine.logger.info("[DB] Creating database: #{db_name}")
+
+# Connect to the default 'postgres' database to create our target DB
+base_url = AppConfig.database_url.sub(/\/[^\/]+$/, "/postgres")
+ActiveRecord::Base.establish_connection(base_url)
+
+ActiveRecord::Base.connection.create_database(db_name)
+BattleEngine.logger.info("[DB] Database '#{db_name}' created successfully")

@@ -1,0 +1,17 @@
+# frozen_string_literal: true
+
+source "https://rubygems.org"
+
+ruby "4.0.1"
+
+gem "activerecord", "~> 7.1"
+gem "activesupport", "~> 7.1"
+gem "pg", "~> 1.5"
+gem "bunny", "~> 2.24"
+gem "dotenv", "~> 3.1"
+gem "zeitwerk", "~> 2.6"
+gem "json"
+
+group :development do
+  gem "pry", "~> 0.14"
+end

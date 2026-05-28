@@ -1,0 +1,26 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require_relative "../boot"
+require "json"
+
+BattleEngine.logger.info("[RabbitMQ] Publishing sample message...")
+
+BattleEngine::RabbitMQ.connect!
+channel = BattleEngine::RabbitMQ.channel
+queue   = channel.queue("battle_events", durable: true)
+
+message = {
+  event: "battle_started",
+  payload: {
+    trainer_id: 1,
+    opponent_id: 2,
+    timestamp: Time.now.iso8601
+  }
+}.to_json
+
+queue.publish(message, persistent: true)
+BattleEngine.logger.info("[RabbitMQ] Published: #{message}")
+
+BattleEngine::RabbitMQ.disconnect!
+BattleEngine.logger.info("[RabbitMQ] Done")

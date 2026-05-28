@@ -1,0 +1,25 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require_relative "../config/app_config"
+require_relative "../config/logger"
+
+require "active_record"
+
+db_name = "battle_engine_#{AppConfig.app_env}"
+
+BattleEngine.logger.info("[DB] Dropping database: #{db_name}")
+
+base_url = AppConfig.database_url.sub(/\/[^\/]+$/, "/postgres")
+ActiveRecord::Base.establish_connection(base_url)
+
+# Disconnect existing connections
+ActiveRecord::Base.connection.execute(<<~SQL)
+  SELECT pg_terminate_backend(pg_stat_activity.pid)
+  FROM pg_stat_activity
+  WHERE pg_stat_activity.datname = '#{db_name}'
+  AND pid <> pg_backend_pid();
+SQL
+
+ActiveRecord::Base.connection.drop_database(db_name)
+BattleEngine.logger.info("[DB] Database '#{db_name}' dropped successfully")

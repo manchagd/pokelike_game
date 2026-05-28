@@ -1,0 +1,15 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+scripts_dir = __dir__
+
+puts "==> Creating database..."
+system("ruby", File.join(scripts_dir, "db_create")) || exit(1)
+
+puts "==> Running migrations..."
+system("ruby", File.join(scripts_dir, "db_migrate")) || exit(1)
+
+puts "==> Seeding database..."
+system("ruby", File.join(scripts_dir, "db_seed")) || exit(1)
+
+puts "==> Setup complete!"
