@@ -37,8 +37,9 @@ services:
       context: ./battle_engine
       dockerfile: Dockerfile
     container_name: pokelike_battle_engine
+    env_file:
+      - ./battle_engine/.env
     environment:
-      APP_ENV: development
       DATABASE_URL: postgres://postgres:admin@postgres:5432/battle_engine_development
       RABBITMQ_URL: amqp://guest:admin@rabbitmq:5672
     depends_on:
