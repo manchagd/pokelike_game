@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Publishers
-  class BattleEventsPublisher
+  class SamplePublisher
     QUEUE_NAME = "battle_events"
 
     def self.publish(event, payload = {})

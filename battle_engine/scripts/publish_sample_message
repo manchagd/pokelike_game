@@ -5,7 +5,7 @@ require_relative "../boot"
 
 BattleEngine.logger.info("[RabbitMQ] Preparing sample message...")
 
-Publishers::BattleEventsPublisher.publish("battle_started", {
+Publishers::SamplePublisher.publish("battle_started", {
   trainer_id: 1,
   opponent_id: 2
 })
