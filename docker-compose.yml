@@ -52,6 +52,22 @@ services:
     stdin_open: true
     tty: true
 
+  battle_real_time:
+    build:
+      context: ./battle_real_time
+      dockerfile: Dockerfile
+    container_name: pokelike_battle_real_time
+    env_file:
+      - ./battle_real_time/.env
+    environment:
+      RABBITMQ_URL: amqp://guest:admin@rabbitmq:5672
+      PORT: "4000"
+    ports:
+      - "4000:4000"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
 volumes:
   postgres_data:
   rabbitmq_data:
