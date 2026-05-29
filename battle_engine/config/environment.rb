@@ -14,7 +14,7 @@ require_relative "rabbitmq"
 # Setup Zeitwerk autoloader for app/ subdirectories
 loader = Zeitwerk::Loader.new
 app_dir = File.expand_path("../app", __dir__)
-global_dirs = %w[models]
+global_dirs = %w[models domain]
 
 Dir.children(app_dir).each do |child|
   child_path = File.join(app_dir, child)
