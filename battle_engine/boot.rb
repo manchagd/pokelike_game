@@ -5,7 +5,6 @@ require "dotenv/load" if File.exist?(File.expand_path("../.env", __dir__))
 
 # Load the full environment: config, DB, RabbitMQ, Zeitwerk
 require_relative "config/environment"
-require "json"
 
 # Connect to services
 BattleEngine::Database.connect!

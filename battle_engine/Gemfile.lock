@@ -39,6 +39,7 @@ GEM
     method_source (1.1.0)
     minitest (5.27.0)
     pg (1.6.3-aarch64-linux-musl)
+    pg (1.6.3-x86_64-linux-musl)
     pry (0.16.0)
       coderay (~> 1.1)
       method_source (~> 1.0)
@@ -57,6 +58,7 @@ GEM
 
 PLATFORMS
   aarch64-linux-musl
+  x86_64-linux-musl
 
 DEPENDENCIES
   activerecord (~> 7.1)
@@ -90,6 +92,7 @@ CHECKSUMS
   method_source (1.1.0)
   minitest (5.27.0)
   pg (1.6.3-aarch64-linux-musl)
+  pg (1.6.3-x86_64-linux-musl)
   pry (0.16.0)
   rake (13.4.2)
   rbtree (0.4.6)

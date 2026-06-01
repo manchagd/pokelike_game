@@ -1,0 +1,31 @@
+# frozen_string_literal: true
+
+class Nature
+  LIST = [
+  HARDY = "Hardy",
+  LONELY = "Lonely",
+  BRAVE = "Brave",
+  ADAMANT = "Adamant",
+  NAUGHTY = "Naughty",
+  BOLD = "Bold",
+  DOCILE = "Docile",
+  RELAXED = "Relaxed",
+  IMPISH = "Impish",
+  LAX = "Lax",
+  TIMID = "Timid",
+  HASTY = "Hasty",
+  SERIOUS = "Serious",
+  JOLLY = "Jolly",
+  NAIVE = "Naive",
+  MODEST = "Modest",
+  MILD = "Mild",
+  QUIET = "Quiet",
+  BASHFUL = "Bashful",
+  RASH = "Rash",
+  CALM = "Calm",
+  GENTLE = "Gentle",
+  SASSY = "Sassy",
+  CAREFUL = "Careful",
+  QUIRKY = "Quirky"
+]
+end
