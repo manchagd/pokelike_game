@@ -14,21 +14,10 @@ require_relative "rabbitmq"
 # Setup Zeitwerk autoloader for app/ subdirectories
 loader = Zeitwerk::Loader.new
 app_dir = File.expand_path("../app", __dir__)
-global_dirs = %w[models domain]
 
-Dir.children(app_dir).each do |child|
-  child_path = File.join(app_dir, child)
-  next unless File.directory?(child_path)
-
-  if global_dirs.include?(child)
-    loader.push_dir(child_path)
-  else
-    namespace_name = child.camelize
-    Object.const_set(namespace_name, Module.new) unless Object.const_defined?(namespace_name)
-    namespace = Object.const_get(namespace_name)
-    loader.push_dir(child_path, namespace: namespace)
-  end
-end
+loader.push_dir(app_dir)
+loader.collapse("#{app_dir}/models")
+loader.collapse("#{app_dir}/domain")
 
 loader.setup
 
