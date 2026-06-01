@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_05_30_135441) do
+ActiveRecord::Schema[7.2].define(version: 2026_06_01_230433) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -29,12 +29,12 @@ ActiveRecord::Schema[7.2].define(version: 2026_05_30_135441) do
     t.bigint "winner_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "turn", default: 0, null: false
     t.index ["field_id"], name: "index_battles_on_field_id"
     t.index ["winner_id"], name: "index_battles_on_winner_id"
   end
 
   create_table "fields", force: :cascade do |t|
-    t.jsonb "positions", default: {}, null: false
     t.bigint "weather_id"
     t.bigint "hazard_id"
     t.datetime "created_at", null: false
@@ -92,7 +92,6 @@ ActiveRecord::Schema[7.2].define(version: 2026_05_30_135441) do
 
   create_table "pokemons", force: :cascade do |t|
     t.bigint "pokemon_template_id", null: false
-    t.bigint "player_id", null: false
     t.string "nickname"
     t.string "gender"
     t.string "nature", null: false
@@ -105,8 +104,20 @@ ActiveRecord::Schema[7.2].define(version: 2026_05_30_135441) do
     t.string "teratype"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["player_id"], name: "index_pokemons_on_player_id"
+    t.bigint "team_id", null: false
     t.index ["pokemon_template_id"], name: "index_pokemons_on_pokemon_template_id"
+    t.index ["team_id"], name: "index_pokemons_on_team_id"
+  end
+
+  create_table "positions", force: :cascade do |t|
+    t.integer "group", null: false
+    t.string "side"
+    t.bigint "pokemon_id"
+    t.bigint "field_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["field_id"], name: "index_positions_on_field_id"
+    t.index ["pokemon_id"], name: "index_positions_on_pokemon_id"
   end
 
   create_table "team_pokemons", force: :cascade do |t|
@@ -144,8 +155,10 @@ ActiveRecord::Schema[7.2].define(version: 2026_05_30_135441) do
   add_foreign_key "fields", "weathers"
   add_foreign_key "pokemon_template_moves", "moves"
   add_foreign_key "pokemon_template_moves", "pokemon_templates"
-  add_foreign_key "pokemons", "players"
   add_foreign_key "pokemons", "pokemon_templates"
+  add_foreign_key "pokemons", "teams"
+  add_foreign_key "positions", "fields"
+  add_foreign_key "positions", "pokemons"
   add_foreign_key "team_pokemons", "pokemons"
   add_foreign_key "team_pokemons", "teams"
   add_foreign_key "teams", "players"

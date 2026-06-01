@@ -6,32 +6,26 @@ class Types
   NOT_EFFECTIVE = 0.5.freeze
   IMMUNE = 0.freeze
 
-  %w[
-    Fire
-    Grass
-    Water
-    Electric
-    Fighting
-    Normal
-    Ghost
-    Dark
-    Psychic
-    Fairy
-    Poison
-    Steel
-    Rock
-    Ground
-    Bug
-    Flying
-    Dragon
-    Ice
-  ].each do |type|
-    self.const_set(type.upcase, type)
-  end
-
-  def self.list
-    constants.map { |const| const_get(const) }
-  end
+  LIST = [
+    FIRE = "Fire"
+    GRASS = "Grass"
+    WATER = "Water"
+    ELECTRIC = "Electric"
+    FIGHTING = "Fighting"
+    NONRMAL = "Normal"
+    GHOST = "Ghost"
+    DARK = "Dark"
+    PSYCHIC = "Psychic"
+    FAIRY = "Fairy"
+    POISON = "Poison"
+    STEEL = "Steel"
+    ROCK = "Rock"
+    GROUND = "Ground"
+    BUG = "Bug"
+    FLYING = "Flying"
+    DRAGON = "Dragon"
+    ICE = "Ice"
+  ]
 
   def self.calc_multiplier(attacking_types, defending_types)
     chart = {
