@@ -29,10 +29,10 @@ defmodule Mix.Tasks.Amqp.Publish.Attack do
     args = Helper.parse_args(argv)
 
     payload = %{
-      "battle_id" => Map.get(args, "battle_id", "42"),
-      "trainer_id" => Map.get(args, "trainer_id", "1"),
-      "move_id" => Map.get(args, "move_id", "85"),
-      "target_positions" => parse_positions(Map.get(args, "target_positions", "1,2"))
+      battle_id: Map.get(args, "battle_id", "42"),
+      trainer_id: Map.get(args, "trainer_id", "1"),
+      move_id: Map.get(args, "move_id", "85"),
+      target_positions: parse_positions(Map.get(args, "target_positions", "1,2"))
     }
 
     Mix.shell().info("[amqp.publish.attack] Publishing → #{inspect(payload)}")
