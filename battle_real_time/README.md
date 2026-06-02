@@ -1,18 +1,228 @@
-# BattleRealTime
+# Battle Real Time
 
-To start your Phoenix server:
+Servicio de comunicación en tiempo real para el proyecto **pokelike_game**. App Elixir/Phoenix que actúa como puente entre los clientes (WebSocket) y el motor de batalla (RabbitMQ).
 
-* Run `mix setup` to install and setup dependencies
-* Start Phoenix endpoint with `mix phx.server` or inside IEx with `iex -S mix phx.server`
+## Requisitos
 
-Now you can visit [`localhost:4000`](http://localhost:4000) from your browser.
+- **Elixir** 1.18+
+- **Erlang/OTP** 26+
+- **RabbitMQ** 3+
 
-Ready to run in production? Please [check our deployment guides](https://hexdocs.pm/phoenix/deployment.html).
+> También puedes correr todo con **Docker** sin instalar nada localmente.
 
-## Learn more
+## Setup local
 
-* Official website: https://www.phoenixframework.org/
-* Guides: https://hexdocs.pm/phoenix/overview.html
-* Docs: https://hexdocs.pm/phoenix
-* Forum: https://elixirforum.com/c/phoenix-forum
-* Source: https://github.com/phoenixframework/phoenix
+```bash
+# 1. Copia las variables de entorno
+cp .env.example .env
+
+# 2. Instala dependencias
+mix setup
+
+# 3. Arranca el servidor Phoenix
+mix phx.server
+```
+
+El servidor estará disponible en [`localhost:4000`](http://localhost:4000).
+
+## Setup con Docker (desde la raíz del proyecto)
+
+```bash
+# Levantar RabbitMQ y el servicio
+docker compose up -d rabbitmq battle_real_time
+
+# Ver los logs
+docker compose logs -f battle_real_time
+```
+
+## Arquitectura
+
+### Flujo de mensajes
+
+```
+┌─────────────┐    WebSocket     ┌──────────────────┐     RabbitMQ      ┌───────────────┐
+│   Cliente   │ ───────────────> │  battle_real_time │ ───────────────> │ battle_engine │
+│  (browser)  │    battle:42     │                   │  battle_actions   │               │
+│             │                  │   BattleChannel   │                  │               │
+│             │ <─────────────── │   AMQP.Consumer   │ <─────────────── │               │
+│             │  "battle_event"  │                   │  battle_events    │               │
+└─────────────┘                  └──────────────────┘                   └───────────────┘
+```
+
+1. El **cliente** se conecta vía WebSocket al canal `battle:<battle_id>`
+2. Cuando el cliente envía una acción, `BattleChannel` la publica en la cola `battle_actions` (RabbitMQ)
+3. `battle_engine` (Ruby) consume de `battle_actions`, procesa la lógica de batalla y publica el resultado en `battle_events`
+4. `AMQP.Consumer` recibe el evento desde `battle_events` y lo retransmite vía PubSub al `BattleChannel`
+5. `BattleChannel` pushea el evento al cliente por WebSocket
+
+### Árbol de supervisión (OTP)
+
+```
+BattleRealTime.Supervisor (one_for_one)
+├── BattleRealTimeWeb.Telemetry
+├── DNSCluster
+├── Phoenix.PubSub (BattleRealTime.PubSub)
+├── BattleRealTime.AMQP.Connection     ← conexión compartida a RabbitMQ
+├── BattleRealTime.AMQP.Consumer       ← escucha cola "battle_events"
+├── BattleRealTime.AMQP.Publisher      ← publica en cola "battle_actions"
+└── BattleRealTimeWeb.Endpoint         ← servidor HTTP/WebSocket
+```
+
+### Colas RabbitMQ
+
+| Cola | Dirección | Descripción |
+|------|-----------|-------------|
+| `battle_actions` | real_time → engine | Acciones del jugador (attack, change, etc.) |
+| `battle_events` | engine → real_time | Eventos procesados (resultado de ataques, fin de batalla, etc.) |
+
+## Mix Tasks disponibles
+
+Todas las tareas se ejecutan con `mix <tarea>`. Desde Docker: `docker compose run --rm battle_real_time mix <tarea>`.
+
+| Tarea Mix | Descripción |
+|-----------|-------------|
+| `mix setup` | Instala dependencias |
+| `mix phx.server` | Arranca el servidor Phoenix |
+| `mix amqp.publish.attack` | Publica un mensaje de prueba `attack` en la cola `battle_actions` |
+| `mix amqp.publish.change` | Publica un mensaje de prueba `change` en la cola `battle_actions` |
+
+### Mensajes de prueba
+
+Los Mix Tasks permiten inyectar mensajes con estructura real en RabbitMQ para testing. Todos los campos tienen valores por defecto y se pueden sobreescribir con `key=value`.
+
+#### `mix amqp.publish.attack`
+
+```bash
+# Con valores por defecto
+mix amqp.publish.attack
+
+# Con valores específicos
+mix amqp.publish.attack battle_id=99 trainer_id=2 move_id=10 target_positions=0,1
+```
+
+Estructura del mensaje:
+```json
+{
+  "event": "attack",
+  "payload": {
+    "battle_id": "42",
+    "trainer_id": "1",
+    "move_id": "85",
+    "target_positions": ["1", "2"],
+    "timestamp": "2026-06-02T15:00:00Z"
+  }
+}
+```
+
+#### `mix amqp.publish.change`
+
+```bash
+# Con valores por defecto
+mix amqp.publish.change
+
+# Con valores específicos
+mix amqp.publish.change battle_id=99 trainer_id=2 pokemon_in_id=6 pokemon_out_id=4
+```
+
+Estructura del mensaje:
+```json
+{
+  "event": "change",
+  "payload": {
+    "battle_id": "42",
+    "trainer_id": "1",
+    "pokemon_in_id": "9",
+    "pokemon_out_id": "25",
+    "timestamp": "2026-06-02T15:00:00Z"
+  }
+}
+```
+
+## Variables de entorno
+
+| Variable | Default | Descripción |
+|----------|---------|-------------|
+| `RABBITMQ_URL` | `amqp://guest:guest@localhost:5672` | URL de conexión RabbitMQ |
+| `PORT` | `4000` | Puerto del servidor Phoenix |
+| `SECRET_KEY_BASE` | (requerido en prod) | Clave para firmar cookies y secrets |
+| `PHX_SERVER` | `false` | Habilita el servidor HTTP (activado en el Dockerfile) |
+
+## Estructura del proyecto
+
+```
+battle_real_time/
+├── mix.exs                     # Dependencias y configuración del proyecto
+├── Dockerfile                  # Multi-stage: dev (con mix) + prod (release)
+├── .env.example                # Variables de entorno (ejemplo)
+├── README.md                   # Este archivo
+│
+├── config/
+│   ├── config.exs              # Configuración base (todas las envs)
+│   ├── dev.exs                 # Configuración para desarrollo
+│   ├── prod.exs                # Configuración para producción
+│   ├── test.exs                # Configuración para tests
+│   └── runtime.exs             # Configuración en tiempo de ejecución (ENV vars)
+│
+├── lib/
+│   ├── battle_real_time/
+│   │   ├── application.ex      # Árbol de supervisión OTP
+│   │   └── amqp/
+│   │       ├── connection.ex   # Conexión compartida a RabbitMQ (GenServer)
+│   │       ├── consumer.ex     # Consume de "battle_events", broadcast vía PubSub
+│   │       └── publisher.ex    # Publica acciones en "battle_actions"
+│   │
+│   ├── battle_real_time_web/
+│   │   ├── endpoint.ex         # Endpoint HTTP/WebSocket
+│   │   ├── router.ex           # Rutas HTTP
+│   │   ├── user_socket.ex      # Socket WebSocket (transportes)
+│   │   └── channels/
+│   │       └── battle_channel.ex  # Canal "battle:<id>" (join, actions, events)
+│   │
+│   └── mix/
+│       └── tasks/
+│           ├── amqp_publish_helpers.ex       # Helpers compartidos para Mix Tasks
+│           ├── amqp.publish.attack.ex        # mix amqp.publish.attack
+│           └── amqp.publish.change.ex        # mix amqp.publish.change
+│
+└── test/                       # Tests
+```
+
+## Quick Start (Docker)
+
+Desde la raíz del proyecto (`pokelike_game/`):
+
+```bash
+# 1. Levantar RabbitMQ y el servicio
+docker compose up -d rabbitmq battle_real_time
+
+# 2. Ver los logs — deberías ver:
+#    [AMQP.Connection] Connected to RabbitMQ
+#    [AMQP.Consumer] Subscribed to queue 'battle_events'
+#    [AMQP.Publisher] Ready to publish to queue 'battle_actions'
+docker compose logs -f battle_real_time
+
+# 3. En otra terminal, publicar un mensaje de prueba
+docker compose run --rm battle_real_time mix amqp.publish.attack
+
+# 4. En los logs verás:
+#    [AMQP.Publisher] Published action 'attack' to 'battle_actions'
+```
+
+### Parar todo
+
+```bash
+docker compose down           # para los containers
+docker compose down -v        # para los containers Y borra los volúmenes
+```
+
+### RabbitMQ Management UI
+
+```bash
+open http://localhost:15672    # user: guest / pass: admin
+```
+
+Para inspeccionar el contenido de los mensajes:
+1. Ve a **Queues and Streams**
+2. Click en la cola (ej. `battle_actions`)
+3. Sección **Get messages** → Ack mode: `Nack message requeue true`
+4. Click **Get Message(s)** para ver el payload JSON

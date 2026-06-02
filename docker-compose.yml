@@ -56,18 +56,26 @@ services:
     build:
       context: ./battle_real_time
       dockerfile: Dockerfile
+      target: dev
     container_name: pokelike_battle_real_time
     env_file:
       - ./battle_real_time/.env
     environment:
       RABBITMQ_URL: amqp://guest:admin@rabbitmq:5672
+      MIX_ENV: dev
       PORT: "4000"
     ports:
       - "4000:4000"
     depends_on:
       rabbitmq:
         condition: service_healthy
+    volumes:
+      - ./battle_real_time:/app
+      - battle_real_time_deps:/app/deps
+      - battle_real_time_build:/app/_build
 
 volumes:
   postgres_data:
   rabbitmq_data:
+  battle_real_time_deps:
+  battle_real_time_build:
