@@ -18,6 +18,7 @@ defmodule Mix.Tasks.AmqpPublishHelpers do
       iex> parse_args(["battle_id=42", "trainer_id=1"])
       %{"battle_id" => "42", "trainer_id" => "1"}
   """
+  @spec parse_args(list(String.t())) :: map(String.t(), String.t())
   def parse_args(argv) do
     argv
     |> Enum.map(&String.split(&1, "=", parts: 2))
@@ -29,6 +30,7 @@ defmodule Mix.Tasks.AmqpPublishHelpers do
   Starts the application, waits for the Publisher to be ready,
   publishes the event, and gives the async cast time to complete.
   """
+  @spec publish!(String.t(), map()) :: :ok
   def publish!(event, payload) do
     Mix.Task.run("app.start")
     wait_for_publisher(@max_retries)
@@ -40,6 +42,7 @@ defmodule Mix.Tasks.AmqpPublishHelpers do
   end
 
   # Polls until the Publisher GenServer is registered and alive.
+  @spec wait_for_publisher(non_neg_integer()) :: :ok | no_return
   defp wait_for_publisher(0) do
     Mix.raise("Publisher not available — is RabbitMQ running?")
   end

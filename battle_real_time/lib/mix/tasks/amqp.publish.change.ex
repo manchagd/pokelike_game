@@ -29,10 +29,10 @@ defmodule Mix.Tasks.Amqp.Publish.Change do
     args = Helper.parse_args(argv)
 
     payload = %{
-      battle_id: Map.get(args, "battle_id", "42"),
-      trainer_id: Map.get(args, "trainer_id", "1"),
-      pokemon_in_id: Map.get(args, "pokemon_in_id", "9"),
-      pokemon_out_id: Map.get(args, "pokemon_out_id", "25")
+      "battle_id" => Map.get(args, "battle_id", "42"),
+      "trainer_id" => Map.get(args, "trainer_id", "1"),
+      "pokemon_in_id" => Map.get(args, "pokemon_in_id", "9"),
+      "pokemon_out_id" => Map.get(args, "pokemon_out_id", "25")
     }
 
     Mix.shell().info("[amqp.publish.change] Publishing → #{inspect(payload)}")
