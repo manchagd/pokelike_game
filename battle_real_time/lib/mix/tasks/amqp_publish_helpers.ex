@@ -18,12 +18,12 @@ defmodule Mix.Tasks.AmqpPublishHelpers do
       iex> parse_args(["battle_id=42", "trainer_id=1"])
       %{"battle_id" => "42", "trainer_id" => "1"}
   """
-  @spec parse_args(list(String.t())) :: map(String.t(), String.t())
+  @spec parse_args([String.t()]) :: %{String.t() => String.t()}
   def parse_args(argv) do
     argv
     |> Enum.map(&String.split(&1, "=", parts: 2))
     |> Enum.filter(&match?([_, _], &1))
-    |> Map.new(fn [k, v] -> {k, v} end)
+    |> Map.new(fn [key, value] -> {key, value} end)
   end
 
   @doc """
