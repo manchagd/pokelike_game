@@ -5,16 +5,18 @@ require_relative "boot"
 
 BattleEngine.logger.info("[Start] Starting consumer application...")
 
-# Graceful shutdown handling
-trap("INT") do
-  BattleEngine.logger.info("[Start] Shutting down (SIGINT)...")
+# Register graceful shutdown cleanup
+at_exit do
+  BattleEngine.logger.info("[Start] Shutting down...")
   BattleEngine::RabbitMQ.disconnect!
+end
+
+# Signal handling to trigger exit
+trap("INT") do
   exit
 end
 
 trap("TERM") do
-  BattleEngine.logger.info("[Start] Shutting down (SIGTERM)...")
-  BattleEngine::RabbitMQ.disconnect!
   exit
 end
 
