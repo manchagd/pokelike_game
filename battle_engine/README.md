@@ -6,7 +6,7 @@ Motor de batalla para el proyecto **pokelike_game**. App Ruby standalone (sin Ra
 
 - **Ruby** 4.0.1
 - **PostgreSQL** 16+
-- **RabbitMQ** 3+
+- **RabbitMQ** 4.0+ (Misma versión que el contenedor de Docker)
 - **Bundler** (`gem install bundler`)
 
 > También puedes correr todo con **Docker** sin instalar nada localmente.
@@ -98,6 +98,18 @@ start.rb (Entrypoint de ejecución del servicio)
 | `DATABASE_URL` | `postgres://postgres:admin@localhost:5432/battle_engine_development` | URL de conexión PostgreSQL |
 | `RABBITMQ_URL` | `amqp://guest:admin@localhost:5672` | URL de conexión RabbitMQ |
 | `LOG_LEVEL` | `debug` | Nivel de log (`debug`, `info`, `warn`, `error`, `fatal`) |
+
+## Mapeo de Puertos y Versiones (Local vs Docker)
+
+Para mantener la consistencia entre ejecutar localmente (en tu máquina) o usando Docker Compose, considera la correspondencia de configuraciones:
+
+| Componente / Servicio | Entorno Local (Host) | Entorno Docker | Versión y Detalles (según docker-compose.yml) |
+|---|---|---|---|
+| **Base de Datos (PostgreSQL)** | `localhost:5432` | `postgres:5432` | Imagen: `postgres:16-alpine`<br>Credenciales: `postgres:admin`<br>Base de datos: `battle_engine_development` |
+| **RabbitMQ Broker** | `localhost:5672` | `rabbitmq:5672` | Imagen: `rabbitmq:4.0-management-alpine`<br>Credenciales por defecto: `guest:admin` |
+| **RabbitMQ Management UI** | `localhost:15672` | `rabbitmq:15672` | Mapeado al puerto `15672` local para inspección visual |
+| **Intérprete de Ruby** | Ruby `4.0.1` local | Ruby `4.0.1` container | Imagen: `ruby:4.0.1-alpine` con soporte Zeitwerk |
+
 
 ## Estructura del proyecto
 

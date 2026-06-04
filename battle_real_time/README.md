@@ -6,7 +6,7 @@ Servicio de comunicación en tiempo real para el proyecto **pokelike_game**. App
 
 - **Elixir** 1.18+
 - **Erlang/OTP** 26+
-- **RabbitMQ** 3+
+- **RabbitMQ** 4.0+ (Misma versión que el contenedor de Docker)
 
 > También puedes correr todo con **Docker** sin instalar nada localmente.
 
@@ -142,12 +142,51 @@ Estructura del mensaje:
 
 | Variable | Default | Descripción |
 |----------|---------|-------------|
-| `RABBITMQ_URL` | `amqp://guest:guest@localhost:5672` | URL de conexión RabbitMQ |
+| `RABBITMQ_URL` | `amqp://guest:admin@localhost:5672` | URL de conexión RabbitMQ |
 | `PORT` | `4000` | Puerto del servidor Phoenix |
-| `SECRET_KEY_BASE` | (requerido en prod) | Clave para firmar cookies y secrets |
+| `SECRET_KEY_BASE` | (requerido en prod) | Clave para firmar cookies y secrets. Ver [Generación de SECRET_KEY_BASE](#generación-de-secret_key_base) |
 | `PHX_SERVER` | `false` | Habilita el servidor HTTP (activado en el Dockerfile) |
+| `PHX_HOST` | `example.com` | Host de producción (solo entorno prod) |
+| `DNS_CLUSTER_QUERY` | - | Consulta para DNS Cluster (solo entorno prod) |
+
+### Generación de SECRET_KEY_BASE
+
+Para generar una clave segura para `SECRET_KEY_BASE`, Phoenix incluye una tarea Mix que genera una cadena aleatoria criptográficamente segura. Ejecuta el siguiente comando en tu terminal:
+
+```bash
+mix phx.gen.secret [length]
+```
+
+**Detalles del comando y opciones:**
+- **Sin argumentos**: Por defecto, genera una clave aleatoria de **64 caracteres**.
+- **`[length]`**: Opcionalmente, puedes pasar un entero como argumento para cambiar la longitud de la clave generada.
+  - *Restricción*: La longitud mínima permitida es **32**. Si se ingresa un número menor, el comando devolverá un error de validación.
+- **Ejemplos**:
+  ```bash
+  # Genera una clave con la longitud por defecto (64 caracteres)
+  mix phx.gen.secret
+
+  # Genera una clave de 32 caracteres (mínimo permitido)
+  mix phx.gen.secret 32
+
+  # Genera una clave de 128 caracteres
+  mix phx.gen.secret 128
+  ```
+Una vez generada la clave, cópiala y asígnala a la variable `SECRET_KEY_BASE` en tu archivo `.env`.
+
+## Mapeo de Puertos y Versiones (Local vs Docker)
+
+Para mantener la consistencia entre ejecutar localmente (en tu máquina) o usando Docker Compose, considera la correspondencia de configuraciones:
+
+| Componente / Servicio | Entorno Local (Host) | Entorno Docker | Versión y Detalles (según docker-compose.yml) |
+|---|---|---|---|
+| **Servidor Phoenix** | `localhost:4000` | Mapeo puerto `4000:4000` | Puerto por defecto: `4000`. Env variable: `PORT` |
+| **RabbitMQ Broker** | `localhost:5672` | `rabbitmq:5672` | Imagen: `rabbitmq:4.0-management-alpine`<br>Credenciales por defecto: `guest:admin` |
+| **RabbitMQ Management UI** | `localhost:15672` | `rabbitmq:15672` | Mapeado al puerto `15672` local para inspección visual |
+| **Elixir / Erlang** | Instalar local: Elixir `1.18.4`, Erlang `26.2.5` | Versión container: Elixir `1.18.4`, Erlang `26.2.5` | Imagen base: `hexpm/elixir:1.18.4-erlang-26.2.5.13-alpine-3.21.3` |
 
 ## Estructura del proyecto
+
 
 ```
 battle_real_time/
