@@ -210,18 +210,25 @@ class _MatchesViewState extends State<MatchesView> {
                 return Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Expanded(flex: 5, child: _buildTeamSelection()),
+                    Expanded(
+                      flex: 5,
+                      child: SingleChildScrollView(
+                        child: _buildTeamSelection(),
+                      ),
+                    ),
                     const SizedBox(width: 20),
                     Expanded(
                       flex: 4,
-                      child: Column(
-                        children: [
-                          _buildActionsCard(),
-                          const SizedBox(height: 20),
-                          _buildActiveBattlesCard(),
-                          const SizedBox(height: 20),
-                          _buildHistoryCard(),
-                        ],
+                      child: SingleChildScrollView(
+                        child: Column(
+                          children: [
+                            _buildActionsCard(),
+                            const SizedBox(height: 20),
+                            _buildActiveBattlesCard(),
+                            const SizedBox(height: 20),
+                            _buildHistoryCard(),
+                          ],
+                        ),
                       ),
                     ),
                   ],
