@@ -38,7 +38,13 @@ Para poder ejecutar y compilar esta aplicación de manera local, necesitas tener
    flutter pub get
    ```
 
-2. **Analizar el código (Linter):**
+2. **Configurar variables de entorno:**
+   Copia el archivo de plantilla y ajusta la URL del WebSocket según tu entorno:
+   ```bash
+   cp config.json.example config.json
+   ```
+
+3. **Analizar el código (Linter):**
    Asegúrate de que no haya errores estáticos ni problemas sintácticos:
    ```bash
    flutter analyze
@@ -54,14 +60,14 @@ Para poder ejecutar y compilar esta aplicación de manera local, necesitas tener
 
 ## Comandos útiles de Ejecución (Run)
 
-Para levantar la aplicación en modo desarrollo (debug) con soporte de Hot Reload, puedes ejecutar los siguientes comandos dependiendo del dispositivo objetivo:
+Para levantar la aplicación en modo desarrollo (debug) con soporte de Hot Reload, debes ejecutar pasándole el archivo de configuración del entorno usando `--dart-define-from-file`:
 
 | Comando | Plataforma de Destino | Requisitos previos en el proyecto |
 |---|---|---|
-| `flutter run -d macos` | **macOS (Nativo)** | Carpeta `macos/` creada |
-| `flutter run -d windows` | **Windows (Nativo)** | Carpeta `windows/` creada |
-| `flutter run -d linux` | **Linux (Nativo)** | Carpeta `linux/` creada |
-| `flutter run -d chrome` | **Web (Navegador)** | Carpeta `web/` creada |
+| `flutter run --dart-define-from-file=config.json -d macos` | **macOS (Nativo)** | Carpeta `macos/` creada y `config.json` configurado |
+| `flutter run --dart-define-from-file=config.json -d windows` | **Windows (Nativo)** | Carpeta `windows/` creada y `config.json` configurado |
+| `flutter run --dart-define-from-file=config.json -d linux` | **Linux (Nativo)** | Carpeta `linux/` creada y `config.json` configurado |
+| `flutter run --dart-define-from-file=config.json -d chrome` | **Web (Navegador)** | Carpeta `web/` creada y `config.json` configurado |
 
 > **Nota:** Si en algún momento necesitas dar soporte a Windows o Linux y no tienes los directorios correspondientes en la raíz del proyecto, puedes generarlos corriendo:
 > ```bash

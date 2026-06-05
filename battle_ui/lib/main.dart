@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'theme.dart';
 import 'nav.dart';
+import 'utils/battle_socket_service.dart';
 
 void main() {
   runApp(const MyApp());
@@ -11,13 +13,17 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp.router(
-      title: 'Pixel Clash',
-      debugShowCheckedModeBanner: false,
-      theme: buildAppTheme(),
-      darkTheme: buildAppTheme(),
-      themeMode: ThemeMode.dark,
-      routerConfig: AppRouter.router,
+    return Provider<BattleSocketService>(
+      create: (_) => BattleSocketService(),
+      dispose: (_, service) => service.dispose(),
+      child: MaterialApp.router(
+        title: 'Pixel Clash',
+        debugShowCheckedModeBanner: false,
+        theme: buildAppTheme(),
+        darkTheme: buildAppTheme(),
+        themeMode: ThemeMode.dark,
+        routerConfig: AppRouter.router,
+      ),
     );
   }
 }

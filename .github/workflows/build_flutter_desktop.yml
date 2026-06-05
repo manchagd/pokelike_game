@@ -1,0 +1,91 @@
+name: Build Flutter Desktop (Manual)
+
+on:
+  workflow_dispatch:
+    inputs:
+      platform:
+        description: 'Target Desktop Platform'
+        required: true
+        default: 'macos'
+        type: choice
+        options:
+          - macos
+          - windows
+          - linux
+      websocket_url:
+        description: 'Production WebSocket URL'
+        required: true
+        default: 'wss://your-production-domain.com/socket/websocket'
+        type: string
+
+jobs:
+  build:
+    name: Build ${{ inputs.platform }}
+    runs-on: ${{ (inputs.platform == 'macos' && 'macos-latest') || (inputs.platform == 'windows' && 'windows-latest') || 'ubuntu-latest' }}
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      # Setup prerequisites for Linux Desktop compilation
+      - name: Install Linux Dependencies
+        if: inputs.platform == 'linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev libstdc++6
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Install Dependencies
+        run: flutter pub get
+        working-directory: battle_ui
+
+      - name: Create Production Config
+        run: |
+          echo '{"WEBSOCKET_URL": "${{ inputs.websocket_url }}"}' > config.json
+        working-directory: battle_ui
+        shell: bash
+
+      # MACOS BUILD
+      - name: Build macOS
+        if: inputs.platform == 'macos'
+        run: flutter build macos --release --dart-define-from-file=config.json
+        working-directory: battle_ui
+
+      # WINDOWS BUILD
+      - name: Build Windows
+        if: inputs.platform == 'windows'
+        run: flutter build windows --release --dart-define-from-file=config.json
+        working-directory: battle_ui
+
+      # LINUX BUILD
+      - name: Build Linux
+        if: inputs.platform == 'linux'
+        run: flutter build linux --release --dart-define-from-file=config.json
+        working-directory: battle_ui
+
+      # UPLOAD ARTIFACTS
+      - name: Upload macOS App Bundle
+        if: inputs.platform == 'macos'
+        uses: actions/upload-artifact@v4
+        with:
+          name: flutter-macos-desktop
+          path: battle_ui/build/macos/Build/Products/Release/
+
+      - name: Upload Windows Executable
+        if: inputs.platform == 'windows'
+        uses: actions/upload-artifact@v4
+        with:
+          name: flutter-windows-desktop
+          path: battle_ui/build/windows/x64/runner/Release/
+
+      - name: Upload Linux Binary
+        if: inputs.platform == 'linux'
+        uses: actions/upload-artifact@v4
+        with:
+          name: flutter-linux-desktop
+          path: battle_ui/build/linux/x64/release/bundle/
