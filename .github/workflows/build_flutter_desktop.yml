@@ -28,7 +28,7 @@ jobs:
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       # Setup prerequisites for Linux Desktop compilation
       - name: Install Linux Dependencies
@@ -74,21 +74,21 @@ jobs:
       # UPLOAD ARTIFACTS
       - name: Upload macOS App Bundle
         if: inputs.platform == 'macos'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: flutter-macos-desktop
           path: battle_ui/build/macos/Build/Products/Release/
 
       - name: Upload Windows Executable
         if: inputs.platform == 'windows'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: flutter-windows-desktop
           path: battle_ui/build/windows/x64/runner/Release/
 
       - name: Upload Linux Binary
         if: inputs.platform == 'linux'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: flutter-linux-desktop
           path: battle_ui/build/linux/x64/release/bundle/
