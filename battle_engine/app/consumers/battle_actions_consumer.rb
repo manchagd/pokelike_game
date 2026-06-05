@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
 module Consumers
-  class BattleEventsConsumer
-    QUEUE_NAME = "battle_events"
+  class BattleActionsConsumer
+    QUEUE_NAME = "battle_actions"
 
     def initialize
       @channel = BattleEngine::RabbitMQ.channel

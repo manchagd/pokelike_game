@@ -21,4 +21,4 @@ trap("TERM") do
 end
 
 # Start the consumer (blocks the main thread)
-Consumers::BattleEventsConsumer.new.start
+Consumers::BattleActionsConsumer.new.start
