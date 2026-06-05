@@ -14,7 +14,6 @@ class MatchesView extends StatefulWidget {
 
 class _MatchesViewState extends State<MatchesView> {
   String _selectedTeam = 'Equipo Aleatorio';
-  String? _generatedBattleCode;
 
   final List<String> _teams = const [
     'Equipo Aleatorio',
@@ -320,7 +319,6 @@ class _MatchesViewState extends State<MatchesView> {
             FilledButton.icon(
               onPressed: () {
                 final code = _generateBattleCode();
-                setState(() => _generatedBattleCode = code);
                 _showCreatedDialog(code);
               },
               icon: const Icon(Icons.add_circle_outline),

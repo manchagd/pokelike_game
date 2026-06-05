@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../theme.dart';
 import '../utils/pokemon_type_icons.dart';
-import 'package:flutter/cupertino.dart';
 
 class BattleView extends StatefulWidget {
   final String? battleCode;
