@@ -34,8 +34,13 @@ stats_map = {
 imported_count = 0
 pokemon_batch = []
 now = Time.current
+batch_number = 1
 
 results.each do |result|
+  if pokemon_batch.empty?
+    BattleEngine.logger.info("[Seeds] Fetching items for batch ##{batch_number}...")
+  end
+
   pokemon_url = result["url"]
   # Extract the ID from the URL (e.g. /pokemon/12/)
   id_match = pokemon_url.match(%r{/pokemon/(\d+)/})
@@ -46,11 +51,6 @@ results.each do |result|
   if pokemon_id >= 10000
     BattleEngine.logger.info("[Seeds] Reached ID #{pokemon_id} (>= 10000). Stopping Pokemon import.")
     break
-  end
-
-  # Progress log
-  if imported_count % 50 == 0
-    BattleEngine.logger.info("[Seeds] Fetching Pokemon ##{pokemon_id} (Fetched: #{imported_count})...")
   end
 
   pokemon_response = Faraday.get(pokemon_url)
@@ -85,16 +85,17 @@ results.each do |result|
   }
 
   if pokemon_batch.size >= 100
-    BattleEngine.logger.info("[Seeds] Inserting batch of #{pokemon_batch.size} Pokemon templates...")
+    BattleEngine.logger.info("[Seeds] Inserting batch ##{batch_number} (containing #{pokemon_batch.size} Pokemon templates)...")
     PokemonTemplate.upsert_all(pokemon_batch, unique_by: :name)
     pokemon_batch.clear
+    batch_number += 1
   end
 
   imported_count += 1
 end
 
 if pokemon_batch.any?
-  BattleEngine.logger.info("[Seeds] Inserting final batch of #{pokemon_batch.size} Pokemon templates...")
+  BattleEngine.logger.info("[Seeds] Inserting final batch ##{batch_number} (containing #{pokemon_batch.size} Pokemon templates)...")
   PokemonTemplate.upsert_all(pokemon_batch, unique_by: :name)
 end
 
