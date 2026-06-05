@@ -1,0 +1,137 @@
+# Pixel Clash - Battle UI
+
+Interfaz de usuario (UI) responsiva para el proyecto **pokelike_game**, construida con **Flutter**. Este cliente corre por fuera de Docker y se comunica (o comunicará) con el backend en tiempo real para las batallas.
+
+## Requisitos previos
+
+Para poder ejecutar y compilar esta aplicación de manera local, necesitas tener instalado Flutter y las herramientas específicas según tu sistema operativo.
+
+### Requisitos generales
+
+- **Flutter SDK**: `>= 3.41.0` (Sugerido gestionar versiones con `asdf` utilizando el plugin de Flutter).
+- **Dart SDK**: `^3.8.0` (Viene incluido con el SDK de Flutter).
+
+---
+
+### Requisitos por sistema operativo para Desktop
+
+#### macOS (Desktop)
+- **Xcode** 15 o superior.
+- **CocoaPods** instalado (`sudo gem install cocoapods` o `brew install cocoapods`). Aunque los plugins actuales son puramente Dart, es mandatorio para compilar proyectos Flutter que en el futuro requieran dependencias nativas.
+
+#### Windows (Desktop)
+- **Visual Studio 2022** con la carga de trabajo **"Desarrollo de escritorio con C++"** instalada (incluyendo MSVC v143 build tools y Windows SDK).
+
+#### Linux (Desktop)
+- Las siguientes librerías y herramientas de compilación instaladas mediante tu gestor de paquetes (ej. apt en Debian/Ubuntu):
+  ```bash
+  sudo apt-get install clang cmake ninja-build pkg-config libgtk-3-dev
+  ```
+
+---
+
+## Setup local rápido
+
+1. **Obtener las dependencias de Flutter:**
+   Desde la carpeta `battle_ui`, descarga las dependencias especificadas en el archivo `pubspec.yaml`:
+   ```bash
+   flutter pub get
+   ```
+
+2. **Analizar el código (Linter):**
+   Asegúrate de que no haya errores estáticos ni problemas sintácticos:
+   ```bash
+   flutter analyze
+   ```
+
+3. **Formatear el código:**
+   Si deseas formatear de manera estandarizada todos los archivos `.dart`:
+   ```bash
+   flutter format .
+   ```
+
+---
+
+## Comandos útiles de Ejecución (Run)
+
+Para levantar la aplicación en modo desarrollo (debug) con soporte de Hot Reload, puedes ejecutar los siguientes comandos dependiendo del dispositivo objetivo:
+
+| Comando | Plataforma de Destino | Requisitos previos en el proyecto |
+|---|---|---|
+| `flutter run -d macos` | **macOS (Nativo)** | Carpeta `macos/` creada |
+| `flutter run -d windows` | **Windows (Nativo)** | Carpeta `windows/` creada |
+| `flutter run -d linux` | **Linux (Nativo)** | Carpeta `linux/` creada |
+| `flutter run -d chrome` | **Web (Navegador)** | Carpeta `web/` creada |
+
+> **Nota:** Si en algún momento necesitas dar soporte a Windows o Linux y no tienes los directorios correspondientes en la raíz del proyecto, puedes generarlos corriendo:
+> ```bash
+> flutter create --platforms=windows,linux .
+> ```
+
+---
+
+## Compilación para Producción (Build)
+
+Para compilar ejecutables optimizados de producción listos para distribución (Release mode):
+
+### macOS Desktop
+```bash
+flutter build macos
+```
+El ejecutable compilado y empaquetado como App Bundle se guardará en:
+`build/macos/Build/Products/Release/pixel_clash.app`
+
+### Windows Desktop
+```bash
+flutter build windows
+```
+El ejecutable `.exe` junto a todas las librerías dinámicas necesarias se guardará en:
+`build/windows/x64/runner/Release/`
+
+### Linux Desktop
+```bash
+flutter build linux
+```
+El binario ejecutable y sus recursos se guardarán en:
+`build/linux/x64/release/bundle/`
+
+### Web
+```bash
+flutter build web --web-renderer canvaskit
+```
+Los archivos estáticos optimizados listos para desplegar en cualquier hosting estático se guardarán en:
+`build/web/`
+
+---
+
+## Estructura del proyecto
+
+```
+battle_ui/
+├── android/          # Código nativo para Android
+├── ios/              # Código nativo para iOS
+├── macos/            # Código nativo para macOS Desktop
+├── web/              # Archivos de soporte web (index.html, etc.)
+│
+├── assets/           # Recursos del juego (imágenes, iconos, tipografías)
+│
+├── lib/
+│   ├── main.dart     # Entrypoint del cliente Flutter
+│   ├── nav.dart      # Configuración de rutas declarativas (GoRouter)
+│   ├── theme.dart    # Sistema de diseño (paleta de colores HSL, tipografía, espaciados)
+│   │
+│   ├── pages/        # Pantallas de la aplicación
+│   │   ├── home_page.dart           # Dashboard principal con transiciones
+│   │   ├── matches_view.dart        # Selección de equipo, historial y emparejamiento
+│   │   ├── team_builder_view.dart   # Constructor y visualizador de equipos
+│   │   └── battle_view.dart         # Arena de combate interactiva en vivo
+│   │
+│   ├── widgets/      # Componentes UI encapsulados
+│   │   └── sidebar.dart             # Barra de navegación lateral persistente
+│   │
+│   └── utils/        # Funciones helpers o estáticas
+│       └── pokemon_type_icons.dart  # Iconografía y colorización de tipos de monstruos
+│
+├── pubspec.yaml      # Dependencias del proyecto y assets declarados
+└── README.md         # Este archivo
+```
