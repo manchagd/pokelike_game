@@ -93,12 +93,26 @@ namespace :db do
     BattleEngine::Database.dump_schema!
   end
 
-  desc "Load the seed data from db/seeds.rb"
-  task :seed do
-    seeds_file = File.expand_path("db/seeds.rb", __dir__)
-    BattleEngine.logger.info("[DB] Seeding database...")
-    load(seeds_file)
-    BattleEngine.logger.info("[DB] Seeding complete")
+  desc "Load the seed data from db/seeds.rb or a specific seed file"
+  task :seed, [:file] do |_t, args|
+    file_arg = args[:file]
+    if file_arg
+      seed_file = File.expand_path("db/seed/#{file_arg}_seed.rb", __dir__)
+      
+      if File.exist?(seed_file)
+        BattleEngine.logger.info("[DB] Seeding database with '#{file_arg}'...")
+        load(seed_file)
+        BattleEngine.logger.info("[DB] Seeding complete")
+      else
+        BattleEngine.logger.error("[DB] Seed file not found: #{seed_file}")
+        exit 1
+      end
+    else
+      seeds_file = File.expand_path("db/seeds.rb", __dir__)
+      BattleEngine.logger.info("[DB] Seeding database...")
+      load(seeds_file)
+      BattleEngine.logger.info("[DB] Seeding complete")
+    end
   end
 
   desc "Setup database from scratch (create, migrate, seed)"
