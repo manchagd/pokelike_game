@@ -7,23 +7,23 @@ class Types
   IMMUNE = 0.freeze
 
   LIST = [
-    FIRE = "Fire"
-    GRASS = "Grass"
-    WATER = "Water"
-    ELECTRIC = "Electric"
-    FIGHTING = "Fighting"
-    NONRMAL = "Normal"
-    GHOST = "Ghost"
-    DARK = "Dark"
-    PSYCHIC = "Psychic"
-    FAIRY = "Fairy"
-    POISON = "Poison"
-    STEEL = "Steel"
-    ROCK = "Rock"
-    GROUND = "Ground"
-    BUG = "Bug"
-    FLYING = "Flying"
-    DRAGON = "Dragon"
+    FIRE = "Fire",
+    GRASS = "Grass",
+    WATER = "Water",
+    ELECTRIC = "Electric",
+    FIGHTING = "Fighting",
+    NORMAL = "Normal",
+    GHOST = "Ghost",
+    DARK = "Dark",
+    PSYCHIC = "Psychic",
+    FAIRY = "Fairy",
+    POISON = "Poison",
+    STEEL = "Steel",
+    ROCK = "Rock",
+    GROUND = "Ground",
+    BUG = "Bug",
+    FLYING = "Flying",
+    DRAGON = "Dragon",
     ICE = "Ice"
   ]
 
