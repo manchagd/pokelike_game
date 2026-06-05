@@ -34,3 +34,7 @@
 *.swo
 *~
 .DS_Store
+
+# Windows Alternate Data Streams
+*Zone.Identifier
+*:Zone.Identifier
