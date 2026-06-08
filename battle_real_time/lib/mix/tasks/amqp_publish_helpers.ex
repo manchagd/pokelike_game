@@ -6,7 +6,7 @@ defmodule Mix.Tasks.AmqpPublishHelpers do
   through the existing `BattleRealTime.AMQP.Publisher` GenServer.
   """
 
-  @publisher BattleRealTime.AMQP.BattleActionsPublisher
+  @publisher BattleRealTime.AMQP.Publishers.BattleActionsPublisher
   @max_retries 10
   @retry_interval 300
 

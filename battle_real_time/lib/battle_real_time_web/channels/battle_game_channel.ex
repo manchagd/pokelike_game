@@ -12,7 +12,7 @@ defmodule BattleRealTimeWeb.BattleGameChannel do
   def handle_in("register", %{"name" => name}, socket) do
     Logger.info("[BattleGameChannel] Registering player: #{name}")
     # Publish to the player_actions queue via PlayerActionsPublisher
-    BattleRealTime.AMQP.PlayerActionsPublisher.publish("register", %{"name" => name})
+    BattleRealTime.AMQP.Publishers.PlayerActionsPublisher.publish("register", %{"name" => name})
     {:noreply, socket}
   end
 
