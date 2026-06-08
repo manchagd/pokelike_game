@@ -65,11 +65,24 @@ defmodule BattleRealTime.AMQP.Consumer do
       # Main delivery handler
       @impl true
       def handle_info({:basic_deliver, payload, _meta}, state) do
-        process_message(payload)
+        consume!(payload)
         {:noreply, state}
       end
 
-      defoverridable start_link: 1, init: 1, handle_info: 2
+      def consume!(payload) do
+        case Jason.decode(payload) do
+          {:ok, %{"event" => event, "payload" => data}} ->
+            process_message(event, data)
+
+          {:ok, other} ->
+            Logger.warning("[#{inspect(__MODULE__)}] Unexpected message format: #{inspect(other)}")
+
+          {:error, reason} ->
+            Logger.error("[#{inspect(__MODULE__)}] Invalid JSON: #{inspect(reason)}")
+        end
+      end
+
+      defoverridable start_link: 1, init: 1, handle_info: 2, consume!: 1
     end
   end
 end

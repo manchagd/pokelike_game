@@ -7,25 +7,16 @@ defmodule BattleRealTime.AMQP.Consumers.BattleEventsConsumer do
   """
   use BattleRealTime.AMQP.Consumer, queue: "battle_events"
 
-  def process_message(payload) do
-    case Jason.decode(payload) do
-      {:ok, %{"event" => event, "payload" => data}} ->
-        battle_id = Map.get(data, "battle_id", "lobby")
-        topic = "battle_events:#{battle_id}"
+  def process_message(event, data) do
+    battle_id = Map.get(data, "battle_id", "lobby")
+    topic = "battle_events:#{battle_id}"
 
-        Logger.info("[AMQP.BattleEventsConsumer] Broadcasting event '#{event}' to topic '#{topic}'")
+    Logger.info("[AMQP.BattleEventsConsumer] Broadcasting event '#{event}' to topic '#{topic}'")
 
-        Phoenix.PubSub.broadcast(
-          BattleRealTime.PubSub,
-          topic,
-          {:battle_event, %{event: event, payload: data}}
-        )
-
-      {:ok, other} ->
-        Logger.warning("[AMQP.BattleEventsConsumer] Unexpected message format: #{inspect(other)}")
-
-      {:error, reason} ->
-        Logger.error("[AMQP.BattleEventsConsumer] Invalid JSON: #{inspect(reason)}")
-    end
+    Phoenix.PubSub.broadcast(
+      BattleRealTime.PubSub,
+      topic,
+      {:battle_event, %{event: event, payload: data}}
+    )
   end
 end
