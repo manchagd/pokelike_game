@@ -4,7 +4,6 @@ defmodule BattleRealTimeWeb.UserSocket do
   # Route all "battle:*" topics to BattleChannel
   channel "battle:*", BattleRealTimeWeb.BattleChannel
   channel "application", BattleRealTimeWeb.ApplicationChannel
-  channel "battle_game", BattleRealTimeWeb.BattleGameChannel
   channel "player:*", BattleRealTimeWeb.PlayerChannel
 
   @impl true

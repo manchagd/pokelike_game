@@ -13,6 +13,16 @@ defmodule BattleRealTimeWeb.PlayerChannel do
     {:ok, %{identifier: identifier}, socket}
   end
 
+  # Client requests registration
+  @impl true
+  def handle_in("register", _payload, socket) do
+    name = socket.assigns.identifier
+    Logger.info("[PlayerChannel] Registration request received for player: #{name}")
+    # Publish to the player_actions queue via PlayerActionsPublisher
+    BattleRealTime.AMQP.Publishers.PlayerActionsPublisher.publish("register", %{"name" => name})
+    {:noreply, socket}
+  end
+
   # Receive player events from PubSub and push them to the client
   @impl true
   def handle_info({:player_event, %{event: event, payload: payload}}, socket) do

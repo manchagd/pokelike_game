@@ -93,17 +93,17 @@ class BattleSocketService {
   }
 
   /// Register a player by joining a temporary channel player:{name}
-  /// and pushing the register action on the battle_game channel.
+  /// and pushing the register action on the same channel.
   Future<Map<String, dynamic>> registerPlayer(String name) {
     _ensureSocketConnected();
 
     final completer = Completer<Map<String, dynamic>>();
 
-    // 1. Join temporary channel player:{name}
+    // Join temporary channel player:{name}
     final tempTopic = 'player:$name';
     print("Uniéndose al canal temporal: $tempTopic");
     final tempChannel = _socket!.addChannel(topic: tempTopic);
-    tempChannel.join();
+    final joinResponse = tempChannel.join();
 
     StreamSubscription? tempSub;
     tempSub = tempChannel.messages.listen((Message message) {
@@ -136,12 +136,9 @@ class BattleSocketService {
       }
     });
 
-    // 2. Join battle_game and push "register"
-    final gameChannel = _socket!.addChannel(topic: 'battle_game');
-    final gameJoin = gameChannel.join();
-    gameJoin.onReply("ok", (_) {
-      print("Enviando acción 'register' para el nombre '$name'");
-      gameChannel.push('register', {'name': name});
+    joinResponse.onReply("ok", (_) {
+      print("Conectado a $tempTopic. Enviando acción 'register'...");
+      tempChannel.push('register', {});
     });
 
     // Timeout fallback (10s)
@@ -149,7 +146,6 @@ class BattleSocketService {
       if (!completer.isCompleted) {
         tempSub?.cancel();
         tempChannel.leave();
-        gameChannel.leave();
         completer.completeError(TimeoutException("El registro excedió el tiempo límite (10s)"));
       }
     });
