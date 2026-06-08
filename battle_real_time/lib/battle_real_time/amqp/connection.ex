@@ -68,10 +68,10 @@ defmodule BattleRealTime.AMQP.Connection do
 
   defp notify_children(:connect) do
     for child <- [
-          BattleRealTime.AMQP.BattleEventsConsumer,
-          BattleRealTime.AMQP.BattleActionsPublisher,
-          BattleRealTime.AMQP.PlayerEventsConsumer,
-          BattleRealTime.AMQP.PlayerActionsPublisher
+          BattleRealTime.AMQP.Consumers.BattleEventsConsumer,
+          BattleRealTime.AMQP.Publishers.BattleActionsPublisher,
+          BattleRealTime.AMQP.Consumers.PlayerEventsConsumer,
+          BattleRealTime.AMQP.Publishers.PlayerActionsPublisher
         ] do
       if pid = Process.whereis(child) do
         send(pid, :connect)

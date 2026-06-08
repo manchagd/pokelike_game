@@ -1,4 +1,4 @@
-defmodule BattleRealTime.AMQP.BattleEventsConsumer do
+defmodule BattleRealTime.AMQP.Consumers.BattleEventsConsumer do
   @moduledoc """
   Consumes messages from the `battle_events` RabbitMQ queue.
   Each message is parsed as JSON and broadcast via Phoenix.PubSub to

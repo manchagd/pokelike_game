@@ -1,4 +1,4 @@
-defmodule BattleRealTime.AMQP.PlayerActionsPublisher do
+defmodule BattleRealTime.AMQP.Publishers.PlayerActionsPublisher do
   @moduledoc """
   Publishes player action messages to the `player_actions` RabbitMQ queue.
   """

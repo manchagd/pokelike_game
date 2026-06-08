@@ -1,4 +1,4 @@
-defmodule BattleRealTime.AMQP.PlayerEventsConsumer do
+defmodule BattleRealTime.AMQP.Consumers.PlayerEventsConsumer do
   @moduledoc """
   Consumes messages from the `player_events` RabbitMQ queue.
   Broadcasts the events to the corresponding player's PubSub topic.
