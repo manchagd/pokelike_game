@@ -21,7 +21,7 @@ defmodule BattleRealTimeWeb.BattleChannel do
     enriched = Map.put(payload, "battle_id", battle_id)
 
     Logger.info("[BattleChannel] Received action '#{action}' for battle:#{battle_id}")
-    BattleRealTime.AMQP.Publisher.publish(action, enriched)
+    BattleRealTime.AMQP.BattleActionsPublisher.publish(action, enriched)
 
     {:noreply, socket}
   end

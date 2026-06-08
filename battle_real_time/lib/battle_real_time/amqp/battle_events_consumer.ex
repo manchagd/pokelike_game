@@ -1,4 +1,4 @@
-defmodule BattleRealTime.AMQP.Consumer do
+defmodule BattleRealTime.AMQP.BattleEventsConsumer do
   @moduledoc """
   Consumes messages from the `battle_events` RabbitMQ queue.
   Each message is parsed as JSON and broadcast via Phoenix.PubSub to
@@ -33,11 +33,11 @@ defmodule BattleRealTime.AMQP.Consumer do
             # Declare the queue (idempotent, matches battle_engine config)
             AMQP.Queue.declare(chan, @queue, durable: true)
             AMQP.Basic.consume(chan, @queue, nil, no_ack: true)
-            Logger.info("[AMQP.Consumer] Subscribed to queue '#{@queue}'")
+            Logger.info("[AMQP.BattleEventsConsumer] Subscribed to queue '#{@queue}'")
             {:noreply, chan}
 
           {:error, reason} ->
-            Logger.error("[AMQP.Consumer] Failed to open channel: #{inspect(reason)}")
+            Logger.error("[AMQP.BattleEventsConsumer] Failed to open channel: #{inspect(reason)}")
             Process.send_after(self(), :connect, @reconnect_interval)
             {:noreply, nil}
         end
@@ -49,15 +49,19 @@ defmodule BattleRealTime.AMQP.Consumer do
   end
 
   # Broker confirms consumer registration
+  @impl true
   def handle_info({:basic_consume_ok, %{consumer_tag: tag}}, state) do
-    Logger.info("[AMQP.Consumer] Registered as consumer #{tag}")
+    Logger.info("[AMQP.BattleEventsConsumer] Registered as consumer #{tag}")
     {:noreply, state}
   end
 
+  @impl true
   def handle_info({:basic_cancel, _meta}, state), do: {:noreply, state}
+  @impl true
   def handle_info({:basic_cancel_ok, _meta}, state), do: {:noreply, state}
 
   # Main delivery handler
+  @impl true
   def handle_info({:basic_deliver, payload, _meta}, state) do
     process_message(payload)
     {:noreply, state}
@@ -71,7 +75,7 @@ defmodule BattleRealTime.AMQP.Consumer do
         battle_id = Map.get(data, "battle_id", "lobby")
         topic = "battle_events:#{battle_id}"
 
-        Logger.info("[AMQP.Consumer] Broadcasting event '#{event}' to topic '#{topic}'")
+        Logger.info("[AMQP.BattleEventsConsumer] Broadcasting event '#{event}' to topic '#{topic}'")
 
         Phoenix.PubSub.broadcast(
           BattleRealTime.PubSub,
@@ -80,10 +84,10 @@ defmodule BattleRealTime.AMQP.Consumer do
         )
 
       {:ok, other} ->
-        Logger.warning("[AMQP.Consumer] Unexpected message format: #{inspect(other)}")
+        Logger.warning("[AMQP.BattleEventsConsumer] Unexpected message format: #{inspect(other)}")
 
       {:error, reason} ->
-        Logger.error("[AMQP.Consumer] Invalid JSON: #{inspect(reason)}")
+        Logger.error("[AMQP.BattleEventsConsumer] Invalid JSON: #{inspect(reason)}")
     end
   end
 end

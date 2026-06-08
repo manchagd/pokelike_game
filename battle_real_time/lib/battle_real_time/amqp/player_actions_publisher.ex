@@ -1,13 +1,12 @@
-defmodule BattleRealTime.AMQP.Publisher do
+defmodule BattleRealTime.AMQP.PlayerActionsPublisher do
   @moduledoc """
-  Publishes player action messages to the `battle_actions` RabbitMQ queue.
-  battle_engine consumes from this queue and applies business logic.
+  Publishes player action messages to the `player_actions` RabbitMQ queue.
   """
 
   use GenServer
   require Logger
 
-  @queue "battle_actions"
+  @queue "player_actions"
   @reconnect_interval 5_000
 
   def start_link(_opts) do
@@ -15,8 +14,7 @@ defmodule BattleRealTime.AMQP.Publisher do
   end
 
   @doc """
-  Publishes an action to the battle_actions queue.
-  The payload map must include "battle_id".
+  Publishes an action to the player_actions queue.
   """
   def publish(action, payload \\ %{}) do
     GenServer.cast(__MODULE__, {:publish, action, payload})
@@ -37,11 +35,11 @@ defmodule BattleRealTime.AMQP.Publisher do
         case AMQP.Channel.open(conn) do
           {:ok, chan} ->
             AMQP.Queue.declare(chan, @queue, durable: true)
-            Logger.info("[AMQP.Publisher] Ready to publish to queue '#{@queue}'")
+            Logger.info("[AMQP.PlayerActionsPublisher] Ready to publish to queue '#{@queue}'")
             {:noreply, chan}
 
           {:error, reason} ->
-            Logger.error("[AMQP.Publisher] Failed to open channel: #{inspect(reason)}")
+            Logger.error("[AMQP.PlayerActionsPublisher] Failed to open channel: #{inspect(reason)}")
             Process.send_after(self(), :connect, @reconnect_interval)
             {:noreply, nil}
         end
@@ -54,7 +52,7 @@ defmodule BattleRealTime.AMQP.Publisher do
 
   @impl true
   def handle_cast({:publish, _action, _payload}, nil) do
-    Logger.error("[AMQP.Publisher] Not connected to RabbitMQ — dropping message")
+    Logger.error("[AMQP.PlayerActionsPublisher] Not connected to RabbitMQ — dropping message")
     {:noreply, nil}
   end
 
@@ -70,10 +68,10 @@ defmodule BattleRealTime.AMQP.Publisher do
 
     case AMQP.Basic.publish(chan, "", @queue, message, persistent: true) do
       :ok ->
-        Logger.info("[AMQP.Publisher] Published action '#{action}' to '#{@queue}'")
+        Logger.info("[AMQP.PlayerActionsPublisher] Published action '#{action}' to '#{@queue}'")
 
       {:error, reason} ->
-        Logger.error("[AMQP.Publisher] Failed to publish: #{inspect(reason)}. Reconnecting...")
+        Logger.error("[AMQP.PlayerActionsPublisher] Failed to publish: #{inspect(reason)}. Reconnecting...")
         send(self(), :connect)
     end
 
