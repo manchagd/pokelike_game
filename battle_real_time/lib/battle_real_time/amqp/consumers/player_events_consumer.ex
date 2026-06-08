@@ -5,22 +5,16 @@ defmodule BattleRealTime.AMQP.Consumers.PlayerEventsConsumer do
   """
   use BattleRealTime.AMQP.Consumer, queue: "player_events"
 
-  # Match any event name with player name nested in player
-  def process_message(event, %{"player" => %{"name" => name}} = data) do
+  def process_message(event, %{"player" => %{"id" => id, "name" => name}} = data)
+      when not is_nil(id) and not is_nil(name) do
     broadcast_player_info(name, event, data)
   end
 
-  # Match any event name with player name at root
-  def process_message(event, %{"name" => name} = data) do
-    broadcast_player_info(name, event, data)
-  end
-
-  # Catch-all for other payload formats
   def process_message(event, data) do
-    Logger.warning("[AMQP.PlayerEventsConsumer] Could not find player name in payload for event '#{event}': #{inspect(data)}")
+    Logger.warning(
+      "[AMQP.PlayerEventsConsumer] Invalid or unstructured payload for event '#{event}': #{inspect(data)}"
+    )
   end
-
-  # --- Private ---
 
   defp broadcast_player_info(name, event, data) do
     topic = "player:#{name}"
