@@ -20,9 +20,9 @@ trap("TERM") do
   exit
 end
 
-BattleEngine::App.register_workers!(childrens: [
-  Consumers::BattleEventsConsumer,
-  Consumers::PlayerActionsConsumer,
-])
-
-BattleEngine::App.start_workers!
+BattleEngine::App.init! do |app|
+  app.register_workers! [
+    Consumers::BattleEventsConsumer,
+    Consumers::PlayerActionsConsumer,
+  ]
+end

@@ -2,23 +2,36 @@
 
 module BattleEngine
   module App
-    module_function
-
-    @childrens = []
-
-    def register_workers!(childrens: [])
-      @childrens = childrens
-    end
-
-    def start_workers!
-      workers = @childrens.map do |consumer|
-        Thread.new {
-          BattleEngine.logger.debug("[App] Starting consumer: #{consumer}")
-          consumer.new.start
-        }
+    class Application
+      def initialize
+        @children = []
       end
 
-      workers.each(&:join)
+      def register_workers!(children = [])
+        @children = children
+      end
+
+      def start!
+        workers = @children.map do |consumer|
+          BattleEngine.logger.debug("[App] Starting consumer: #{consumer}")
+          Thread.new do
+            consumer.new.start
+          end
+        end
+
+        workers.each(&:join)
+      end
+    end
+
+    module_function
+
+    def init!
+      application = Application.new
+
+      yield application
+      BattleEngine.logger.debug("[App] Starting workers...")
+
+      application.start!
     end
   end
 end
