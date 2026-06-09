@@ -1,10 +1,11 @@
 // ignore_for_file: avoid_print
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:phoenix_socket/phoenix_socket.dart';
 import 'config.dart';
 
 /// Service to manage WebSocket connections with Elixir Phoenix Channels
-class BattleSocketService {
+class BattleSocketService with ChangeNotifier {
   PhoenixSocket? _socket;
   PhoenixChannel? _applicationChannel;
   PhoenixChannel? _playerChannel;
@@ -121,6 +122,7 @@ class BattleSocketService {
           // Save profile
           _currentPlayer = playerProfile;
           _playerEventController.add(playerProfile);
+          notifyListeners();
 
           // Clean up temp channel
           tempSub?.cancel();
@@ -174,6 +176,7 @@ class BattleSocketService {
         if (innerPayload != null && innerPayload['player'] != null) {
           _currentPlayer = innerPayload['player'] as Map<String, dynamic>;
           _playerEventController.add(_currentPlayer!);
+          notifyListeners();
         }
       }
     });
@@ -256,14 +259,17 @@ class BattleSocketService {
     _currentPlayer = null;
     _presences.clear();
     _activeUsersCount = 0;
+    notifyListeners();
   }
 
   /// Dispose the service
+  @override
   void dispose() {
     disconnect();
     _battleEventController.close();
     _playerEventController.close();
     _activeUsersController.close();
+    super.dispose();
   }
 
   // --- Presence Handling Helpers ---
@@ -304,5 +310,6 @@ class BattleSocketService {
     }
     _activeUsersCount = count;
     _activeUsersController.add(count);
+    notifyListeners();
   }
 }

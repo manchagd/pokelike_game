@@ -13,9 +13,8 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Provider<BattleSocketService>(
+    return ChangeNotifierProvider<BattleSocketService>(
       create: (_) => BattleSocketService(),
-      dispose: (_, service) => service.dispose(),
       child: MaterialApp.router(
         title: 'Pixel Clash',
         debugShowCheckedModeBanner: false,

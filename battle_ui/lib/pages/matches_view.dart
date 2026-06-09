@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -17,76 +16,10 @@ class MatchesView extends StatefulWidget {
 
 class _MatchesViewState extends State<MatchesView> {
   String _selectedTeam = 'Equipo Aleatorio';
-  final TextEditingController _nameController = TextEditingController();
 
-  StreamSubscription? _activeUsersSubscription;
-  StreamSubscription? _playerEventsSubscription;
-  int _activeUsers = 0;
-  Map<String, dynamic>? _playerProfile;
-  bool _isRegistering = false;
-  String? _errorMessage;
-
-  List<String> get _teams {
-    if (_playerProfile == null) return ['Equipo Aleatorio'];
-    final rawTeams = (_playerProfile!['teams'] as List?)?.cast<Map>() ?? [];
+  List<String> _getTeams(Map<String, dynamic> profile) {
+    final rawTeams = (profile['teams'] as List?)?.cast<Map>() ?? [];
     return ['Equipo Aleatorio'] + rawTeams.map((t) => (t['name'] as String?) ?? 'Equipo').toList();
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    final service = context.read<BattleSocketService>();
-
-    // Connect to the lobby immediately to track presence
-    service.connectAndJoinLobby();
-    _activeUsers = service.activeUsersCount;
-    _playerProfile = service.currentPlayer;
-
-    _activeUsersSubscription = service.activeUsersStream.listen((count) {
-      if (mounted) {
-        setState(() {
-          _activeUsers = count;
-        });
-      }
-    });
-
-    _playerEventsSubscription = service.playerEvents.listen((profile) {
-      if (mounted) {
-        setState(() {
-          _playerProfile = profile;
-        });
-      }
-    });
-  }
-
-  @override
-  void dispose() {
-    _nameController.dispose();
-    _activeUsersSubscription?.cancel();
-    _playerEventsSubscription?.cancel();
-    super.dispose();
-  }
-
-  void _registerTrainer(String name) async {
-    if (name.trim().isEmpty) return;
-    setState(() {
-      _isRegistering = true;
-      _errorMessage = null;
-    });
-
-    try {
-      final service = context.read<BattleSocketService>();
-      await service.registerPlayer(name.trim());
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _isRegistering = false;
-          _errorMessage = e.toString().contains("Timeout")
-              ? "Error de conexión: El servidor tardó demasiado en responder."
-              : "Error al registrarse: $e";
-        });
-      }
-    }
   }
 
   String _generateBattleCode() {
@@ -240,10 +173,16 @@ class _MatchesViewState extends State<MatchesView> {
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
+    final socketService = context.watch<BattleSocketService>();
+    final profile = socketService.currentPlayer;
+    final activeUsers = socketService.activeUsersCount;
 
-    if (_playerProfile == null) {
-      return _buildRegistrationView(text);
+    // MatchesView is only rendered by HomePage when profile is non-null
+    if (profile == null) {
+      return const Center(child: CircularProgressIndicator());
     }
+
+    final teamsList = _getTeams(profile);
 
     return Padding(
       padding: const EdgeInsets.all(32),
@@ -277,7 +216,7 @@ class _MatchesViewState extends State<MatchesView> {
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      '$_activeUsers en línea',
+                      '$activeUsers en línea',
                       style: const TextStyle(
                         color: AppColors.success,
                         fontSize: 12,
@@ -291,7 +230,7 @@ class _MatchesViewState extends State<MatchesView> {
           ),
           const SizedBox(height: 6),
           Text(
-            'Hola, ${_playerProfile!["name"]}. Encuentra un oponente y demuestra tus habilidades tácticas.',
+            'Hola, ${profile["name"]}. Encuentra un oponente y demuestra tus habilidades tácticas.',
             style: text.bodyMedium?.copyWith(color: AppColors.onSurfaceMuted),
           ),
           const SizedBox(height: 28),
@@ -303,13 +242,13 @@ class _MatchesViewState extends State<MatchesView> {
                   return SingleChildScrollView(
                     child: Column(
                       children: [
-                        _buildTeamSelection(),
+                        _buildTeamSelection(teamsList),
                         const SizedBox(height: 20),
                         _buildActionsCard(),
                         const SizedBox(height: 20),
                         _buildActiveBattlesCard(),
                         const SizedBox(height: 20),
-                        _buildHistoryCard(),
+                        _buildHistoryCard(profile),
                       ],
                     ),
                   );
@@ -320,7 +259,7 @@ class _MatchesViewState extends State<MatchesView> {
                     Expanded(
                       flex: 5,
                       child: SingleChildScrollView(
-                        child: _buildTeamSelection(),
+                        child: _buildTeamSelection(teamsList),
                       ),
                     ),
                     const SizedBox(width: 20),
@@ -333,7 +272,7 @@ class _MatchesViewState extends State<MatchesView> {
                             const SizedBox(height: 20),
                             _buildActiveBattlesCard(),
                             const SizedBox(height: 20),
-                            _buildHistoryCard(),
+                            _buildHistoryCard(profile),
                           ],
                         ),
                       ),
@@ -348,7 +287,7 @@ class _MatchesViewState extends State<MatchesView> {
     );
   }
 
-  Widget _buildTeamSelection() {
+  Widget _buildTeamSelection(List<String> teams) {
     final text = Theme.of(context).textTheme;
     return Card(
       child: Padding(
@@ -371,7 +310,7 @@ class _MatchesViewState extends State<MatchesView> {
               ],
             ),
             const SizedBox(height: 16),
-            ..._teams.map((t) {
+            ...teams.map((t) {
               final selected = _selectedTeam == t;
               return Padding(
                 padding: const EdgeInsets.only(bottom: 10),
@@ -591,9 +530,9 @@ class _MatchesViewState extends State<MatchesView> {
     );
   }
 
-  Widget _buildHistoryCard() {
+  Widget _buildHistoryCard(Map<String, dynamic> profile) {
     final text = Theme.of(context).textTheme;
-    final historyData = _playerProfile!['battle_history'] as Map<String, dynamic>?;
+    final historyData = profile['battle_history'] as Map<String, dynamic>?;
     final wins = historyData?['victories'] as int? ?? 0;
     final losses = historyData?['defeats'] as int? ?? 0;
     final historyList = (historyData?['history'] as List?)?.cast<String>() ?? [];
@@ -654,137 +593,6 @@ class _MatchesViewState extends State<MatchesView> {
       ),
     );
   }
-
-  Widget _buildRegistrationView(TextTheme text) {
-    return Center(
-      child: SingleChildScrollView(
-        child: Container(
-          width: 480,
-          margin: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(AppRadius.lg),
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                AppColors.surfaceA0,
-                AppColors.surfaceHigh.withValues(alpha: 0.95),
-                AppColors.background,
-              ],
-            ),
-            border: Border.all(
-              color: AppColors.primary.withValues(alpha: 0.2),
-              width: 1.5,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.primary.withValues(alpha: 0.1),
-                blurRadius: 40,
-                spreadRadius: 2,
-              ),
-            ],
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(40),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Center(
-                  child: Container(
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: AppColors.primary.withValues(alpha: 0.1),
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: AppColors.primary.withValues(alpha: 0.3),
-                      ),
-                    ),
-                    child: const Icon(
-                      Icons.catching_pokemon,
-                      color: AppColors.primary,
-                      size: 48,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 32),
-                Text(
-                  'Registro de Entrenador',
-                  style: text.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 0.5,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 10),
-                Text(
-                  'Ingresa tu nombre para unirte a la arena, elegir tu equipo y registrar tus batallas en tiempo real.',
-                  style: text.bodyMedium?.copyWith(
-                    color: AppColors.onSurfaceMuted,
-                    height: 1.4,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 32),
-                TextField(
-                  controller: _nameController,
-                  enabled: !_isRegistering,
-                  maxLength: 20,
-                  decoration: const InputDecoration(
-                    labelText: 'Nombre del Entrenador',
-                    hintText: 'Ej. AshKetchum',
-                    prefixIcon: Icon(Icons.person_outline),
-                    counterText: '',
-                  ),
-                  style: const TextStyle(fontWeight: FontWeight.w600),
-                  onSubmitted: (_) => _registerTrainer(_nameController.text),
-                ),
-                if (_errorMessage != null) ...[
-                  const SizedBox(height: 16),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                    decoration: BoxDecoration(
-                      color: AppColors.danger.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(AppRadius.md),
-                      border: Border.all(color: AppColors.danger.withValues(alpha: 0.2)),
-                    ),
-                    child: Text(
-                      _errorMessage!,
-                      style: const TextStyle(
-                        color: AppColors.danger,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                ],
-                const SizedBox(height: 32),
-                _isRegistering
-                    ? const Center(
-                        child: Padding(
-                          padding: EdgeInsets.all(8.0),
-                          child: CircularProgressIndicator(),
-                        ),
-                      )
-                    : FilledButton.icon(
-                        onPressed: () => _registerTrainer(_nameController.text),
-                        icon: const Icon(Icons.sports_esports),
-                        label: const Padding(
-                          padding: EdgeInsets.symmetric(vertical: 12),
-                          child: Text(
-                            'Ingresar a la Arena',
-                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
-                          ),
-                        ),
-                      ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
 }
 
 class _StatChip extends StatelessWidget {
@@ -821,10 +629,9 @@ class _StatChip extends StatelessWidget {
   }
 }
 
-/// Formatter para códigos XXX-XXX
 class _BattleCodeFormatter extends TextInputFormatter {
   @override
-  TextEditingValue formatEditUpdate(TextEditingValue oldValue, TextEditingValue newValue) {
+  TextEditingValue formatEditUpdate(TextEditingValue oldValue, newValue) {
     final digits = newValue.text.replaceAll(RegExp(r'[^0-9]'), '');
     final limited = digits.length > 6 ? digits.substring(0, 6) : digits;
     String formatted = limited.length <= 3
