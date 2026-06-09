@@ -95,7 +95,11 @@ El motor de batalla procesa la solicitud, genera un ID único y crea el perfil i
         "defeats": 5,
         "history": ["win", "defeat", "win", "win", "defeat"]
       }
-    }
+    },
+    "battles": [
+      { "player": "Tuto", "id": "123-345" },
+      { "player": "Syth", "id": "345-125" }
+    ]
   }
 }
 ```
