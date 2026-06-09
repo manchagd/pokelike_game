@@ -56,6 +56,7 @@ class BattleSocketService with ChangeNotifier {
 
     _socket!.openStream.listen((_) {
       print("¡Phoenix WebSocket conectado exitosamente!");
+      connectAndJoinLobby();
     });
     _socket!.closeStream.listen((_) => print("Phoenix WebSocket cerrado."));
     _socket!.errorStream.listen((err) => print("Error en Phoenix WebSocket: $err"));

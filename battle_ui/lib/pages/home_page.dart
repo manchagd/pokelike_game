@@ -16,6 +16,13 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
 
+  @override
+  void initState() {
+    super.initState();
+    // Connect to the lobby immediately on app startup
+    context.read<BattleSocketService>().connectAndJoinLobby();
+  }
+
   final List<Widget> _views = const [
     MatchesView(),
     TeamBuilderView(),
