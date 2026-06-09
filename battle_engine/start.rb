@@ -20,10 +20,9 @@ trap("TERM") do
   exit
 end
 
-# Start both consumers concurrently in separate threads
-threads = [
+BattleEngine::App.register_workers!(childrens: [
   Consumers::BattleEventsConsumer,
   Consumers::PlayerActionsConsumer,
-].map { |consumer| Thread.new { consumer.new.start } }
+])
 
-threads.each(&:join)
+BattleEngine::App.start_workers!
