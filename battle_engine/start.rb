@@ -21,14 +21,9 @@ trap("TERM") do
 end
 
 # Start both consumers concurrently in separate threads
-threads = []
-
-threads << Thread.new do
-  Consumers::BattleEventsConsumer.new.start
-end
-
-threads << Thread.new do
-  Consumers::PlayerActionsConsumer.new.start
-end
+threads = [
+  Consumers::BattleEventsConsumer,
+  Consumers::PlayerActionsConsumer,
+].map { |consumer| Thread.new { consumer.new.start } }
 
 threads.each(&:join)
