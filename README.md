@@ -10,11 +10,13 @@ El sistema combina **WebSockets (Phoenix Channels)** para la comunicación bidir
 
 ```mermaid
 graph TD
-    Client[Cliente Flutter] <-->|Phoenix Channels (WS)| RT[Phoenix Server Elixir]
-    RT -->|Publish a colas actions| RMQ[RabbitMQ Broker]
-    RMQ -->|Consume de colas actions| Engine[Motor de Batalla Ruby]
-    Engine -->|Publish a colas events| RMQ
-    RMQ -->|Consume de colas events| RT
+    Client[Cliente Flutter] --- RT[Phoenix Server Elixir]
+    Client -->|WS Request| RT
+    RT -->|WS Push| Client
+    RT -->|Publish Actions| RMQ[RabbitMQ Broker]
+    RMQ -->|Consume Actions| Engine[Motor de Batalla Ruby]
+    Engine -->|Publish Events| RMQ
+    RMQ -->|Consume Events| RT
 ```
 
 ### Canales de Phoenix (WebSockets)
