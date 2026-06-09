@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_06_05_154146) do
+ActiveRecord::Schema[7.2].define(version: 2026_06_09_040205) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -71,6 +71,19 @@ ActiveRecord::Schema[7.2].define(version: 2026_06_05_154146) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["name"], name: "index_players_on_name", unique: true
+  end
+
+  create_table "pokemon_battle_snapshots", force: :cascade do |t|
+    t.bigint "pokemon_id", null: false
+    t.integer "hp", null: false
+    t.jsonb "status_condition", default: {}, null: false
+    t.jsonb "stat_stages", default: {}, null: false
+    t.jsonb "turn_afflictions", default: {}, null: false
+    t.jsonb "locked_condition", default: {}, null: false
+    t.jsonb "attack_log", default: {}, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["pokemon_id"], name: "index_pokemon_battle_snapshots_on_pokemon_id"
   end
 
   create_table "pokemon_template_moves", force: :cascade do |t|
@@ -154,6 +167,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_06_05_154146) do
   add_foreign_key "battles", "players", column: "winner_id"
   add_foreign_key "fields", "hazards"
   add_foreign_key "fields", "weathers"
+  add_foreign_key "pokemon_battle_snapshots", "pokemons"
   add_foreign_key "pokemon_template_moves", "moves"
   add_foreign_key "pokemon_template_moves", "pokemon_templates"
   add_foreign_key "pokemons", "pokemon_templates"
