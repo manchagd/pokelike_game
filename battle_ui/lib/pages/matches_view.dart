@@ -246,7 +246,7 @@ class _MatchesViewState extends State<MatchesView> {
                         const SizedBox(height: 20),
                         _buildActionsCard(),
                         const SizedBox(height: 20),
-                        _buildActiveBattlesCard(),
+                        _buildActiveBattlesCard(socketService, profile),
                         const SizedBox(height: 20),
                         _buildHistoryCard(profile),
                       ],
@@ -270,7 +270,7 @@ class _MatchesViewState extends State<MatchesView> {
                           children: [
                             _buildActionsCard(),
                             const SizedBox(height: 20),
-                            _buildActiveBattlesCard(),
+                            _buildActiveBattlesCard(socketService, profile),
                             const SizedBox(height: 20),
                             _buildHistoryCard(profile),
                           ],
@@ -395,13 +395,9 @@ class _MatchesViewState extends State<MatchesView> {
     );
   }
 
-  Widget _buildActiveBattlesCard() {
+  Widget _buildActiveBattlesCard(BattleSocketService socketService, Map<String, dynamic> profile) {
     final text = Theme.of(context).textTheme;
-    final activeBattles = const [
-      {'id': '482-913', 'trainerA': 'Ash', 'trainerB': 'Gary'},
-      {'id': '157-204', 'trainerA': 'Misty', 'trainerB': 'Brock'},
-      {'id': '739-061', 'trainerA': 'Red', 'trainerB': 'Blue'},
-    ];
+    final activeBattles = socketService.activeBattles;
 
     return Card(
       child: Padding(
@@ -448,6 +444,7 @@ class _MatchesViewState extends State<MatchesView> {
               )
             else
               ...activeBattles.map((b) {
+                final code = b['id'] as String?;
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 10),
                   child: Material(
@@ -455,7 +452,11 @@ class _MatchesViewState extends State<MatchesView> {
                     borderRadius: BorderRadius.circular(AppRadius.md),
                     child: InkWell(
                       borderRadius: BorderRadius.circular(AppRadius.md),
-                      onTap: () => context.push('${AppRoutes.battle}?code=${b['id']}'),
+                      onTap: () {
+                        if (code != null) {
+                          context.push('${AppRoutes.battle}?code=$code');
+                        }
+                      },
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                         decoration: BoxDecoration(
@@ -469,7 +470,7 @@ class _MatchesViewState extends State<MatchesView> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    'ID #${b['id']}',
+                                    'ID #${code ?? '---'}',
                                     style: text.labelMedium?.copyWith(
                                       color: AppColors.primary,
                                       fontWeight: FontWeight.w700,
@@ -481,7 +482,7 @@ class _MatchesViewState extends State<MatchesView> {
                                     children: [
                                       Flexible(
                                         child: Text(
-                                          b['trainerA']!,
+                                          profile['name'] ?? 'Tú',
                                           style: const TextStyle(
                                             fontWeight: FontWeight.w600,
                                             color: AppColors.onSurface,
@@ -501,7 +502,7 @@ class _MatchesViewState extends State<MatchesView> {
                                       ),
                                       Flexible(
                                         child: Text(
-                                          b['trainerB']!,
+                                          b['player'] ?? 'Oponente',
                                           style: const TextStyle(
                                             fontWeight: FontWeight.w600,
                                             color: AppColors.onSurface,

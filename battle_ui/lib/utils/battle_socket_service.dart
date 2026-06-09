@@ -19,6 +19,10 @@ class BattleSocketService with ChangeNotifier {
   Map<String, dynamic>? _currentPlayer;
   Map<String, dynamic>? get currentPlayer => _currentPlayer;
 
+  // Track active battles from the player profile
+  List<Map<String, dynamic>> _activeBattles = [];
+  List<Map<String, dynamic>> get activeBattles => _activeBattles;
+
   // Active users count
   int _activeUsersCount = 0;
   int get activeUsersCount => _activeUsersCount;
@@ -122,6 +126,10 @@ class BattleSocketService with ChangeNotifier {
 
           // Save profile
           _currentPlayer = playerProfile;
+          final rawBattles = (innerPayload['battles'] ?? playerProfile['battles']) as List?;
+          _activeBattles = rawBattles != null
+              ? rawBattles.map((b) => Map<String, dynamic>.from(b as Map)).toList()
+              : [];
           _playerEventController.add(playerProfile);
           notifyListeners();
 
@@ -175,7 +183,12 @@ class BattleSocketService with ChangeNotifier {
       if (event == 'player_event' && payload != null) {
         final innerPayload = payload['payload'];
         if (innerPayload != null && innerPayload['player'] != null) {
-          _currentPlayer = innerPayload['player'] as Map<String, dynamic>;
+          final playerProfile = innerPayload['player'] as Map<String, dynamic>;
+          _currentPlayer = playerProfile;
+          final rawBattles = (innerPayload['battles'] ?? playerProfile['battles']) as List?;
+          _activeBattles = rawBattles != null
+              ? rawBattles.map((b) => Map<String, dynamic>.from(b as Map)).toList()
+              : [];
           _playerEventController.add(_currentPlayer!);
           notifyListeners();
         }
@@ -258,6 +271,7 @@ class BattleSocketService with ChangeNotifier {
     }
 
     _currentPlayer = null;
+    _activeBattles.clear();
     _presences.clear();
     _activeUsersCount = 0;
     notifyListeners();

@@ -13,6 +13,7 @@ class BattleView extends StatefulWidget {
 
 class _BattleViewState extends State<BattleView> {
   final TextEditingController _chatController = TextEditingController();
+  final FocusNode _chatFocusNode = FocusNode();
   final ScrollController _feedbackScroll = ScrollController();
   final ScrollController _chatScroll = ScrollController();
 
@@ -59,6 +60,7 @@ class _BattleViewState extends State<BattleView> {
   @override
   void dispose() {
     _chatController.dispose();
+    _chatFocusNode.dispose();
     _feedbackScroll.dispose();
     _chatScroll.dispose();
     super.dispose();
@@ -71,6 +73,7 @@ class _BattleViewState extends State<BattleView> {
       _chatMessages.add({'sender': 'Tú', 'message': t});
       _chatController.clear();
     });
+    _chatFocusNode.requestFocus();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_chatScroll.hasClients) {
         _chatScroll.animateTo(
@@ -623,7 +626,7 @@ class _BattleViewState extends State<BattleView> {
             const SizedBox(height: 12),
             Expanded(
               child: Container(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.only(right: 4),
                 decoration: BoxDecoration(
                   color: AppColors.background,
                   borderRadius: BorderRadius.circular(AppRadius.md),
@@ -631,6 +634,7 @@ class _BattleViewState extends State<BattleView> {
                 ),
                 child: ListView.builder(
                   controller: _chatScroll,
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   itemCount: _chatMessages.length,
                   itemBuilder: (context, i) {
                     final m = _chatMessages[i];
@@ -646,8 +650,8 @@ class _BattleViewState extends State<BattleView> {
                           Flexible(
                             child: Container(
                               padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 8,
+                                horizontal: 16,
+                                vertical: 10,
                               ),
                               decoration: BoxDecoration(
                                 color:
@@ -705,6 +709,7 @@ class _BattleViewState extends State<BattleView> {
                 Expanded(
                   child: TextField(
                     controller: _chatController,
+                    focusNode: _chatFocusNode,
                     decoration: const InputDecoration(
                       hintText: 'Escribe un mensaje...',
                     ),
