@@ -37,7 +37,7 @@ module Consumers
       return if event.nil? || event.to_s.strip.empty?
 
       # Convierte "event_name" a "Services::Consumers::EventNameEvent"
-      class_name = "Services::Consumers::#{event}_event".camelize
+      class_name = "services/consumers/#{event}_event".camelize
       klass = class_name.safe_constantize
 
       if klass
