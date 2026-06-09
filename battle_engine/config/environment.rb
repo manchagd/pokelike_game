@@ -2,6 +2,7 @@
 
 require "active_support"
 require "active_support/core_ext"
+require "dry-validation"
 require "zeitwerk"
 require "json"
 
