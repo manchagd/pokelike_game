@@ -9,8 +9,8 @@ module Services
         player = Player.find_or_create_by!(name: payload[:name])
 
         Publishers::PlayerEventsPublisher.publish(
-          ::PlayerEventsMessages::INFO,
-          player.info_event_payload
+          Messages::PlayerEvents::Events::INFO,
+          Messages::PlayerEvents::Payloads.info(player)
         )
       end
     end
