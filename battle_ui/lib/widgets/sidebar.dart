@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../theme.dart';
 import '../utils/battle_socket_service.dart';
+import '../utils/pokemon_type_icons.dart';
 
 class Sidebar extends StatefulWidget {
   final int selectedIndex;
@@ -159,6 +160,43 @@ class _SidebarState extends State<Sidebar> {
           ],
 
           const Spacer(),
+          _buildTypeLegend(text),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTypeLegend(TextTheme text) {
+    const allTypes = [
+      'normal', 'fire', 'water', 'electric', 'grass', 'ice',
+      'fighting', 'poison', 'ground', 'flying', 'psychic', 'bug',
+      'rock', 'ghost', 'dragon', 'dark', 'steel', 'fairy'
+    ];
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'LEYENDA DE TIPOS',
+            style: text.labelSmall?.copyWith(
+              color: AppColors.onSurfaceMuted,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 1.2,
+            ),
+          ),
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            children: allTypes.map((type) {
+              return Tooltip(
+                message: type.toUpperCase(),
+                child: PokemonTypeIcons.buildTypeIcon(type, size: 16),
+              );
+            }).toList(),
+          ),
         ],
       ),
     );
