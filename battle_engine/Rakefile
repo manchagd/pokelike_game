@@ -142,7 +142,7 @@ namespace :rabbitmq do
     Publishers::PlayerEventsPublisher.publish("info", {
       player: {
         id: 101,
-        name: "AshKetchum",
+        name: "Mancha",
         teams: [
           {
             name: "Equipo Fuego",
