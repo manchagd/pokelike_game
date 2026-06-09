@@ -298,12 +298,54 @@ class BattleSocketService with ChangeNotifier {
     final joins = payload['joins'] as Map<String, dynamic>? ?? {};
     final leaves = payload['leaves'] as Map<String, dynamic>? ?? {};
 
+    // Sync joins
     joins.forEach((key, value) {
-      _presences[key] = value;
+      if (value is Map && value.containsKey('metas')) {
+        final newMetas = value['metas'] as List? ?? [];
+        if (!_presences.containsKey(key)) {
+          _presences[key] = {'metas': List.from(newMetas)};
+        } else {
+          final existingVal = _presences[key];
+          if (existingVal is Map && existingVal.containsKey('metas')) {
+            final existingMetas = List.from(existingVal['metas'] as List);
+            for (var newMeta in newMetas) {
+              if (newMeta is Map) {
+                final phxRef = newMeta['phx_ref'];
+                // Evitar duplicados
+                existingMetas.removeWhere((m) => m is Map && m['phx_ref'] == phxRef);
+                existingMetas.add(newMeta);
+              }
+            }
+            _presences[key] = {'metas': existingMetas};
+          } else {
+            _presences[key] = {'metas': List.from(newMetas)};
+          }
+        }
+      }
     });
 
+    // Sync leaves
     leaves.forEach((key, value) {
-      _presences.remove(key);
+      if (value is Map && value.containsKey('metas')) {
+        final oldMetas = value['metas'] as List? ?? [];
+        if (_presences.containsKey(key)) {
+          final existingVal = _presences[key];
+          if (existingVal is Map && existingVal.containsKey('metas')) {
+            final existingMetas = List.from(existingVal['metas'] as List);
+            for (var oldMeta in oldMetas) {
+              if (oldMeta is Map) {
+                final phxRef = oldMeta['phx_ref'];
+                existingMetas.removeWhere((m) => m is Map && m['phx_ref'] == phxRef);
+              }
+            }
+            if (existingMetas.isEmpty) {
+              _presences.remove(key);
+            } else {
+              _presences[key] = {'metas': existingMetas};
+            }
+          }
+        }
+      }
     });
 
     _updateActiveCount();
