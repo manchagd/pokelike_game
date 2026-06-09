@@ -40,12 +40,29 @@ module Consumers
       class_name = "services/consumers/#{event}_event".camelize
       klass = class_name.safe_constantize
 
-      if klass
-        BattleEngine.logger.info("[Consumer] Invoking service: #{class_name}")
-        klass.new.call(event_payload)
-      else
+      unless klass
         BattleEngine.logger.warn("[Consumer] No service found for event '#{event}' (expected: #{class_name})")
+        return
       end
+
+      # Convierte "event_name" a "Contracts::Consumers::EventNameContract"
+      contract_class_name = "contracts/consumers/#{event}_contract".camelize
+      contract_klass = contract_class_name.safe_constantize
+
+      if contract_klass
+        BattleEngine.logger.info("[Consumer] Validating payload with contract: #{contract_class_name}")
+        result = contract_klass.new.call(event_payload)
+
+        if result.success?
+          event_payload = result.to_h
+        else
+          BattleEngine.logger.error("[Consumer] Validation failed for event '#{event}': #{result.errors.to_h}")
+          return
+        end
+      end
+
+      BattleEngine.logger.info("[Consumer] Invoking service: #{class_name}")
+      klass.new.call(event_payload)
     end
   end
 end
