@@ -2,8 +2,10 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 import '../theme.dart';
 import '../nav.dart';
+import '../utils/battle_socket_service.dart';
 
 class MatchesView extends StatefulWidget {
   const MatchesView({super.key});
@@ -15,11 +17,10 @@ class MatchesView extends StatefulWidget {
 class _MatchesViewState extends State<MatchesView> {
   String _selectedTeam = 'Equipo Aleatorio';
 
-  final List<String> _teams = const [
-    'Equipo Aleatorio',
-    'Equipo Lluvia',
-    'Trick Room Core',
-  ];
+  List<String> _getTeams(Map<String, dynamic> profile) {
+    final rawTeams = (profile['teams'] as List?)?.cast<Map>() ?? [];
+    return ['Equipo Aleatorio'] + rawTeams.map((t) => (t['name'] as String?) ?? 'Equipo').toList();
+  }
 
   String _generateBattleCode() {
     final r = Random();
@@ -172,19 +173,64 @@ class _MatchesViewState extends State<MatchesView> {
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
+    final socketService = context.watch<BattleSocketService>();
+    final profile = socketService.currentPlayer;
+    final activeUsers = socketService.activeUsersCount;
+
+    // MatchesView is only rendered by HomePage when profile is non-null
+    if (profile == null) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    final teamsList = _getTeams(profile);
 
     return Padding(
       padding: const EdgeInsets.all(32),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Arena de batalla',
-            style: text.headlineMedium?.copyWith(fontWeight: FontWeight.w800),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Arena de batalla',
+                style: text.headlineMedium?.copyWith(fontWeight: FontWeight.w800),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: AppColors.success.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: AppColors.success.withValues(alpha: 0.3)),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 8,
+                      height: 8,
+                      decoration: const BoxDecoration(
+                        color: AppColors.success,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      '$activeUsers en línea',
+                      style: const TextStyle(
+                        color: AppColors.success,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 6),
           Text(
-            'Encuentra un oponente y demuestra tus habilidades tácticas.',
+            'Hola, ${profile["name"]}. Encuentra un oponente y demuestra tus habilidades tácticas.',
             style: text.bodyMedium?.copyWith(color: AppColors.onSurfaceMuted),
           ),
           const SizedBox(height: 28),
@@ -196,13 +242,13 @@ class _MatchesViewState extends State<MatchesView> {
                   return SingleChildScrollView(
                     child: Column(
                       children: [
-                        _buildTeamSelection(),
+                        _buildTeamSelection(teamsList),
                         const SizedBox(height: 20),
                         _buildActionsCard(),
                         const SizedBox(height: 20),
                         _buildActiveBattlesCard(),
                         const SizedBox(height: 20),
-                        _buildHistoryCard(),
+                        _buildHistoryCard(profile),
                       ],
                     ),
                   );
@@ -213,7 +259,7 @@ class _MatchesViewState extends State<MatchesView> {
                     Expanded(
                       flex: 5,
                       child: SingleChildScrollView(
-                        child: _buildTeamSelection(),
+                        child: _buildTeamSelection(teamsList),
                       ),
                     ),
                     const SizedBox(width: 20),
@@ -226,7 +272,7 @@ class _MatchesViewState extends State<MatchesView> {
                             const SizedBox(height: 20),
                             _buildActiveBattlesCard(),
                             const SizedBox(height: 20),
-                            _buildHistoryCard(),
+                            _buildHistoryCard(profile),
                           ],
                         ),
                       ),
@@ -241,7 +287,7 @@ class _MatchesViewState extends State<MatchesView> {
     );
   }
 
-  Widget _buildTeamSelection() {
+  Widget _buildTeamSelection(List<String> teams) {
     final text = Theme.of(context).textTheme;
     return Card(
       child: Padding(
@@ -264,7 +310,7 @@ class _MatchesViewState extends State<MatchesView> {
               ],
             ),
             const SizedBox(height: 16),
-            ..._teams.map((t) {
+            ...teams.map((t) {
               final selected = _selectedTeam == t;
               return Padding(
                 padding: const EdgeInsets.only(bottom: 10),
@@ -484,20 +530,12 @@ class _MatchesViewState extends State<MatchesView> {
     );
   }
 
-  Widget _buildHistoryCard() {
+  Widget _buildHistoryCard(Map<String, dynamic> profile) {
     final text = Theme.of(context).textTheme;
-    final history = const [
-      {'result': 'V', 'opponent': 'Entrenador A'},
-      {'result': 'V', 'opponent': 'Entrenador B'},
-      {'result': 'D', 'opponent': 'Entrenador C'},
-      {'result': 'V', 'opponent': 'Entrenador D'},
-      {'result': 'V', 'opponent': 'Entrenador E'},
-      {'result': 'D', 'opponent': 'Entrenador F'},
-      {'result': 'V', 'opponent': 'Entrenador G'},
-      {'result': 'V', 'opponent': 'Entrenador H'},
-    ];
-    final wins = history.where((h) => h['result'] == 'V').length;
-    final losses = history.length - wins;
+    final historyData = profile['battle_history'] as Map<String, dynamic>?;
+    final wins = historyData?['victories'] as int? ?? 0;
+    final losses = historyData?['defeats'] as int? ?? 0;
+    final historyList = (historyData?['history'] as List?)?.cast<String>() ?? [];
 
     return Card(
       child: Padding(
@@ -531,8 +569,9 @@ class _MatchesViewState extends State<MatchesView> {
             Wrap(
               spacing: 6,
               runSpacing: 6,
-              children: history.map((b) {
-                final isV = b['result'] == 'V';
+              children: historyList.map((result) {
+                final isV = result == 'V' || result == 'win' || result == 'W';
+                final displayChar = (result.isNotEmpty) ? result[0].toUpperCase() : 'V';
                 final c = isV ? AppColors.success : AppColors.danger;
                 return Container(
                   width: 28, height: 28,
@@ -543,7 +582,7 @@ class _MatchesViewState extends State<MatchesView> {
                     border: Border.all(color: c.withValues(alpha: 0.5)),
                   ),
                   child: Text(
-                    b['result']!,
+                    displayChar,
                     style: TextStyle(color: c, fontWeight: FontWeight.w800, fontSize: 12),
                   ),
                 );
@@ -590,10 +629,9 @@ class _StatChip extends StatelessWidget {
   }
 }
 
-/// Formatter para códigos XXX-XXX
 class _BattleCodeFormatter extends TextInputFormatter {
   @override
-  TextEditingValue formatEditUpdate(TextEditingValue oldValue, TextEditingValue newValue) {
+  TextEditingValue formatEditUpdate(TextEditingValue oldValue, newValue) {
     final digits = newValue.text.replaceAll(RegExp(r'[^0-9]'), '');
     final limited = digits.length > 6 ? digits.substring(0, 6) : digits;
     String formatted = limited.length <= 3

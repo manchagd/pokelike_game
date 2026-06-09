@@ -13,8 +13,11 @@ defmodule BattleRealTime.Application do
       {Phoenix.PubSub, name: BattleRealTime.PubSub},
       # AMQP processes — Connection first so Consumer/Publisher can open channels
       BattleRealTime.AMQP.Connection,
-      BattleRealTime.AMQP.Consumer,
-      BattleRealTime.AMQP.Publisher,
+      BattleRealTime.AMQP.Consumers.BattleEventsConsumer,
+      BattleRealTime.AMQP.Publishers.BattleActionsPublisher,
+      BattleRealTime.AMQP.Consumers.PlayerEventsConsumer,
+      BattleRealTime.AMQP.Publishers.PlayerActionsPublisher,
+      BattleRealTimeWeb.Presence,
       # Start to serve requests, typically the last entry
       BattleRealTimeWeb.Endpoint
     ]
