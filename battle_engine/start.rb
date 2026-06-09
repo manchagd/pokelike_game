@@ -20,5 +20,15 @@ trap("TERM") do
   exit
 end
 
-# Start the consumer (blocks the main thread)
-Consumers::BattleEventsConsumer.new.start
+# Start both consumers concurrently in separate threads
+threads = []
+
+threads << Thread.new do
+  Consumers::BattleEventsConsumer.new.start
+end
+
+threads << Thread.new do
+  Consumers::PlayerActionsConsumer.new.start
+end
+
+threads.each(&:join)

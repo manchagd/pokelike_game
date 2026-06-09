@@ -127,7 +127,7 @@ class _BattleViewState extends State<BattleView> {
         padding: const EdgeInsets.all(24),
         child: LayoutBuilder(
           builder: (context, c) {
-            final isWide = c.maxWidth > 900;
+            final isWide = c.maxWidth > 900 && c.maxHeight > 700;
             if (!isWide) {
               return SingleChildScrollView(
                 child: Column(
@@ -326,8 +326,8 @@ class _BattleViewState extends State<BattleView> {
                                   ),
                                 ],
                               ),
-                              child: Icon(
-                                PokemonTypeIcons.getIcon(a['type']),
+                              child: PokemonTypeIcons.buildSvgIcon(
+                                a['type'],
                                 color: Colors.white,
                                 size: 16,
                               ),

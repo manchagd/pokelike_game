@@ -143,6 +143,13 @@ class _TeamCard extends StatelessWidget {
     return [AppColors.primary];
   }
 
+  List<String> _parseMonsterTypes(dynamic value) {
+    if (value is String) {
+      return value.split(',').map((t) => t.trim()).toList();
+    }
+    return [];
+  }
+
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
@@ -202,6 +209,7 @@ class _TeamCard extends StatelessWidget {
                   children: monsters.map((m) {
                     final colorValue = m['color'];
                     final colors = _parseMonsterColors(colorValue);
+                    final types = _parseMonsterTypes(colorValue);
                     final c1 = colors[0];
                     final c2 = colors.length > 1 ? colors[1] : c1;
 
@@ -223,10 +231,14 @@ class _TeamCard extends StatelessWidget {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.catching_pokemon, color: c1, size: 14),
-                          if (colors.length > 1) ...[
-                            const SizedBox(width: 3),
-                            Icon(Icons.catching_pokemon, color: c2, size: 14),
+                          if (types.isNotEmpty) ...[
+                            PokemonTypeIcons.buildSvgIcon(types[0], color: c1, size: 14),
+                            if (types.length > 1) ...[
+                              const SizedBox(width: 4),
+                              PokemonTypeIcons.buildSvgIcon(types[1], color: c2, size: 14),
+                            ],
+                          ] else ...[
+                            Icon(Icons.catching_pokemon, color: c1, size: 14),
                           ],
                           const SizedBox(width: 8),
                           Text(
