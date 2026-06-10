@@ -58,6 +58,7 @@ Todas las utilidades están definidas en el `Rakefile` y se ejecutan usando `bun
 | `db:setup` | Ejecuta create + migrate + seed en secuencia |
 | `console` | Abre una sesión interactiva **Pry** con el entorno completo cargado |
 | `rabbitmq:publish_sample` | Publica un mensaje de prueba en la cola `battle_events` de RabbitMQ |
+| `rabbitmq:publish_player_event` | Publica un mensaje de prueba (`info`) en la cola `player_events` de RabbitMQ |
 
 ## Arquitectura de Boot y Ejecución
 
@@ -89,6 +90,12 @@ start.rb (Entrypoint de ejecución del servicio)
 6. **`config/rabbitmq.rb`** — Maneja la conexión Bunny (connect/disconnect/channel).
 7. **`config/environment.rb`** — Orquesta la carga: requiere los módulos anteriores y configura Zeitwerk para autoload de `app/`.
 8. **`app/consumers/battle_events_consumer.rb`** — Consumer que escucha la cola `battle_events` y loggea los mensajes recibidos.
+
+## Validación de Esquemas (Contratos)
+
+El motor utiliza `dry-validation` para garantizar la integridad de los mensajes intercambiados con otros sistemas:
+- **Inbound (Entrante)**: El `BaseConsumer` busca un contrato en `app/contracts/consumers/<event_name>_contract.rb`. Si existe, valida el payload recibido antes de invocar al servicio correspondiente.
+- **Outbound (Saliente)**: El `BasePublisher` busca un contrato en `app/contracts/publishers/<event_name>_contract.rb`. Si existe, valida el payload generado antes de enviarlo a RabbitMQ. Si falla, escribe un error en el log y descarta la publicación para evitar enviar datos corruptos a la red.
 
 ## Variables de entorno
 
@@ -130,8 +137,14 @@ battle_engine/
 │   └── logger.rb        # Logger dual
 │
 ├── app/
-│   └── consumers/
-│       └── battle_events_consumer.rb  # Consumer RabbitMQ
+│   ├── consumers/       # Consumers de colas de RabbitMQ (Inbound)
+│   ├── contracts/       # Validación de esquemas con dry-validation
+│   │   ├── consumers/   # Contratos para mensajes entrantes (Inbound)
+│   │   └── publishers/  # Contratos para mensajes salientes (Outbound)
+│   ├── publishers/      # Publishers para enviar a colas RabbitMQ (Outbound)
+│   ├── services/        # Servicios de procesamiento de eventos (Handlers)
+│   ├── messages/        # Estructura y payloads de eventos salientes
+│   └── models/          # Modelos de datos ActiveRecord
 │
 ├── db/
 │   ├── schema.rb        # Esquema ActiveRecord

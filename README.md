@@ -71,6 +71,7 @@ El motor de batalla procesa la solicitud, genera un ID único y crea el perfil i
     "player": {
       "id": 101,
       "name": "AshKetchum",
+      "team": "A",
       "teams": [
         {
           "name": "Equipo Lluvia",
@@ -97,8 +98,18 @@ El motor de batalla procesa la solicitud, genera un ID único y crea el perfil i
       }
     },
     "battles": [
-      { "player": "Tuto", "id": "123-345" },
-      { "player": "Syth", "id": "345-125" }
+      {
+        "id": 123,
+        "opponent": [
+          { "name": "Tuto", "team": "A" }
+        ]
+      },
+      {
+        "id": 345,
+        "opponent": [
+          { "name": "Syth", "team": "A" }
+        ]
+      }
     ]
   }
 }
