@@ -3,12 +3,16 @@ defmodule BattleRealTime.AMQP.Publisher do
   A behavior module that provides standard boilerplate for AMQP publishers.
   """
 
+  @callback validate(action :: String.t(), payload :: map()) :: {:ok, map()} | {:error, Ecto.Changeset.t()}
+
   defmacro __using__(opts) do
     queue = Keyword.fetch!(opts, :queue)
 
     quote do
       use GenServer
       require Logger
+
+      @behaviour BattleRealTime.AMQP.Publisher
 
       @queue unquote(queue)
       @reconnect_interval 5_000
@@ -18,10 +22,38 @@ defmodule BattleRealTime.AMQP.Publisher do
       end
 
       @doc """
+      Default validation callback. Override this in concrete publishers
+      to add declarative pattern-matching validation contracts.
+      """
+      @spec validate(String.t(), map()) :: {:ok, map()} | {:error, Ecto.Changeset.t()}
+      def validate(action, _payload) do
+        changeset =
+          %Ecto.Changeset{}
+          |> Ecto.Changeset.add_error(:action, "is invalid or does not have a contract: #{action}")
+
+        {:error, changeset}
+      end
+
+      @doc """
       Publishes an action to the queue.
       """
       def publish(action, payload \\ %{}) do
-        GenServer.cast(__MODULE__, {:publish, action, payload})
+        case validate(action, payload) do
+          {:ok, validated_payload} ->
+            GenServer.cast(__MODULE__, {:publish, action, validated_payload})
+            :ok
+
+          {:error, changeset} ->
+            errors =
+              Ecto.Changeset.traverse_errors(changeset, fn {msg, opts} ->
+                Regex.replace(~r"%{(\w+)}", msg, fn _, key ->
+                  opts |> Keyword.get(String.to_existing_atom(key), key) |> to_string()
+                end)
+              end)
+
+            Logger.error("[#{inspect(__MODULE__)}] Outbound contract validation failed for action '#{action}': #{inspect(errors)}")
+            {:error, errors}
+        end
       end
 
       # --- Callbacks ---
@@ -83,7 +115,7 @@ defmodule BattleRealTime.AMQP.Publisher do
         {:noreply, chan}
       end
 
-      defoverridable start_link: 1, publish: 2, init: 1, handle_info: 2, handle_cast: 2
+      defoverridable start_link: 1, publish: 2, init: 1, handle_info: 2, handle_cast: 2, validate: 2
     end
   end
 end

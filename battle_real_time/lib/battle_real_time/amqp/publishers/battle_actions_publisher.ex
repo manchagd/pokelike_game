@@ -4,4 +4,18 @@ defmodule BattleRealTime.AMQP.Publishers.BattleActionsPublisher do
   battle_engine consumes from this queue and applies business logic.
   """
   use BattleRealTime.AMQP.Publisher, queue: "battle_actions"
+
+  @impl true
+  def validate("attack", _payload) do
+    {:error, %Ecto.Changeset{action: :insert}}
+  end
+
+  def validate("change", _payload) do
+    {:error, %Ecto.Changeset{action: :insert}}
+  end
+
+  def validate(_action, payload) do
+    # Temporarily permit all battle actions until contracts are written
+    {:ok, payload}
+  end
 end
