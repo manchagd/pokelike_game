@@ -143,6 +143,7 @@ namespace :rabbitmq do
       player: {
         id: 101,
         name: "Mancha",
+        team: "A",
         teams: [
           {
             name: "Equipo Fuego",
@@ -158,7 +159,8 @@ namespace :rabbitmq do
           defeats: 2,
           history: ["V", "V", "D", "V", "D"]
         }
-      }
+      },
+      battles: []
     })
   end
 end

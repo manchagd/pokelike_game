@@ -10,6 +10,7 @@ module Messages
           player: {
             id: player.id,
             name: player.name,
+            team: "A",
             teams: [],
             battle_history: {
               victories: player.battles.select { |b| b.winner?(player) }.count,
@@ -33,9 +34,9 @@ module Messages
       # Private helper methods
 
       def battle_player_names(player, players)
-        # TODO: Ajustar a equipos
-        # {name: "player_x", team: "A"} -> nombre del jugador y su equipo
-        players.filter { |p| p.id != player.id }.map(&:name).join(", ")
+        # Ajustado a equipos (por ahora fijo en "A")
+        # [{name: "player_x", team: "A"}] -> nombre del jugador y su equipo
+        players.filter { |p| p.id != player.id }.map { |p| { name: p.name, team: "A" } }
       end
       private_class_method :battle_player_names
     end

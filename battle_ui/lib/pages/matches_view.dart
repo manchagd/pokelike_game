@@ -22,6 +22,28 @@ class _MatchesViewState extends State<MatchesView> {
     return ['Equipo Aleatorio'] + rawTeams.map((t) => (t['name'] as String?) ?? 'Equipo').toList();
   }
 
+  String _getOpponentDisplay(dynamic opponentData) {
+    if (opponentData == null) return 'Oponente';
+    if (opponentData is String) return opponentData;
+    if (opponentData is List) {
+      if (opponentData.isEmpty) return 'Oponente';
+      return opponentData.map((op) {
+        if (op is Map) {
+          final name = op['name'] ?? '';
+          final team = op['team'] ?? '';
+          return team.isNotEmpty ? '$name ($team)' : name;
+        }
+        return op.toString();
+      }).join(', ');
+    }
+    if (opponentData is Map) {
+      final name = opponentData['name'] ?? '';
+      final team = opponentData['team'] ?? '';
+      return team.isNotEmpty ? '$name ($team)' : name;
+    }
+    return opponentData.toString();
+  }
+
   String _generateBattleCode() {
     final r = Random();
     return '${r.nextInt(900) + 100}-${r.nextInt(900) + 100}';
@@ -502,7 +524,7 @@ class _MatchesViewState extends State<MatchesView> {
                                       ),
                                       Flexible(
                                         child: Text(
-                                          b['player'] ?? 'Oponente',
+                                          _getOpponentDisplay(b['opponent'] ?? b['player']),
                                           style: const TextStyle(
                                             fontWeight: FontWeight.w600,
                                             color: AppColors.onSurface,

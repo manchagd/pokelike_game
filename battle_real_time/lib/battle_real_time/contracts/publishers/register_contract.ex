@@ -1,4 +1,4 @@
-defmodule BattleRealTime.Contracts.RegisterContract do
+defmodule BattleRealTime.Contracts.Publishers.RegisterContract do
   @moduledoc """
   Validates the payload for the register player action.
   """
@@ -7,7 +7,7 @@ defmodule BattleRealTime.Contracts.RegisterContract do
 
   @primary_key false
   embedded_schema do
-    field :name, :string
+    field(:name, :string)
   end
 
   @doc """
