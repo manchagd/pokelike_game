@@ -6,7 +6,7 @@ defmodule BattleRealTime.AMQP.Publishers.PlayerActionsPublisher do
 
   @impl true
   def validate("register", payload) do
-    BattleRealTime.Contracts.Publishers.RegisterContract.validate(payload)
+    BattleRealTime.Contracts.Publishers.PlayerActions.RegisterContract.validate(payload)
   end
 
   def validate(action, payload), do: super(action, payload)

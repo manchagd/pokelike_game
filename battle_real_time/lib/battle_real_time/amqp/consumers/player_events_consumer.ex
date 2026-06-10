@@ -5,9 +5,24 @@ defmodule BattleRealTime.AMQP.Consumers.PlayerEventsConsumer do
   """
   use BattleRealTime.AMQP.Consumer, queue: "player_events"
 
-  def process_message(event, %{"player" => %{"id" => id, "name" => name}} = data)
-      when not is_nil(id) and not is_nil(name) do
-    broadcast_player_info(name, event, data)
+  def process_message("info" = event, data) do
+    case BattleRealTime.Contracts.Consumers.PlayerEvents.InfoContract.validate(data) do
+      {:ok, validated_data} ->
+        name = validated_data.player.name
+        broadcast_player_info(name, event, validated_data)
+
+      {:error, changeset} ->
+        errors =
+          Ecto.Changeset.traverse_errors(changeset, fn {msg, opts} ->
+            Regex.replace(~r"%{(\w+)}", msg, fn _, key ->
+              opts |> Keyword.get(String.to_existing_atom(key), key) |> to_string()
+            end)
+          end)
+
+        Logger.error(
+          "[AMQP.PlayerEventsConsumer] Inbound contract validation failed for event '#{event}': #{inspect(errors)}"
+        )
+    end
   end
 
   def process_message(event, data) do
