@@ -23,5 +23,5 @@ defmodule BattleRealTime.Contracts.Publishers.RegisterContract do
   end
 
   defp normalize({:ok, struct}), do: {:ok, Map.from_struct(struct)}
-  defp normalize(params), do: params
+  defp normalize({:error, changeset}), do: {:error, changeset}
 end
