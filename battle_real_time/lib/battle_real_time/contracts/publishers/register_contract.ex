@@ -10,17 +10,18 @@ defmodule BattleRealTime.Contracts.Publishers.RegisterContract do
     field(:name, :string)
   end
 
-  @doc """
-  Validates the input parameters. Returns `{:ok, validated_map}` or `{:error, changeset}`.
-  """
-  def validate(params) do
+  def changeset(params) do
     %__MODULE__{}
     |> cast(params, [:name])
     |> validate_required([:name])
-    |> apply_action(:insert)
-    |> case do
-      {:ok, struct} -> {:ok, Map.from_struct(struct)}
-      {:error, changeset} -> {:error, changeset}
-    end
+    |> apply_action(:validate)
   end
+
+  def validate(params) do
+    changeset(params)
+    |> normalize()
+  end
+
+  defp normalize({:ok, struct}), do: {:ok, Map.from_struct(struct)}
+  defp normalize(params), do: params
 end
