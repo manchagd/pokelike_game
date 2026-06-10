@@ -5,19 +5,17 @@ defmodule BattleRealTime.AMQP.Consumers.PlayerEventsConsumer do
   """
   use BattleRealTime.AMQP.Consumer, queue: "player_events"
 
+  alias BattleRealTime.Contracts.Consumers.PlayerEvents.InfoContract
+  alias BattleRealTime.Contracts.Contract
+
   def process_message("info" = event, data) do
-    case BattleRealTime.Contracts.Consumers.PlayerEvents.InfoContract.validate(data) do
+    case InfoContract.validate(data) do
       {:ok, validated_data} ->
         name = validated_data.player.name
         broadcast_player_info(name, event, validated_data)
 
       {:error, changeset} ->
-        errors =
-          Ecto.Changeset.traverse_errors(changeset, fn {msg, opts} ->
-            Regex.replace(~r"%{(\w+)}", msg, fn _, key ->
-              opts |> Keyword.get(String.to_existing_atom(key), key) |> to_string()
-            end)
-          end)
+        errors = Contract.format_errors(changeset)
 
         Logger.error(
           "[AMQP.PlayerEventsConsumer] Inbound contract validation failed for event '#{event}': #{inspect(errors)}"

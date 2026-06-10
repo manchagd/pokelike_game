@@ -4,9 +4,11 @@ defmodule BattleRealTime.AMQP.Publishers.PlayerActionsPublisher do
   """
   use BattleRealTime.AMQP.Publisher, queue: "player_actions"
 
+  alias BattleRealTime.Contracts.Publishers.PlayerActions.RegisterContract
+
   @impl true
   def validate("register", payload) do
-    BattleRealTime.Contracts.Publishers.PlayerActions.RegisterContract.validate(payload)
+    RegisterContract.validate(payload)
   end
 
   def validate(action, payload), do: super(action, payload)

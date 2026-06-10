@@ -1,6 +1,7 @@
 defmodule BattleRealTime.Contracts.Consumers.PlayerEvents.InfoContractTest do
   use ExUnit.Case, async: true
   alias BattleRealTime.Contracts.Consumers.PlayerEvents.InfoContract
+  alias BattleRealTime.Contracts.Contract
 
   describe "validate/1" do
     test "returns {:ok, map} with valid, fully populated parameters" do
@@ -103,10 +104,6 @@ defmodule BattleRealTime.Contracts.Consumers.PlayerEvents.InfoContractTest do
 
   # Helper to extract Ecto errors
   defp errors_on(changeset) do
-    Ecto.Changeset.traverse_errors(changeset, fn {msg, opts} ->
-      Regex.replace(~r"%{(\w+)}", msg, fn _, key ->
-        opts |> Keyword.get(String.to_existing_atom(key), key) |> to_string()
-      end)
-    end)
+    Contract.format_errors(changeset)
   end
 end

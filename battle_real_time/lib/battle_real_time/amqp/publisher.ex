@@ -11,6 +11,7 @@ defmodule BattleRealTime.AMQP.Publisher do
     quote do
       use GenServer
       require Logger
+      alias BattleRealTime.Contracts.Contract
 
       @behaviour BattleRealTime.AMQP.Publisher
 
@@ -44,12 +45,7 @@ defmodule BattleRealTime.AMQP.Publisher do
             :ok
 
           {:error, changeset} ->
-            errors =
-              Ecto.Changeset.traverse_errors(changeset, fn {msg, opts} ->
-                Regex.replace(~r"%{(\w+)}", msg, fn _, key ->
-                  opts |> Keyword.get(String.to_existing_atom(key), key) |> to_string()
-                end)
-              end)
+            errors = Contract.format_errors(changeset)
 
             Logger.error("[#{inspect(__MODULE__)}] Outbound contract validation failed for action '#{action}': #{inspect(errors)}")
             {:error, errors}
