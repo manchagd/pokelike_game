@@ -26,6 +26,7 @@ graph TD
 | `player:#{name}` | Canal temporal para el registro del entrenador. | `register` (inbound), `player_event` (outbound) |
 | `player:#{id}` | Canal permanente del perfil del entrenador registrado. | `player_event` (outbound) |
 | `battle:#{battle_id}` | Combate activo en tiempo real. | `action` (inbound), `battle_event` (outbound) |
+| `battle_chat:#{battle_id}` | Chat volátil de la batalla en tiempo real. | `send_message` (inbound), `new_message` (outbound) |
 
 ### Colas de RabbitMQ (AMQP)
 | Cola | Origen | Destino | Propósito |
@@ -197,3 +198,54 @@ El motor de batalla ejecuta el turno cuando ambos jugadores han enviado sus acci
   }
 }
 ```
+
+---
+
+## 4. Canal de Chat de Batalla (Battle Chat Flow)
+
+Este canal gestiona la mensajería instantánea dentro de una batalla. Al ser un chat **volátil**, los mensajes no se persisten en base de datos ni en colas de RabbitMQ; simplemente se retransmiten (broadcast) a todos los clientes que están escuchando la misma sala.
+
+### 4.1 Unirse al Canal (Join)
+Para unirse, el cliente se conecta al canal especificando el `battle_id` y puede enviar parámetros opcionales para identificarse (`username` y `player_id`).
+
+* **Canal Phoenix**: `battle_chat:#{battle_id}`
+* **Parámetros de entrada (opcionales)**:
+  - `username`: Nombre a mostrar (por defecto `"Anonymous"`).
+  - `player_id`: ID del jugador (opcional).
+
+**Payload de confirmación al unirse**:
+```json
+{
+  "battle_id": "123",
+  "username": "Ash Ketchum",
+  "player_id": "player_abc"
+}
+```
+
+### 4.2 Envío de Mensaje (Acción Inbound)
+Cualquier miembro de la sala de chat puede enviar un mensaje al canal.
+
+* **Evento Phoenix**: `send_message`
+
+**Payload enviado por el cliente**:
+```json
+{
+  "body": "¡Prepárate para perder!"
+}
+```
+
+### 4.3 Recepción de Mensaje (Evento Outbound / Broadcast)
+Al recibir un mensaje válido, el servidor añade los detalles del remitente junto con una marca de tiempo y lo propaga a toda la sala de chat.
+
+* **Evento Phoenix**: `new_message`
+
+**Payload recibido por los clientes**:
+```json
+{
+  "body": "¡Prepárate para perder!",
+  "username": "Ash Ketchum",
+  "player_id": "player_abc",
+  "timestamp": "2026-06-10T23:02:05Z"
+}
+```
+
