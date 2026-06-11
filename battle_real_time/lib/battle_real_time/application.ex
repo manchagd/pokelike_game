@@ -11,6 +11,8 @@ defmodule BattleRealTime.Application do
       BattleRealTimeWeb.Telemetry,
       {DNSCluster, query: Application.get_env(:battle_real_time, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: BattleRealTime.PubSub},
+      {Registry, keys: :unique, name: BattleRealTime.BattleRegistry},
+      {DynamicSupervisor, name: BattleRealTime.BattleSupervisor, strategy: :one_for_one},
       # AMQP processes — Connection first so Consumer/Publisher can open channels
       BattleRealTime.AMQP.Connection,
       BattleRealTime.AMQP.Consumers.BattleEventsConsumer,

@@ -6,11 +6,7 @@ defmodule BattleRealTime.AMQP.Publishers.BattleActionsPublisher do
   use BattleRealTime.AMQP.Publisher, queue: "battle_actions"
 
   @impl true
-  def validate("attack", _payload) do
-    {:error, %Ecto.Changeset{action: :validate}}
-  end
-
-  def validate("change", _payload) do
+  def validate("turn_actions", _payload) do
     {:error, %Ecto.Changeset{action: :validate}}
   end
 

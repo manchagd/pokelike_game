@@ -1,7 +1,10 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 import '../theme.dart';
 import '../utils/pokemon_type_icons.dart';
+import '../utils/battle_socket_service.dart';
 
 class BattleView extends StatefulWidget {
   final String? battleCode;
@@ -17,48 +20,81 @@ class _BattleViewState extends State<BattleView> {
   final ScrollController _feedbackScroll = ScrollController();
   final ScrollController _chatScroll = ScrollController();
 
-  final List<String> _battleFeedback = [
-    '¡Batalla iniciada!',
-    'Esperando al oponente...',
-  ];
+  StreamSubscription? _battleSub;
+  StreamSubscription? _chatSub;
+  late BattleSocketService _socketService;
 
-  final List<Map<String, String>> _chatMessages = [
-    {'sender': 'Oponente', 'message': '¡Buena suerte!'},
-    {'sender': 'Tú', 'message': 'Igualmente, prepárate 😎'},
-    {'sender': 'Oponente', 'message': 'Jaja veremos...'},
-    {'sender': 'Tú', 'message': 'Mi Charizard te va a destruir'},
-    {'sender': 'Oponente', 'message': 'Mi Gengar dice lo contrario'},
-  ];
+  final List<String> _battleFeedback = [];
+  final List<Map<String, String>> _chatMessages = [];
 
-  final List<Map<String, dynamic>> _myMonsters = const [
-    {'name': 'Charizard', 'hp': 78, 'maxHp': 100, 'level': 50},
-    {'name': 'Blastoise', 'hp': 100, 'maxHp': 100, 'level': 48},
-    {'name': 'Venusaur', 'hp': 45, 'maxHp': 95, 'level': 49},
-    {'name': 'Pikachu', 'hp': 60, 'maxHp': 60, 'level': 45},
-  ];
+  List<Map<String, dynamic>> _myMonsters = [];
+  List<Map<String, dynamic>> _attacks = [];
+  Map<String, dynamic> _myActive = {};
+  Map<String, dynamic> _oppActive = {};
 
-  final List<Map<String, dynamic>> _attacks = const [
-    {'name': 'Lanzallamas', 'type': 'Fuego', 'power': 90},
-    {'name': 'Vuelo', 'type': 'Volador', 'power': 90},
-    {'name': 'Garra Dragón', 'type': 'Dragón', 'power': 80},
-    {'name': 'Onda Ígnea', 'type': 'Fuego', 'power': 95},
-  ];
+  int _turn = 1;
+  String _phase = 'waiting_actions';
 
-  final Map<String, dynamic> _myActive = const {
-    'name': 'Charizard',
-    'hp': 78,
-    'maxHp': 100,
-    'level': 50,
-  };
-  final Map<String, dynamic> _oppActive = const {
-    'name': 'Gengar',
-    'hp': 92,
-    'maxHp': 100,
-    'level': 52,
-  };
+  @override
+  void initState() {
+    super.initState();
+
+    _turn = 1;
+    _phase = 'waiting_actions';
+
+    _battleFeedback.addAll([
+      '¡Batalla iniciada!',
+      'Esperando al oponente...',
+    ]);
+
+    _chatMessages.add({
+      'sender': 'Sistema',
+      'message': 'Te has unido al chat del combate.',
+    });
+
+    _myMonsters = [
+      {'name': 'Charizard', 'hp': 78, 'maxHp': 100, 'level': 50},
+      {'name': 'Blastoise', 'hp': 100, 'maxHp': 100, 'level': 48},
+      {'name': 'Venusaur', 'hp': 45, 'maxHp': 95, 'level': 49},
+      {'name': 'Pikachu', 'hp': 60, 'maxHp': 60, 'level': 45},
+    ];
+
+    _attacks = [
+      {'name': 'Lanzallamas', 'type': 'Fuego', 'power': 90},
+      {'name': 'Vuelo', 'type': 'Volador', 'power': 90},
+      {'name': 'Garra Dragón', 'type': 'Dragón', 'power': 80},
+      {'name': 'Onda Ígnea', 'type': 'Fuego', 'power': 95},
+    ];
+
+    _myActive = {
+      'name': 'Charizard',
+      'hp': 78,
+      'maxHp': 100,
+      'level': 50,
+    };
+
+    _oppActive = {
+      'name': 'Gengar',
+      'hp': 92,
+      'maxHp': 100,
+      'level': 52,
+    };
+
+    _socketService = context.read<BattleSocketService>();
+    if (widget.battleCode != null) {
+      _socketService.connectToBattle(widget.battleCode!);
+    }
+
+    _battleSub = _socketService.battleEvents.listen(_handleBattleEvent);
+    _chatSub = _socketService.chatEvents.listen(_handleChatMessage);
+  }
 
   @override
   void dispose() {
+    _battleSub?.cancel();
+    _chatSub?.cancel();
+    _socketService.leaveBattle();
+
     _chatController.dispose();
     _chatFocusNode.dispose();
     _feedbackScroll.dispose();
@@ -66,14 +102,22 @@ class _BattleViewState extends State<BattleView> {
     super.dispose();
   }
 
-  void _sendMessage() {
-    final t = _chatController.text.trim();
-    if (t.isEmpty) return;
+  void _handleChatMessage(Map<String, dynamic> msg) {
+    final senderId = msg['player_id']?.toString();
+    final username = msg['username'] as String? ?? 'Anonymous';
+    final body = msg['body'] as String? ?? '';
+
+    final socketService = _socketService;
+    final meId = socketService.currentPlayer?['id']?.toString();
+    final isMe = senderId != null && senderId == meId;
+
     setState(() {
-      _chatMessages.add({'sender': 'Tú', 'message': t});
-      _chatController.clear();
+      _chatMessages.add({
+        'sender': isMe ? 'Tú' : username,
+        'message': body,
+      });
     });
-    _chatFocusNode.requestFocus();
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_chatScroll.hasClients) {
         _chatScroll.animateTo(
@@ -83,6 +127,90 @@ class _BattleViewState extends State<BattleView> {
         );
       }
     });
+  }
+
+  void _handleBattleEvent(Map<String, dynamic> data) {
+    final eventName = data['event'] as String?;
+    final eventPayload = data['payload'] as Map<String, dynamic>? ?? {};
+
+    if (eventName == 'battle_state') {
+      final myId = _socketService.currentPlayer?['id'];
+      final activeA = eventPayload['active_monster_a'];
+      final activeB = eventPayload['active_monster_b'];
+      final newTurn = eventPayload['turn'] as int? ?? 1;
+      final newPhase = eventPayload['phase'] as String? ?? 'waiting_actions';
+
+      Map<String, dynamic>? myActiveEvent;
+      Map<String, dynamic>? oppActiveEvent;
+
+      if (activeA != null && activeA['owner_id'] == myId) {
+        myActiveEvent = activeA;
+        oppActiveEvent = activeB;
+      } else if (activeB != null && activeB['owner_id'] == myId) {
+        myActiveEvent = activeB;
+        oppActiveEvent = activeA;
+      } else {
+        myActiveEvent = activeA;
+        oppActiveEvent = activeB;
+      }
+
+      setState(() {
+        _turn = newTurn;
+        _phase = newPhase;
+        if (myActiveEvent != null) {
+          _myActive = {
+            'name': myActiveEvent['name'] ?? '?',
+            'hp': myActiveEvent['hp'] ?? 0,
+            'maxHp': myActiveEvent['max_hp'] ?? 100,
+            'level': myActiveEvent['level'] ?? 50,
+          };
+        }
+        if (oppActiveEvent != null) {
+          _oppActive = {
+            'name': oppActiveEvent['name'] ?? '?',
+            'hp': oppActiveEvent['hp'] ?? 0,
+            'maxHp': oppActiveEvent['max_hp'] ?? 100,
+            'level': oppActiveEvent['level'] ?? 50,
+          };
+        }
+
+        final logs = eventPayload['log'] as List?;
+        if (logs != null) {
+          for (var l in logs) {
+            final logStr = l.toString();
+            if (!_battleFeedback.contains(logStr)) {
+              _battleFeedback.add(logStr);
+            }
+          }
+        }
+      });
+      _scrollToFeedbackBottom();
+    } else {
+      setState(() {
+        _battleFeedback.add('Evento recibido: $eventName');
+      });
+      _scrollToFeedbackBottom();
+    }
+  }
+
+  void _scrollToFeedbackBottom() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_feedbackScroll.hasClients) {
+        _feedbackScroll.animateTo(
+          _feedbackScroll.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 250),
+          curve: Curves.easeOut,
+        );
+      }
+    });
+  }
+
+  void _sendMessage() {
+    final t = _chatController.text.trim();
+    if (t.isEmpty) return;
+    _socketService.sendChatMessage(t);
+    _chatController.clear();
+    _chatFocusNode.requestFocus();
   }
 
   @override
@@ -125,55 +253,63 @@ class _BattleViewState extends State<BattleView> {
       ),
       body: Padding(
         padding: const EdgeInsets.all(24),
-        child: LayoutBuilder(
-          builder: (context, c) {
-            final isWide = c.maxWidth > 900 && c.maxHeight > 700;
-            if (!isWide) {
-              return SingleChildScrollView(
-                child: Column(
-                  children: [
-                    _buildParticipants(),
-                    const SizedBox(height: 16),
-                    _buildAttackPanel(),
-                    const SizedBox(height: 16),
-                    _buildLogPanel(height: 250),
-                    const SizedBox(height: 16),
-                    _buildMonstersPanel(),
-                    const SizedBox(height: 16),
-                    SizedBox(height: 360, child: _buildChatPanel()),
-                  ],
-                ),
-              );
-            }
-            return Row(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Expanded(
-                  flex: 6,
-                  child: Column(
+        child: Column(
+          children: [
+            _buildTopTurnBanner(text),
+            const SizedBox(height: 16),
+            Expanded(
+              child: LayoutBuilder(
+                builder: (context, c) {
+                  final isWide = c.maxWidth > 900 && c.maxHeight > 700;
+                  if (!isWide) {
+                    return SingleChildScrollView(
+                      child: Column(
+                        children: [
+                          _buildParticipants(),
+                          const SizedBox(height: 16),
+                          _buildAttackPanel(),
+                          const SizedBox(height: 16),
+                          _buildLogPanel(height: 250),
+                          const SizedBox(height: 16),
+                          _buildMonstersPanel(),
+                          const SizedBox(height: 16),
+                          SizedBox(height: 360, child: _buildChatPanel()),
+                        ],
+                      ),
+                    );
+                  }
+                  return Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      _buildParticipants(),
-                      const SizedBox(height: 16),
-                      _buildAttackPanel(),
-                      const SizedBox(height: 16),
-                      Expanded(child: _buildLogPanel()),
+                      Expanded(
+                        flex: 6,
+                        child: Column(
+                          children: [
+                            _buildParticipants(),
+                            const SizedBox(height: 16),
+                            _buildAttackPanel(),
+                            const SizedBox(height: 16),
+                            Expanded(child: _buildLogPanel()),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        flex: 4,
+                        child: Column(
+                          children: [
+                            _buildMonstersPanel(),
+                            const SizedBox(height: 16),
+                            Expanded(child: _buildChatPanel()),
+                          ],
+                        ),
+                      ),
                     ],
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  flex: 4,
-                  child: Column(
-                    children: [
-                      _buildMonstersPanel(),
-                      const SizedBox(height: 16),
-                      Expanded(child: _buildChatPanel()),
-                    ],
-                  ),
-                ),
-              ],
-            );
-          },
+                  );
+                },
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -288,10 +424,16 @@ class _BattleViewState extends State<BattleView> {
                     borderRadius: BorderRadius.circular(AppRadius.md),
                     child: InkWell(
                       borderRadius: BorderRadius.circular(AppRadius.md),
-                      onTap:
-                          () => setState(
-                            () => _battleFeedback.add('Usaste ${a['name']}!'),
-                          ),
+                      onTap: () {
+                        setState(() {
+                          _battleFeedback.add('Enviando acción: Usar ${a['name']}...');
+                        });
+                        _scrollToFeedbackBottom();
+                        _socketService.sendAction('attack', {
+                          'move_id': a['name'].toString().toLowerCase(),
+                          'target_id': _oppActive['name']?.toString().toLowerCase(),
+                        });
+                      },
                       child: Padding(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 12,
@@ -534,12 +676,15 @@ class _BattleViewState extends State<BattleView> {
                     borderRadius: BorderRadius.circular(AppRadius.md),
                     child: InkWell(
                       borderRadius: BorderRadius.circular(AppRadius.md),
-                      onTap:
-                          () => setState(
-                            () => _battleFeedback.add(
-                              '¡Cambiaste a ${m['name']}!',
-                            ),
-                          ),
+                      onTap: () {
+                        setState(() {
+                          _battleFeedback.add('Enviando acción: Cambiar a ${m['name']}...');
+                        });
+                        _scrollToFeedbackBottom();
+                        _socketService.sendAction('switch', {
+                          'monster_id': m['name'].toString().toLowerCase(),
+                        });
+                      },
                       child: Padding(
                         padding: const EdgeInsets.all(10),
                         child: Row(
@@ -728,6 +873,108 @@ class _BattleViewState extends State<BattleView> {
       ),
     );
   }
+
+  Widget _buildTopTurnBanner(TextTheme text) {
+    final isWaiting = _phase == 'waiting_actions';
+    final statusColor = isWaiting ? AppColors.accent : AppColors.success;
+    final statusBgColor = statusColor.withValues(alpha: 0.12);
+    final statusText = isWaiting ? 'ESPERANDO ACCIONES DE LOS JUGADORES' : 'PROCESANDO TURNO...';
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+        border: Border.all(color: AppColors.outlineVariant),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.2),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withValues(alpha: 0.16),
+                  borderRadius: BorderRadius.circular(AppRadius.md),
+                  border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
+                ),
+                child: const Icon(
+                  Icons.hourglass_empty,
+                  color: AppColors.primary,
+                  size: 24,
+                ),
+              ),
+              const SizedBox(width: 14),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'TURNO EN CURSO',
+                    style: text.labelSmall?.copyWith(
+                      color: AppColors.onSurfaceMuted,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 1.5,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    'Turno $_turn',
+                    style: text.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.w900,
+                      color: AppColors.onSurface,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            decoration: BoxDecoration(
+              color: statusBgColor,
+              borderRadius: BorderRadius.circular(30),
+              border: Border.all(color: statusColor.withValues(alpha: 0.4)),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (isWaiting)
+                  const _PulsingIndicator(color: AppColors.accent)
+                else
+                  const SizedBox(
+                    width: 12,
+                    height: 12,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(AppColors.success),
+                    ),
+                  ),
+                const SizedBox(width: 10),
+                Text(
+                  statusText,
+                  style: TextStyle(
+                    color: statusColor,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.8,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class _ParticipantTile extends StatelessWidget {
@@ -815,6 +1062,56 @@ class _ParticipantTile extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _PulsingIndicator extends StatefulWidget {
+  final Color color;
+  const _PulsingIndicator({required this.color});
+
+  @override
+  State<_PulsingIndicator> createState() => _PulsingIndicatorState();
+}
+
+class _PulsingIndicatorState extends State<_PulsingIndicator>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 1),
+    )..repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FadeTransition(
+      opacity: _controller,
+      child: Container(
+        width: 10,
+        height: 10,
+        decoration: BoxDecoration(
+          color: widget.color,
+          shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: widget.color.withValues(alpha: 0.6),
+              blurRadius: 6,
+              spreadRadius: 2,
+            ),
+          ],
+        ),
       ),
     );
   }

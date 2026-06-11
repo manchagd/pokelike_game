@@ -10,10 +10,12 @@ class BattleSocketService with ChangeNotifier {
   PhoenixChannel? _applicationChannel;
   PhoenixChannel? _playerChannel;
   PhoenixChannel? _battleChannel;
+  PhoenixChannel? _chatChannel;
 
   StreamSubscription? _appMessageSub;
   StreamSubscription? _playerMessageSub;
   StreamSubscription? _battleMessageSub;
+  StreamSubscription? _chatMessageSub;
 
   // Track the active player profile in memory
   Map<String, dynamic>? _currentPlayer;
@@ -34,6 +36,7 @@ class BattleSocketService with ChangeNotifier {
   final _battleEventController = StreamController<Map<String, dynamic>>.broadcast();
   final _playerEventController = StreamController<Map<String, dynamic>>.broadcast();
   final _activeUsersController = StreamController<int>.broadcast();
+  final _chatMessageController = StreamController<Map<String, dynamic>>.broadcast();
 
   /// Stream of raw incoming battle event payloads
   Stream<Map<String, dynamic>> get battleEvents => _battleEventController.stream;
@@ -43,6 +46,9 @@ class BattleSocketService with ChangeNotifier {
 
   /// Stream of active online users count
   Stream<int> get activeUsersStream => _activeUsersController.stream;
+
+  /// Stream of raw incoming chat message payloads
+  Stream<Map<String, dynamic>> get chatEvents => _chatMessageController.stream;
 
   /// Check whether the socket is currently connected
   bool get isConnected => _socket?.isConnected ?? false;
@@ -204,7 +210,10 @@ class BattleSocketService with ChangeNotifier {
     leaveBattle();
 
     print("Uniéndose al canal battle:$battleId");
-    _battleChannel = _socket!.addChannel(topic: 'battle:$battleId');
+    final battleParams = {
+      'player_id': _currentPlayer?['id']?.toString() ?? '',
+    };
+    _battleChannel = _socket!.addChannel(topic: 'battle:$battleId', parameters: battleParams);
 
     final joinResponse = _battleChannel!.join();
     joinResponse.onReply("ok", (response) {
@@ -217,6 +226,27 @@ class BattleSocketService with ChangeNotifier {
     _battleMessageSub = _battleChannel!.messages.listen((Message message) {
       if (message.event.value == 'battle_event' && message.payload != null) {
         _battleEventController.add(message.payload!);
+      }
+    });
+
+    print("Uniéndose al canal battle_chat:$battleId");
+    final chatParams = {
+      'username': _currentPlayer?['name'] ?? 'Anonymous',
+      'player_id': _currentPlayer?['id']?.toString() ?? '',
+    };
+    _chatChannel = _socket!.addChannel(topic: 'battle_chat:$battleId', parameters: chatParams);
+
+    final chatJoinResponse = _chatChannel!.join();
+    chatJoinResponse.onReply("ok", (response) {
+      print("Unido con éxito al canal battle_chat:$battleId");
+    });
+    chatJoinResponse.onReply("error", (response) {
+      print("Fallo al unirse al canal battle_chat:$battleId: $response");
+    });
+
+    _chatMessageSub = _chatChannel!.messages.listen((Message message) {
+      if (message.event.value == 'new_message' && message.payload != null) {
+        _chatMessageController.add(message.payload!);
       }
     });
   }
@@ -236,6 +266,15 @@ class BattleSocketService with ChangeNotifier {
     }
   }
 
+  /// Push a chat message to the Phoenix backend
+  void sendChatMessage(String body) {
+    if (_chatChannel != null && _chatChannel!.state == PhoenixChannelState.joined) {
+      _chatChannel!.push('send_message', {'body': body});
+    } else {
+      print("Advertencia: No se pudo enviar el mensaje porque el canal de chat no está listo.");
+    }
+  }
+
   /// Leave the battle channel
   void leaveBattle() {
     _battleMessageSub?.cancel();
@@ -244,6 +283,14 @@ class BattleSocketService with ChangeNotifier {
     if (_battleChannel != null) {
       _battleChannel!.leave();
       _battleChannel = null;
+    }
+
+    _chatMessageSub?.cancel();
+    _chatMessageSub = null;
+
+    if (_chatChannel != null) {
+      _chatChannel!.leave();
+      _chatChannel = null;
     }
   }
 
@@ -284,6 +331,7 @@ class BattleSocketService with ChangeNotifier {
     _battleEventController.close();
     _playerEventController.close();
     _activeUsersController.close();
+    _chatMessageController.close();
     super.dispose();
   }
 
