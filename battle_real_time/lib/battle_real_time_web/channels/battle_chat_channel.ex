@@ -13,7 +13,7 @@ defmodule BattleRealTimeWeb.BattleChatChannel do
       |> assign(:username, username)
       |> assign(:player_id, player_id)
 
-    Logger.info("[BattleChatChannel] Player '#{username}' joined battle_chat:#{battle_id}")
+    Logger.info("Player '#{username}' joined battle_chat:#{battle_id}")
 
     {:ok, %{battle_id: battle_id, username: username, player_id: player_id}, socket}
   end
@@ -40,7 +40,7 @@ defmodule BattleRealTimeWeb.BattleChatChannel do
   # Catch-all for unknown incoming events
   @impl true
   def handle_in(event, _payload, socket) do
-    Logger.warning("[BattleChatChannel] Unknown event '#{event}'")
+    Logger.warning("Unknown event '#{event}'")
     {:noreply, socket}
   end
 end

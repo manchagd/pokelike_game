@@ -47,7 +47,7 @@ defmodule BattleRealTime.AMQP.Publisher do
           {:error, changeset} ->
             errors = Contract.format_errors(changeset)
 
-            Logger.error("[#{inspect(__MODULE__)}] Outbound contract validation failed for action '#{action}': #{inspect(errors)}")
+            Logger.error("Outbound contract validation failed for action '#{action}': #{inspect(errors)}")
             {:error, errors}
         end
       end
@@ -67,11 +67,11 @@ defmodule BattleRealTime.AMQP.Publisher do
             case AMQP.Channel.open(conn) do
               {:ok, chan} ->
                 AMQP.Queue.declare(chan, @queue, durable: true)
-                Logger.info("[#{inspect(__MODULE__)}] Ready to publish to queue '#{@queue}'")
+                Logger.info("Ready to publish to queue '#{@queue}'")
                 {:noreply, chan}
 
               {:error, reason} ->
-                Logger.error("[#{inspect(__MODULE__)}] Failed to open channel: #{inspect(reason)}")
+                Logger.error("Failed to open channel: #{inspect(reason)}")
                 Process.send_after(self(), :connect, @reconnect_interval)
                 {:noreply, nil}
             end
@@ -84,7 +84,7 @@ defmodule BattleRealTime.AMQP.Publisher do
 
       @impl true
       def handle_cast({:publish, _action, _payload}, nil) do
-        Logger.error("[#{inspect(__MODULE__)}] Not connected to RabbitMQ — dropping message")
+        Logger.error("Not connected to RabbitMQ — dropping message")
         {:noreply, nil}
       end
 
@@ -101,10 +101,10 @@ defmodule BattleRealTime.AMQP.Publisher do
 
         case AMQP.Basic.publish(chan, "", @queue, message, persistent: true) do
           :ok ->
-            Logger.info("[#{inspect(__MODULE__)}] Published action '#{action}' to '#{@queue}'")
+            Logger.info("Published action '#{action}' to '#{@queue}'")
 
           {:error, reason} ->
-            Logger.error("[#{inspect(__MODULE__)}] Failed to publish: #{inspect(reason)}. Reconnecting...")
+            Logger.error("Failed to publish: #{inspect(reason)}. Reconnecting...")
             send(self(), :connect)
         end
 

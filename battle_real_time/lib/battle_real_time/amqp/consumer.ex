@@ -35,11 +35,11 @@ defmodule BattleRealTime.AMQP.Consumer do
                 AMQP.Queue.declare(chan, @queue, durable: true)
                 # Register consumer
                 AMQP.Basic.consume(chan, @queue, nil, no_ack: true)
-                Logger.info("[#{inspect(__MODULE__)}] Subscribed to queue '#{@queue}'")
+                Logger.info("Subscribed to queue '#{@queue}'")
                 {:noreply, chan}
 
               {:error, reason} ->
-                Logger.error("[#{inspect(__MODULE__)}] Failed to open channel: #{inspect(reason)}")
+                Logger.error("Failed to open channel: #{inspect(reason)}")
                 Process.send_after(self(), :connect, @reconnect_interval)
                 {:noreply, nil}
             end
@@ -53,7 +53,7 @@ defmodule BattleRealTime.AMQP.Consumer do
       # Broker confirms consumer registration
       @impl true
       def handle_info({:basic_consume_ok, %{consumer_tag: tag}}, state) do
-        Logger.info("[#{inspect(__MODULE__)}] Registered as consumer #{tag}")
+        Logger.info("Registered as consumer #{tag}")
         {:noreply, state}
       end
 
@@ -75,10 +75,10 @@ defmodule BattleRealTime.AMQP.Consumer do
             process_message(event, data)
 
           {:ok, other} ->
-            Logger.warning("[#{inspect(__MODULE__)}] Unexpected message format: #{inspect(other)}")
+            Logger.warning("Unexpected message format: #{inspect(other)}")
 
           {:error, reason} ->
-            Logger.error("[#{inspect(__MODULE__)}] Invalid JSON: #{inspect(reason)}")
+            Logger.error("Invalid JSON: #{inspect(reason)}")
         end
       end
 

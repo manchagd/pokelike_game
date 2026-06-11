@@ -23,8 +23,9 @@ config :battle_real_time, BattleRealTimeWeb.Endpoint,
 
 # Configure Elixir's Logger
 config :logger, :default_formatter,
-  format: "$time $metadata[$level] $message\n",
-  metadata: [:request_id]
+  format: {BattleRealTime.LoggerFormatter, :format},
+  pattern: "$time $metadata[$level] $message\n",
+  metadata: [:request_id, :module]
 
 # Use Jason for JSON parsing in Phoenix
 config :phoenix, :json_library, Jason
