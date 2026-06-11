@@ -3,4 +3,5 @@
 class Field < ApplicationRecord
   has_many :hazards, :positions
   has_one :weather
+  belongs_to :battle
 end
