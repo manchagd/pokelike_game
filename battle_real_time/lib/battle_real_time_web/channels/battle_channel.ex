@@ -8,6 +8,7 @@ defmodule BattleRealTimeWeb.BattleChannel do
   def join("battle:" <> battle_id, params, socket) do
     socket = assign(socket, :battle_id, battle_id)
     player_id = Map.get(params, "player_id")
+    username = Map.get(params, "username") || "Entrenador"
     socket = assign(socket, :player_id, player_id)
 
     # Ensure BattleSession GenServer is running
@@ -30,10 +31,10 @@ defmodule BattleRealTimeWeb.BattleChannel do
 
     # Register player in the battle session
     if player_id != nil and player_id != "" do
-      BattleSession.register_player(battle_id, player_id)
+      BattleSession.register_player(battle_id, player_id, username)
     end
 
-    Logger.info("Client joined battle:#{battle_id} as player:#{player_id}")
+    Logger.info("Client joined battle:#{battle_id} as player:#{player_id} (#{username})")
     send(self(), :after_join)
     {:ok, %{battle_id: battle_id}, socket}
   end
@@ -67,12 +68,15 @@ defmodule BattleRealTimeWeb.BattleChannel do
   @impl true
   def handle_info(:after_join, socket) do
     battle_id = socket.assigns.battle_id
+
     case BattleSession.get_state_payload(battle_id) do
       {:ok, payload} ->
         push(socket, "battle_event", %{event: "battle_state", payload: payload})
+
       _ ->
         :ok
     end
+
     {:noreply, socket}
   end
 

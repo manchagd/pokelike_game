@@ -67,12 +67,7 @@ defmodule BattleRealTime.AMQP.Connection do
   # --- Private ---
 
   defp notify_children(:connect) do
-    for child <- [
-          BattleRealTime.AMQP.Consumers.BattleEventsConsumer,
-          BattleRealTime.AMQP.Publishers.BattleActionsPublisher,
-          BattleRealTime.AMQP.Consumers.PlayerEventsConsumer,
-          BattleRealTime.AMQP.Publishers.PlayerActionsPublisher
-        ] do
+    for child <- BattleRealTime.AMQP.children() do
       if pid = Process.whereis(child) do
         send(pid, :connect)
       end

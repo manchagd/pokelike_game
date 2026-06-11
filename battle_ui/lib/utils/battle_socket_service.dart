@@ -212,6 +212,7 @@ class BattleSocketService with ChangeNotifier {
     print("Uniéndose al canal battle:$battleId");
     final battleParams = {
       'player_id': _currentPlayer?['id']?.toString() ?? '',
+      'username': _currentPlayer?['name'] ?? 'Entrenador',
     };
     _battleChannel = _socket!.addChannel(topic: 'battle:$battleId', parameters: battleParams);
 

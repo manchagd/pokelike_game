@@ -3,7 +3,8 @@ defmodule BattleRealTime.AMQP.Publisher do
   A behavior module that provides standard boilerplate for AMQP publishers.
   """
 
-  @callback validate(action :: String.t(), payload :: map()) :: {:ok, map()} | {:error, Ecto.Changeset.t()}
+  @callback validate(action :: String.t(), payload :: map()) ::
+              {:ok, map()} | {:error, Ecto.Changeset.t()}
 
   defmacro __using__(opts) do
     queue = Keyword.fetch!(opts, :queue)
@@ -30,7 +31,10 @@ defmodule BattleRealTime.AMQP.Publisher do
       def validate(action, _payload) do
         changeset =
           %Ecto.Changeset{}
-          |> Ecto.Changeset.add_error(:action, "is invalid or does not have a contract: #{action}")
+          |> Ecto.Changeset.add_error(
+            :action,
+            "is invalid or does not have a contract: #{action}"
+          )
 
         {:error, changeset}
       end
@@ -47,7 +51,10 @@ defmodule BattleRealTime.AMQP.Publisher do
           {:error, changeset} ->
             errors = Contract.format_errors(changeset)
 
-            Logger.error("Outbound contract validation failed for action '#{action}': #{inspect(errors)}")
+            Logger.error(
+              "Outbound contract validation failed for action '#{action}': #{inspect(errors)}"
+            )
+
             {:error, errors}
         end
       end
@@ -111,7 +118,12 @@ defmodule BattleRealTime.AMQP.Publisher do
         {:noreply, chan}
       end
 
-      defoverridable start_link: 1, publish: 2, init: 1, handle_info: 2, handle_cast: 2, validate: 2
+      defoverridable start_link: 1,
+                     publish: 2,
+                     init: 1,
+                     handle_info: 2,
+                     handle_cast: 2,
+                     validate: 2
     end
   end
 end

@@ -48,6 +48,7 @@ defmodule BattleRealTime.LoggerFormatter do
             case String.split(module_str, ".") do
               ["Elixir" | rest] ->
                 last = List.last(rest)
+
                 if Enum.member?(rest, "AMQP") do
                   "AMQP.#{last}"
                 else
@@ -56,6 +57,7 @@ defmodule BattleRealTime.LoggerFormatter do
 
               parts ->
                 last = List.last(parts)
+
                 if Enum.member?(parts, "AMQP") do
                   "AMQP.#{last}"
                 else

@@ -34,6 +34,11 @@ class _BattleViewState extends State<BattleView> {
 
   int _turn = 1;
   String _phase = 'waiting_actions';
+  String _myName = 'Tú';
+  String _oppName = 'Oponente';
+  int? _turnExpiresAt;
+  Timer? _countdownTimer;
+  int _remainingSeconds = 0;
 
   @override
   void initState() {
@@ -91,6 +96,7 @@ class _BattleViewState extends State<BattleView> {
 
   @override
   void dispose() {
+    _countdownTimer?.cancel();
     _battleSub?.cancel();
     _chatSub?.cancel();
     _socketService.leaveBattle();
@@ -133,23 +139,42 @@ class _BattleViewState extends State<BattleView> {
     final eventName = data['event'] as String?;
     final eventPayload = data['payload'] as Map<String, dynamic>? ?? {};
 
+    if (eventName == 'battle_timeout') {
+      final reason = eventPayload['reason'] as String? ?? 'Se ha agotado el tiempo de gracia de 2 minutos.';
+      _showTimeoutDialog(reason);
+      return;
+    }
+
     if (eventName == 'battle_state') {
-      final myId = _socketService.currentPlayer?['id'];
+      final myId = _socketService.currentPlayer?['id']?.toString();
       final activeA = eventPayload['active_monster_a'];
       final activeB = eventPayload['active_monster_b'];
       final newTurn = eventPayload['turn'] as int? ?? 1;
       final newPhase = eventPayload['phase'] as String? ?? 'waiting_actions';
+      final newExpiresAt = eventPayload['turn_expires_at'] as int?;
+
+      final playerAName = eventPayload['player_a_name'] as String? ?? 'Entrenador A';
+      final playerBName = eventPayload['player_b_name'] as String? ?? 'Entrenador B';
+
+      String myName = 'Tú';
+      String oppName = 'Oponente';
 
       Map<String, dynamic>? myActiveEvent;
       Map<String, dynamic>? oppActiveEvent;
 
-      if (activeA != null && activeA['owner_id'] == myId) {
+      if (activeA != null && activeA['owner_id']?.toString() == myId) {
+        myName = "$playerAName (Tú)";
+        oppName = playerBName;
         myActiveEvent = activeA;
         oppActiveEvent = activeB;
-      } else if (activeB != null && activeB['owner_id'] == myId) {
+      } else if (activeB != null && activeB['owner_id']?.toString() == myId) {
+        myName = "$playerBName (Tú)";
+        oppName = playerAName;
         myActiveEvent = activeB;
         oppActiveEvent = activeA;
       } else {
+        myName = playerAName;
+        oppName = playerBName;
         myActiveEvent = activeA;
         oppActiveEvent = activeB;
       }
@@ -157,6 +182,9 @@ class _BattleViewState extends State<BattleView> {
       setState(() {
         _turn = newTurn;
         _phase = newPhase;
+        _myName = myName;
+        _oppName = oppName;
+        _turnExpiresAt = newExpiresAt;
         if (myActiveEvent != null) {
           _myActive = {
             'name': myActiveEvent['name'] ?? '?',
@@ -184,6 +212,7 @@ class _BattleViewState extends State<BattleView> {
           }
         }
       });
+      _startLocalCountdown();
       _scrollToFeedbackBottom();
     } else {
       setState(() {
@@ -203,6 +232,75 @@ class _BattleViewState extends State<BattleView> {
         );
       }
     });
+  }
+
+  void _startLocalCountdown() {
+    _countdownTimer?.cancel();
+    if (_turnExpiresAt == null) return;
+
+    final nowMs = DateTime.now().toUtc().millisecondsSinceEpoch;
+    final diffMs = _turnExpiresAt! - nowMs;
+    _remainingSeconds = (diffMs / 1000).round();
+
+    if (_remainingSeconds <= 0) {
+      setState(() {
+        _remainingSeconds = 0;
+      });
+      return;
+    }
+
+    _countdownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
+      setState(() {
+        if (_remainingSeconds > 0) {
+          _remainingSeconds--;
+        } else {
+          timer.cancel();
+        }
+      });
+    });
+  }
+
+  String _formatDuration(int seconds) {
+    final minutes = (seconds / 60).floor();
+    final remainingSeconds = seconds % 60;
+    final minStr = minutes.toString().padLeft(2, '0');
+    final secStr = remainingSeconds.toString().padLeft(2, '0');
+    return '$minStr:$secStr';
+  }
+
+  void _showTimeoutDialog(String reason) {
+    if (!mounted) return;
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: const Row(
+            children: [
+              Icon(Icons.warning_amber_rounded, color: AppColors.accent),
+              SizedBox(width: 10),
+              Text('Combate finalizado'),
+            ],
+          ),
+          content: Text(reason),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(dialogContext).pop();
+                if (mounted) {
+                  context.pop();
+                }
+              },
+              child: const Text('Aceptar'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   void _sendMessage() {
@@ -318,28 +416,28 @@ class _BattleViewState extends State<BattleView> {
   Widget _buildParticipants() {
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(12),
         child: Row(
           children: [
             Expanded(
               child: _ParticipantTile(
                 label: 'TÚ',
-                name: 'Entrenador Pro',
+                name: _myName,
                 color: AppColors.secondary,
                 mon: _myActive,
               ),
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: 8),
             const Icon(
               Icons.offline_bolt_outlined,
               color: AppColors.accent,
-              size: 28,
+              size: 20,
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: 8),
             Expanded(
               child: _ParticipantTile(
                 label: 'OPONENTE',
-                name: 'Rival Master',
+                name: _oppName,
                 color: AppColors.tertiary,
                 mon: _oppActive,
               ),
@@ -877,100 +975,76 @@ class _BattleViewState extends State<BattleView> {
   Widget _buildTopTurnBanner(TextTheme text) {
     final isWaiting = _phase == 'waiting_actions';
     final statusColor = isWaiting ? AppColors.accent : AppColors.success;
-    final statusBgColor = statusColor.withValues(alpha: 0.12);
-    final statusText = isWaiting ? 'ESPERANDO ACCIONES DE LOS JUGADORES' : 'PROCESANDO TURNO...';
+    final statusText = isWaiting ? 'Esperando acciones...' : 'Procesando turno...';
 
     return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(AppRadius.lg),
-        border: Border.all(color: AppColors.outlineVariant),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.2),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        color: AppColors.surfaceA0.withValues(alpha: 0.8),
+        borderRadius: BorderRadius.circular(AppRadius.md),
+        border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.5)),
       ),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: AppColors.primary.withValues(alpha: 0.16),
-                  borderRadius: BorderRadius.circular(AppRadius.md),
-                  border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
-                ),
-                child: const Icon(
-                  Icons.hourglass_empty,
-                  color: AppColors.primary,
-                  size: 24,
-                ),
-              ),
-              const SizedBox(width: 14),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'TURNO EN CURSO',
-                    style: text.labelSmall?.copyWith(
-                      color: AppColors.onSurfaceMuted,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 1.5,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    'Turno $_turn',
-                    style: text.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.w900,
-                      color: AppColors.onSurface,
-                    ),
-                  ),
-                ],
-              ),
-            ],
+          const Icon(
+            Icons.hourglass_empty_rounded,
+            color: AppColors.primary,
+            size: 18,
           ),
+          const SizedBox(width: 8),
+          Text(
+            'Turno $_turn',
+            style: text.bodyMedium?.copyWith(
+              fontWeight: FontWeight.w900,
+              color: AppColors.onSurface,
+            ),
+          ),
+          const SizedBox(width: 12),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            decoration: BoxDecoration(
-              color: statusBgColor,
-              borderRadius: BorderRadius.circular(30),
-              border: Border.all(color: statusColor.withValues(alpha: 0.4)),
+            height: 14,
+            width: 1,
+            color: AppColors.outlineVariant,
+          ),
+          const SizedBox(width: 12),
+          if (isWaiting)
+            const _PulsingIndicator(color: AppColors.accent)
+          else
+            const SizedBox(
+              width: 10,
+              height: 10,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                valueColor: AlwaysStoppedAnimation<Color>(AppColors.success),
+              ),
             ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (isWaiting)
-                  const _PulsingIndicator(color: AppColors.accent)
-                else
-                  const SizedBox(
-                    width: 12,
-                    height: 12,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation<Color>(AppColors.success),
-                    ),
-                  ),
-                const SizedBox(width: 10),
-                Text(
-                  statusText,
-                  style: TextStyle(
-                    color: statusColor,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 0.8,
-                  ),
-                ),
-              ],
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              statusText,
+              style: text.bodySmall?.copyWith(
+                color: statusColor,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 0.5,
+              ),
             ),
           ),
+          if (isWaiting && _remainingSeconds > 0) ...[
+            const Icon(
+              Icons.timer_outlined,
+              color: AppColors.onSurfaceMuted,
+              size: 14,
+            ),
+            const SizedBox(width: 4),
+            Text(
+              _formatDuration(_remainingSeconds),
+              style: const TextStyle(
+                fontFamily: 'monospace',
+                fontSize: 12,
+                fontWeight: FontWeight.w800,
+                color: AppColors.onSurfaceMuted,
+              ),
+            ),
+          ],
         ],
       ),
     );
@@ -992,74 +1066,79 @@ class _ParticipantTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
-    final pct = (mon['hp'] as int) / (mon['maxHp'] as int);
+    final pct = (mon['hp'] as num?) != null && (mon['maxHp'] as num?) != null && (mon['maxHp'] as num) > 0
+        ? (mon['hp'] as num) / (mon['maxHp'] as num)
+        : 0.0;
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: AppColors.surfaceHigh,
         borderRadius: BorderRadius.circular(AppRadius.md),
-        border: Border.all(color: color.withValues(alpha: 0.5)),
+        border: Border.all(color: color.withValues(alpha: 0.35)),
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.18),
-              borderRadius: BorderRadius.circular(AppRadius.sm),
-            ),
-            child: Text(
-              label,
-              style: TextStyle(
-                color: color,
-                fontSize: 11,
-                fontWeight: FontWeight.w800,
-                letterSpacing: 1.2,
-              ),
-            ),
-          ),
-          const SizedBox(height: 10),
-          Text(
-            name,
-            style: text.titleMedium?.copyWith(fontWeight: FontWeight.w700),
-          ),
-          const SizedBox(height: 12),
           Row(
-            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Icon(Icons.catching_pokemon, color: color, size: 18),
-              const SizedBox(width: 6),
-              Text(
-                mon['name'],
-                style: const TextStyle(fontWeight: FontWeight.w700),
+              Expanded(
+                child: Text(
+                  name,
+                  style: text.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.onSurface,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
-              const SizedBox(width: 6),
+              const SizedBox(width: 8),
               Text(
-                'Nv.${mon['level']}',
-                style: const TextStyle(
+                'Nv.${mon['level'] ?? 50}',
+                style: text.bodySmall?.copyWith(
                   color: AppColors.onSurfaceMuted,
-                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 8),
-          Text(
-            'HP ${mon['hp']}/${mon['maxHp']}',
-            style: const TextStyle(
-              color: AppColors.onSurfaceMuted,
-              fontSize: 11,
-            ),
+          const SizedBox(height: 6),
+          Row(
+            children: [
+              Icon(Icons.catching_pokemon, color: color, size: 14),
+              const SizedBox(width: 4),
+              Text(
+                mon['name'] ?? '?',
+                style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13),
+              ),
+            ],
           ),
-          const SizedBox(height: 4),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(6),
-            child: LinearProgressIndicator(
-              value: pct,
-              minHeight: 6,
-              backgroundColor: AppColors.surfaceHighest,
-              valueColor: AlwaysStoppedAnimation<Color>(color),
-            ),
+          const SizedBox(height: 8),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(4),
+                  child: LinearProgressIndicator(
+                    value: pct,
+                    minHeight: 5,
+                    backgroundColor: AppColors.surfaceHighest,
+                    valueColor: AlwaysStoppedAnimation<Color>(color),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Text(
+                '${mon['hp'] ?? 0}/${mon['maxHp'] ?? 100}',
+                style: const TextStyle(
+                  fontFamily: 'monospace',
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.onSurfaceMuted,
+                ),
+              ),
+            ],
           ),
         ],
       ),

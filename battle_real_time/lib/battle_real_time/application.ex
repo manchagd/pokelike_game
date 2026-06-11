@@ -7,22 +7,21 @@ defmodule BattleRealTime.Application do
 
   @impl true
   def start(_type, _args) do
-    children = [
-      BattleRealTimeWeb.Telemetry,
-      {DNSCluster, query: Application.get_env(:battle_real_time, :dns_cluster_query) || :ignore},
-      {Phoenix.PubSub, name: BattleRealTime.PubSub},
-      {Registry, keys: :unique, name: BattleRealTime.BattleRegistry},
-      {DynamicSupervisor, name: BattleRealTime.BattleSupervisor, strategy: :one_for_one},
-      # AMQP processes — Connection first so Consumer/Publisher can open channels
-      BattleRealTime.AMQP.Connection,
-      BattleRealTime.AMQP.Consumers.BattleEventsConsumer,
-      BattleRealTime.AMQP.Publishers.BattleActionsPublisher,
-      BattleRealTime.AMQP.Consumers.PlayerEventsConsumer,
-      BattleRealTime.AMQP.Publishers.PlayerActionsPublisher,
-      BattleRealTimeWeb.Presence,
-      # Start to serve requests, typically the last entry
-      BattleRealTimeWeb.Endpoint
-    ]
+    children =
+      [
+        BattleRealTimeWeb.Telemetry,
+        {DNSCluster,
+         query: Application.get_env(:battle_real_time, :dns_cluster_query) || :ignore},
+        {Phoenix.PubSub, name: BattleRealTime.PubSub},
+        {Registry, keys: :unique, name: BattleRealTime.BattleRegistry},
+        {DynamicSupervisor, name: BattleRealTime.BattleSupervisor, strategy: :one_for_one},
+        BattleRealTime.AMQP.Connection
+      ] ++
+        BattleRealTime.AMQP.children() ++
+        [
+          BattleRealTimeWeb.Presence,
+          BattleRealTimeWeb.Endpoint
+        ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
     # for other strategies and supported options

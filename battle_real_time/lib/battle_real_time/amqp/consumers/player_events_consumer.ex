@@ -24,9 +24,7 @@ defmodule BattleRealTime.AMQP.Consumers.PlayerEventsConsumer do
   end
 
   def process_message(event, data) do
-    Logger.warning(
-      "Invalid or unstructured payload for event '#{event}': #{inspect(data)}"
-    )
+    Logger.warning("Invalid or unstructured payload for event '#{event}': #{inspect(data)}")
   end
 
   defp broadcast_player_info(name, event, data) do
