@@ -9,7 +9,7 @@ defmodule BattleRealTimeWeb.PlayerChannel do
     # Subscribe this channel process to PubSub events for this player (name or ID)
     Phoenix.PubSub.subscribe(BattleRealTime.PubSub, "player:#{identifier}")
 
-    Logger.info("[PlayerChannel] Client joined player:#{identifier}")
+    Logger.info("Client joined player:#{identifier}")
     {:ok, %{identifier: identifier}, socket}
   end
 
@@ -17,7 +17,7 @@ defmodule BattleRealTimeWeb.PlayerChannel do
   @impl true
   def handle_in("register", _payload, socket) do
     name = socket.assigns.identifier
-    Logger.info("[PlayerChannel] Registration request received for player: #{name}")
+    Logger.info("Registration request received for player: #{name}")
     # Publish to the player_actions queue via PlayerActionsPublisher
     BattleRealTime.AMQP.Publishers.PlayerActionsPublisher.publish("register", %{"name" => name})
     {:noreply, socket}
@@ -32,7 +32,7 @@ defmodule BattleRealTimeWeb.PlayerChannel do
 
   @impl true
   def handle_info(msg, socket) do
-    Logger.warning("[PlayerChannel] Unhandled handle_info message: #{inspect(msg)}")
+    Logger.warning("Unhandled handle_info message: #{inspect(msg)}")
     {:noreply, socket}
   end
 end

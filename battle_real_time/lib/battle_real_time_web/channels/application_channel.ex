@@ -12,9 +12,10 @@ defmodule BattleRealTimeWeb.ApplicationChannel do
   @impl true
   def handle_info(:after_join, socket) do
     # Track the current socket process under the "lobby" key
-    {:ok, _} = Presence.track(socket, "lobby", %{
-      online_at: System.system_time(:second)
-    })
+    {:ok, _} =
+      Presence.track(socket, "lobby", %{
+        online_at: System.system_time(:second)
+      })
 
     # Send the initial presence list to the client
     push(socket, "presence_state", Presence.list(socket))

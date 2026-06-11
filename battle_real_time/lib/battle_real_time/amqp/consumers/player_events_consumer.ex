@@ -18,20 +18,18 @@ defmodule BattleRealTime.AMQP.Consumers.PlayerEventsConsumer do
         errors = Contract.format_errors(changeset)
 
         Logger.error(
-          "[AMQP.PlayerEventsConsumer] Inbound contract validation failed for event '#{event}': #{inspect(errors)}"
+          "Inbound contract validation failed for event '#{event}': #{inspect(errors)}"
         )
     end
   end
 
   def process_message(event, data) do
-    Logger.warning(
-      "[AMQP.PlayerEventsConsumer] Invalid or unstructured payload for event '#{event}': #{inspect(data)}"
-    )
+    Logger.warning("Invalid or unstructured payload for event '#{event}': #{inspect(data)}")
   end
 
   defp broadcast_player_info(name, event, data) do
     topic = "player:#{name}"
-    Logger.info("[AMQP.PlayerEventsConsumer] Broadcasting event '#{event}' to topic '#{topic}'")
+    Logger.info("Broadcasting event '#{event}' to topic '#{topic}'")
 
     Phoenix.PubSub.broadcast(
       BattleRealTime.PubSub,

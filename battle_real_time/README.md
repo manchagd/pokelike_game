@@ -186,9 +186,10 @@ battle_real_time/
 │   ├── test.exs                # Configuración para tests
 │   └── runtime.exs             # Configuración en tiempo de ejecución (ENV vars)
 │
-├── lib/
+ ├── lib/
 │   ├── battle_real_time/
 │   │   ├── application.ex      # Árbol de supervisión OTP
+│   │   ├── battle_session.ex   # GenServer que maneja el ciclo de vida del combate, lobby y turnos
 │   │   ├── amqp/
 │   │   │   ├── connection.ex   # Conexión compartida a RabbitMQ (GenServer)
 │   │   │   ├── consumer.ex     # Macro behavior base para consumidores AMQP
@@ -202,7 +203,9 @@ battle_real_time/
 │   │   │
 │   │   └── contracts/          # Contratos de validación de esquemas con Ecto
 │   │       └── publishers/     # Esquemas para validar payloads salientes
-│   │           └── register_contract.ex
+│   │           ├── register_contract.ex
+│   │           ├── turn_actions_contract.ex      # Valida el envío consolidado de acciones del turno
+│   │           └── terminate_battle_contract.ex  # Valida la orden de finalización del combate (forfeit)
 │   │
 │   ├── battle_real_time_web/
 │   │   ├── endpoint.ex         # Endpoint HTTP/WebSocket

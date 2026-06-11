@@ -28,7 +28,7 @@ defmodule BattleRealTime.Contracts.Consumers.PlayerEvents.InfoContractTest do
         },
         "battles" => [
           %{
-            "id" => 1,
+            "id" => "1",
             "opponent" => [
               %{"name" => "player_x", "team" => "A"}
             ]
@@ -43,7 +43,7 @@ defmodule BattleRealTime.Contracts.Consumers.PlayerEvents.InfoContractTest do
       assert hd(result.player.teams).name == "Equipo Fuego"
       assert hd(hd(result.player.teams).monsters).name == "Charizard"
       assert result.player.battle_history.victories == 5
-      assert hd(result.battles).id == 1
+      assert hd(result.battles).id == "1"
       assert hd(hd(result.battles).opponent).name == "player_x"
     end
 

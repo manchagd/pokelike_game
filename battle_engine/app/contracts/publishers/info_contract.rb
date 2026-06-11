@@ -16,7 +16,7 @@ module Contracts
           end
         end
         optional(:battles).array(:hash) do
-          required(:id).filled(:integer)
+          required(:id).filled
           required(:opponent).array(:hash) do
             required(:name).filled(:string)
             required(:team).filled(:string)
