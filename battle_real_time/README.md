@@ -202,10 +202,15 @@ battle_real_time/
 │   │   │       └── player_actions_publisher.ex
 │   │   │
 │   │   └── contracts/          # Contratos de validación de esquemas con Ecto
+│   │       ├── consumers/      # Esquemas para validar payloads entrantes
+│   │       │   └── player_events/
+│   │       │       └── info_contract.ex
 │   │       └── publishers/     # Esquemas para validar payloads salientes
-│   │           ├── register_contract.ex
-│   │           ├── turn_actions_contract.ex      # Valida el envío consolidado de acciones del turno
-│   │           └── terminate_battle_contract.ex  # Valida la orden de finalización del combate (forfeit)
+│   │           ├── battle_actions/
+│   │           │   ├── terminate_battle_contract.ex  # Valida la orden de finalización del combate (forfeit)
+│   │           │   └── turn_actions_contract.ex      # Valida el envío consolidado de acciones del turno
+│   │           └── player_actions/
+│   │               └── register_contract.ex
 │   │
 │   ├── battle_real_time_web/
 │   │   ├── endpoint.ex         # Endpoint HTTP/WebSocket
@@ -223,6 +228,43 @@ battle_real_time/
 │
 └── test/                       # Tests
 ```
+
+## Ciclo de Vida y Gestión de la Batalla (BattleSession)
+
+La lógica de estado de cada combate activo está encapsulada en un proceso `GenServer` independiente registrado bajo el alias `BattleRealTime.BattleSession`. Este proceso se inicia dinámicamente bajo `BattleRealTime.BattleSupervisor` cuando el primer jugador se conecta al canal de la batalla.
+
+### Máquina de Estados y Fases
+
+El GenServer opera a través de las siguientes fases utilizando un diseño con átomos seguros para el manejo del estado:
+
+```mermaid
+stateDiagram-v2
+    [*] --> waiting_players : start_link
+    waiting_players --> waiting_actions : Todos los jugadores conectados
+    waiting_actions --> waiting_actions : Turno completado / Siguiente turno
+    waiting_actions --> finished : Un jugador se rinde (forfeit) o agota tiempo
+    finished --> [*] : GenServer se apaga (:normal)
+```
+
+1. **Lobby / Sala de Espera (`:waiting_players`)**:
+   * Al crearse, la batalla inicia en esta fase con un formato de combate predefinido (ej. `"1v1"`, `"2v2"`).
+   * Determina cuántos entrenadores deben unirse (`"1v1"` requiere 2, `"2v2"` requiere 4).
+   * Almacena en memoria (`MapSet`) los identificadores y nombres de usuario de los jugadores a medida que se unen al canal WebSocket.
+   * Al completarse la capacidad de la sala, cancela cualquier temporizador inactivo y pasa a la fase `:waiting_actions`.
+
+2. **Acciones del Turno (`:waiting_actions`)**:
+   * Espera que todos los jugadores registrados envíen su acción a través de WebSocket (`handle_in("action", ...)`).
+   * Inicia un temporizador de gracia de 2 minutos (`120` segundos) al inicio de cada turno.
+   * Una vez recibidos todos los comandos requeridos, cancela el temporizador de gracia, unifica las acciones en una sola lista validada (`turn_actions`), la publica en RabbitMQ (`battle_actions` queue), incrementa el número de turno, reinicia el temporizador de gracia y notifica a los clientes vía WebSocket.
+
+3. **Rendición y Término (`forfeit`)**:
+   * Un jugador puede enviar en cualquier momento el evento `"forfeit"`.
+   * Esto desencadena una terminación limpia de la sesión de batalla:
+     * Difunde el evento `"battle_ended"` al canal WebSocket con el motivo/motivo del forfeit.
+     * Envía la orden `"terminate_battle"` (validada mediante el esquema `TerminateBattleContract`) a la cola `battle_actions` en RabbitMQ.
+     * Apaga el proceso GenServer de manera ordenada retornando `{:stop, :normal, :ok, state}`.
+
+---
 
 ## Quick Start (Docker)
 

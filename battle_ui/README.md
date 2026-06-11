@@ -143,3 +143,26 @@ battle_ui/
 ├── pubspec.yaml      # Dependencias del proyecto y assets declarados
 └── README.md         # Este archivo
 ```
+
+---
+
+## Flujo de Pantalla de Combate (battle_view.dart)
+
+La pantalla del combate en vivo en Flutter gestiona la experiencia del jugador en tiempo real adaptando la interfaz según la fase actual del combate transmitida por el servidor de Phoenix.
+
+### Gestión de Fases (`BattlePhase`)
+
+Para evitar strings mágicas y garantizar la seguridad de tipos, la interfaz utiliza el enum `BattlePhase` con getters semánticos que encapsulan la visibilidad de los componentes:
+
+* **`BattlePhase.waitingPlayers`** (`isWaitingPlayers`): El combate se encuentra en el lobby esperando a que se conecten todos los entrenadores requeridos (ej. 2 para 1v1, 4 para 2v2). La interfaz renderiza un panel de "Sala de Espera" que muestra el progreso de conexión (`connected_players / expected_players`) y las tarjetas de perfil de los jugadores conectados en tiempo real.
+* **`BattlePhase.waitingActions`** (`isWaitingActions`): El combate está activo y listo para comandos. La UI despliega la arena de combate tridimensional simulada con los monstruos activos de ambos bandos, la barra de selección de movimientos, y un contador de tiempo regresivo sincronizado con el timestamp UNIX `turn_expires_at` enviado por el servidor.
+* **`BattlePhase.resolving`**: Las acciones del turno se están procesando o simulando en el backend.
+* **`BattlePhase.finished`**: El combate ha concluido formalmente.
+
+### Mecánica de Rendición (Forfeit)
+
+* **Botón "Rendirse"**: Incorporado en las acciones del `AppBar` de la arena. Está habilitado solo cuando el combate está activo o en lobby.
+* **Diálogo de Confirmación**: Al presionarlo, despliega un diálogo de confirmación modal (`_showSurrenderConfirmation`) para evitar abandonos involuntarios.
+* **Envío al Servidor**: Al confirmar la rendición, el cliente despacha un mensaje de evento `"action"` con payload `"action": "forfeit"` por el canal WebSocket de la batalla.
+* **Cierre de Sesión**: Cuando el canal difunde el evento de cierre `"battle_ended"`, el cliente intercepta la desconexión, muestra un diálogo final con el motivo del término (ej. *"El entrenador X se ha retirado. Combate finalizado."*), y redirige de forma segura al usuario de regreso a la pantalla de inicio (`HomePage`).
+
