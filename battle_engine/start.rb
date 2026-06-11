@@ -20,5 +20,9 @@ trap("TERM") do
   exit
 end
 
-# Start the consumer (blocks the main thread)
-Consumers::BattleActionsConsumer.new.start
+BattleEngine::App.init! do |app|
+  app.register_workers! [
+    Consumers::BattleActionsConsumer,
+    Consumers::PlayerActionsConsumer,
+  ]
+end

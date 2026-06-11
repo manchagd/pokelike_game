@@ -2,6 +2,7 @@
 
 require "active_support"
 require "active_support/core_ext"
+require "dry-validation"
 require "zeitwerk"
 require "json"
 
@@ -10,6 +11,7 @@ require_relative "app_config"
 require_relative "logger"
 require_relative "database"
 require_relative "rabbitmq"
+require_relative "application"
 
 # Setup Zeitwerk autoloader for app/ subdirectories
 loader = Zeitwerk::Loader.new

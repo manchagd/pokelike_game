@@ -135,4 +135,32 @@ namespace :rabbitmq do
       opponent_id: 2
     })
   end
+
+  desc "Publish a sample message to the player_events queue"
+  task :publish_player_event do
+    BattleEngine.logger.info("[RabbitMQ] Preparing sample player event...")
+    Publishers::PlayerEventsPublisher.publish("info", {
+      player: {
+        id: 101,
+        name: "Mancha",
+        team: "A",
+        teams: [
+          {
+            name: "Equipo Fuego",
+            description: "Estrategia basada en fuego",
+            monsters: [
+              { name: "Charizard", color: "fire" },
+              { name: "Arcanine", color: "fire" }
+            ]
+          }
+        ],
+        battle_history: {
+          victories: 5,
+          defeats: 2,
+          history: ["V", "V", "D", "V", "D"]
+        }
+      },
+      battles: []
+    })
+  end
 end

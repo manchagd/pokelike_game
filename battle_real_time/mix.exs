@@ -46,7 +46,8 @@ defmodule BattleRealTime.MixProject do
       {:jason, "~> 1.2"},
       {:dns_cluster, "~> 0.2.0"},
       {:bandit, "~> 1.5"},
-      {:amqp, "~> 3.3"}
+      {:amqp, "~> 3.3"},
+      {:ecto, "~> 3.10"}
     ]
   end
 

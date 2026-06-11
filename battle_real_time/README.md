@@ -72,8 +72,10 @@ BattleRealTime.Supervisor (one_for_one)
 
 | Cola | Dirección | Descripción |
 |------|-----------|-------------|
-| `battle_actions` | real_time → engine | Acciones del jugador (attack, change, etc.) |
-| `battle_events` | engine → real_time | Eventos procesados (resultado de ataques, fin de batalla, etc.) |
+| `player_actions` | real_time → engine | Acciones de entrenadores (registro, etc.) |
+| `player_events` | engine → real_time | Eventos de perfil e historial del entrenador |
+| `battle_actions` | real_time → engine | Acciones del jugador en combate (attack, switch, etc.) |
+| `battle_events` | engine → real_time | Eventos procesados de batalla (fases, estado del combate, logs) |
 
 ## Mix Tasks disponibles
 
@@ -151,28 +153,11 @@ Estructura del mensaje:
 
 ### Generación de SECRET_KEY_BASE
 
-Para generar una clave segura para `SECRET_KEY_BASE`, Phoenix incluye una tarea Mix que genera una cadena aleatoria criptográficamente segura. Ejecuta el siguiente comando en tu terminal:
+Para generar una clave segura para `SECRET_KEY_BASE`, Phoenix incluye una tarea Mix que genera una clave aleatoria criptográficamente segura:
 
 ```bash
 mix phx.gen.secret [length]
 ```
-
-**Detalles del comando y opciones:**
-- **Sin argumentos**: Por defecto, genera una clave aleatoria de **64 caracteres**.
-- **`[length]`**: Opcionalmente, puedes pasar un entero como argumento para cambiar la longitud de la clave generada.
-  - *Restricción*: La longitud mínima permitida es **32**. Si se ingresa un número menor, el comando devolverá un error de validación.
-- **Ejemplos**:
-  ```bash
-  # Genera una clave con la longitud por defecto (64 caracteres)
-  mix phx.gen.secret
-
-  # Genera una clave de 32 caracteres (mínimo permitido)
-  mix phx.gen.secret 32
-
-  # Genera una clave de 128 caracteres
-  mix phx.gen.secret 128
-  ```
-Una vez generada la clave, cópiala y asígnala a la variable `SECRET_KEY_BASE` en tu archivo `.env`.
 
 ## Mapeo de Puertos y Versiones (Local vs Docker)
 
@@ -186,7 +171,6 @@ Para mantener la consistencia entre ejecutar localmente (en tu máquina) o usand
 | **Elixir / Erlang** | Instalar local: Elixir `1.18.4`, Erlang `26.2.5` | Versión container: Elixir `1.18.4`, Erlang `26.2.5` | Imagen base: `hexpm/elixir:1.18.4-erlang-26.2.5.13-alpine-3.21.3` |
 
 ## Estructura del proyecto
-
 
 ```
 battle_real_time/
@@ -205,17 +189,28 @@ battle_real_time/
 ├── lib/
 │   ├── battle_real_time/
 │   │   ├── application.ex      # Árbol de supervisión OTP
-│   │   └── amqp/
-│   │       ├── connection.ex   # Conexión compartida a RabbitMQ (GenServer)
-│   │       ├── consumer.ex     # Consume de "battle_events", broadcast vía PubSub
-│   │       └── publisher.ex    # Publica acciones en "battle_actions"
+│   │   ├── amqp/
+│   │   │   ├── connection.ex   # Conexión compartida a RabbitMQ (GenServer)
+│   │   │   ├── consumer.ex     # Macro behavior base para consumidores AMQP
+│   │   │   ├── publisher.ex    # Macro behavior base para publicadores AMQP
+│   │   │   ├── consumers/      # Consumidores específicos de colas RabbitMQ
+│   │   │   │   ├── battle_events_consumer.ex
+│   │   │   │   └── player_events_consumer.ex
+│   │   │   └── publishers/     # Publicadores específicos de colas RabbitMQ
+│   │   │       ├── battle_actions_publisher.ex
+│   │   │       └── player_actions_publisher.ex
+│   │   │
+│   │   └── contracts/          # Contratos de validación de esquemas con Ecto
+│   │       └── publishers/     # Esquemas para validar payloads salientes
+│   │           └── register_contract.ex
 │   │
 │   ├── battle_real_time_web/
 │   │   ├── endpoint.ex         # Endpoint HTTP/WebSocket
 │   │   ├── router.ex           # Rutas HTTP
 │   │   ├── user_socket.ex      # Socket WebSocket (transportes)
 │   │   └── channels/
-│   │       └── battle_channel.ex  # Canal "battle:<id>" (join, actions, events)
+│   │       ├── battle_channel.ex  # Canal "battle:<id>" (join, actions, events)
+│   │       └── player_channel.ex  # Canal "player:<identifier>" (registro, perfil)
 │   │
 │   └── mix/
 │       └── tasks/

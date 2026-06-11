@@ -1,44 +1,212 @@
+// ignore_for_file: avoid_print
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:phoenix_socket/phoenix_socket.dart';
 import 'config.dart';
 
 /// Service to manage WebSocket connections with Elixir Phoenix Channels
-class BattleSocketService {
+class BattleSocketService with ChangeNotifier {
   PhoenixSocket? _socket;
-  PhoenixChannel? _channel;
-  StreamSubscription? _messageSubscription;
+  PhoenixChannel? _applicationChannel;
+  PhoenixChannel? _playerChannel;
+  PhoenixChannel? _battleChannel;
 
-  // Broadcast stream controller to notify UI of incoming game events
+  StreamSubscription? _appMessageSub;
+  StreamSubscription? _playerMessageSub;
+  StreamSubscription? _battleMessageSub;
+
+  // Track the active player profile in memory
+  Map<String, dynamic>? _currentPlayer;
+  Map<String, dynamic>? get currentPlayer => _currentPlayer;
+
+  // Track active battles from the player profile
+  List<Map<String, dynamic>> _activeBattles = [];
+  List<Map<String, dynamic>> get activeBattles => _activeBattles;
+
+  // Active users count
+  int _activeUsersCount = 0;
+  int get activeUsersCount => _activeUsersCount;
+
+  // Presence map
+  Map<String, dynamic> _presences = {};
+
+  // Controllers for streams
   final _battleEventController = StreamController<Map<String, dynamic>>.broadcast();
+  final _playerEventController = StreamController<Map<String, dynamic>>.broadcast();
+  final _activeUsersController = StreamController<int>.broadcast();
 
   /// Stream of raw incoming battle event payloads
   Stream<Map<String, dynamic>> get battleEvents => _battleEventController.stream;
 
+  /// Stream of player profile updates
+  Stream<Map<String, dynamic>> get playerEvents => _playerEventController.stream;
+
+  /// Stream of active online users count
+  Stream<int> get activeUsersStream => _activeUsersController.stream;
+
   /// Check whether the socket is currently connected
   bool get isConnected => _socket?.isConnected ?? false;
 
-  /// Establish WebSocket connection and join a specific battle channel
-  void connectToBattle(String battleId) {
-    // Clean up any existing connection first
-    disconnect();
+  /// Ensure the socket connection is initialized
+  void _ensureSocketConnected() {
+    if (_socket != null && _socket!.isConnected) return;
 
-    print("Connecting to Elixir Phoenix WebSocket at: ${AppConfig.websocketUrl}");
+    if (_socket != null) {
+      _socket!.dispose();
+    }
 
-    // 1. Initialize PhoenixSocket from the package
+    print("Conectando al WebSocket de Phoenix: ${AppConfig.websocketUrl}");
     _socket = PhoenixSocket(AppConfig.websocketUrl);
 
-    // Subscribe to socket events for debugging and connection lifecycle
-    _socket!.openStream.listen((_) => print("¡Phoenix WebSocket conectado exitosamente!"));
+    _socket!.openStream.listen((_) {
+      print("¡Phoenix WebSocket conectado exitosamente!");
+      connectAndJoinLobby();
+    });
     _socket!.closeStream.listen((_) => print("Phoenix WebSocket cerrado."));
     _socket!.errorStream.listen((err) => print("Error en Phoenix WebSocket: $err"));
 
-    // Connect physically to the server
     _socket!.connect();
+  }
 
-    // 2. Add channel for 'battle:ID' and join
-    _channel = _socket!.addChannel(topic: 'battle:$battleId');
+  /// Connects to the socket and joins the application channel for Presence tracking
+  void connectAndJoinLobby() {
+    _ensureSocketConnected();
 
-    final joinResponse = _channel!.join();
+    if (_applicationChannel != null) return; // Already joined
+
+    print("Uniéndose al canal 'application'...");
+    _applicationChannel = _socket!.addChannel(topic: 'application');
+    final joinResponse = _applicationChannel!.join();
+
+    joinResponse.onReply("ok", (response) {
+      print("Unido con éxito al canal 'application'");
+    });
+    joinResponse.onReply("error", (response) {
+      print("Error al unirse al canal 'application': $response");
+    });
+
+    _appMessageSub = _applicationChannel!.messages.listen((Message message) {
+      final event = message.event.value;
+      final payload = message.payload;
+      if (payload == null) return;
+
+      if (event == 'presence_state') {
+        _handlePresenceState(payload);
+      } else if (event == 'presence_diff') {
+        _handlePresenceDiff(payload);
+      }
+    });
+  }
+
+  /// Register a player by joining a temporary channel player:{name}
+  /// and pushing the register action on the same channel.
+  Future<Map<String, dynamic>> registerPlayer(String name) {
+    _ensureSocketConnected();
+
+    final completer = Completer<Map<String, dynamic>>();
+
+    // Join temporary channel player:{name}
+    final tempTopic = 'player:$name';
+    print("Uniéndose al canal temporal: $tempTopic");
+    final tempChannel = _socket!.addChannel(topic: tempTopic);
+    final joinResponse = tempChannel.join();
+
+    StreamSubscription? tempSub;
+    tempSub = tempChannel.messages.listen((Message message) {
+      final event = message.event.value;
+      final payload = message.payload;
+
+      if (event == 'player_event' && payload != null) {
+        final innerEvent = payload['event'];
+        final innerPayload = payload['payload'];
+
+        if (innerEvent == 'info' && innerPayload != null && innerPayload['player'] != null) {
+          final playerProfile = innerPayload['player'] as Map<String, dynamic>;
+          print("Registro exitoso recibido para ${playerProfile['name']}: ID ${playerProfile['id']}");
+
+          // Save profile
+          _currentPlayer = playerProfile;
+          final rawBattles = (innerPayload['battles'] ?? playerProfile['battles']) as List?;
+          _activeBattles = rawBattles != null
+              ? rawBattles.map((b) => Map<String, dynamic>.from(b as Map)).toList()
+              : [];
+          _playerEventController.add(playerProfile);
+          notifyListeners();
+
+          // Clean up temp channel
+          tempSub?.cancel();
+          tempChannel.leave();
+
+          // Join permanent player channel
+          _joinPermanentPlayerChannel(playerProfile['id'].toString());
+
+          if (!completer.isCompleted) {
+            completer.complete(playerProfile);
+          }
+        }
+      }
+    });
+
+    joinResponse.onReply("ok", (_) {
+      print("Conectado a $tempTopic. Enviando acción 'register'...");
+      tempChannel.push('register', {});
+    });
+
+    // Timeout fallback (10s)
+    Future.delayed(const Duration(seconds: 10), () {
+      if (!completer.isCompleted) {
+        tempSub?.cancel();
+        tempChannel.leave();
+        completer.completeError(TimeoutException("El registro excedió el tiempo límite (10s)"));
+      }
+    });
+
+    return completer.future;
+  }
+
+  void _joinPermanentPlayerChannel(String playerId) {
+    if (_playerChannel != null) {
+      _playerMessageSub?.cancel();
+      _playerChannel!.leave();
+    }
+
+    final topic = 'player:$playerId';
+    print("Uniéndose al canal permanente del jugador: $topic");
+    _playerChannel = _socket!.addChannel(topic: topic);
+    _playerChannel!.join();
+
+    _playerMessageSub = _playerChannel!.messages.listen((Message message) {
+      final event = message.event.value;
+      final payload = message.payload;
+
+      // Handle any player-specific events here
+      if (event == 'player_event' && payload != null) {
+        final innerPayload = payload['payload'];
+        if (innerPayload != null && innerPayload['player'] != null) {
+          final playerProfile = innerPayload['player'] as Map<String, dynamic>;
+          _currentPlayer = playerProfile;
+          final rawBattles = (innerPayload['battles'] ?? playerProfile['battles']) as List?;
+          _activeBattles = rawBattles != null
+              ? rawBattles.map((b) => Map<String, dynamic>.from(b as Map)).toList()
+              : [];
+          _playerEventController.add(_currentPlayer!);
+          notifyListeners();
+        }
+      }
+    });
+  }
+
+  /// Establish WebSocket connection and join a specific battle channel
+  void connectToBattle(String battleId) {
+    _ensureSocketConnected();
+
+    // Clean up existing battle channel if any
+    leaveBattle();
+
+    print("Uniéndose al canal battle:$battleId");
+    _battleChannel = _socket!.addChannel(topic: 'battle:$battleId');
+
+    final joinResponse = _battleChannel!.join();
     joinResponse.onReply("ok", (response) {
       print("Unido con éxito al canal battle:$battleId");
     });
@@ -46,9 +214,7 @@ class BattleSocketService {
       print("Fallo al unirse al canal battle:$battleId: $response");
     });
 
-    // 3. Listen for incoming channel messages
-    _messageSubscription = _channel!.messages.listen((Message message) {
-      // Look for custom battle_event pushed by Elixir
+    _battleMessageSub = _battleChannel!.messages.listen((Message message) {
       if (message.event.value == 'battle_event' && message.payload != null) {
         _battleEventController.add(message.payload!);
       }
@@ -57,8 +223,8 @@ class BattleSocketService {
 
   /// Push a combat action to the Elixir backend (calls handle_in("action", ...))
   void sendAction(String actionType, Map<String, dynamic> payload) {
-    if (_channel != null && _channel!.state == PhoenixChannelState.joined) {
-      _channel!.push(
+    if (_battleChannel != null && _battleChannel!.state == PhoenixChannelState.joined) {
+      _battleChannel!.push(
         'action',
         {
           'action': actionType,
@@ -70,25 +236,137 @@ class BattleSocketService {
     }
   }
 
-  /// Disconnect and clean up current channel and socket resources
-  void disconnect() {
-    _messageSubscription?.cancel();
-    _messageSubscription = null;
+  /// Leave the battle channel
+  void leaveBattle() {
+    _battleMessageSub?.cancel();
+    _battleMessageSub = null;
 
-    if (_channel != null) {
-      _channel!.leave();
-      _channel = null;
+    if (_battleChannel != null) {
+      _battleChannel!.leave();
+      _battleChannel = null;
+    }
+  }
+
+  /// Disconnect and clean up all resources
+  void disconnect() {
+    leaveBattle();
+
+    _appMessageSub?.cancel();
+    _appMessageSub = null;
+    if (_applicationChannel != null) {
+      _applicationChannel!.leave();
+      _applicationChannel = null;
+    }
+
+    _playerMessageSub?.cancel();
+    _playerMessageSub = null;
+    if (_playerChannel != null) {
+      _playerChannel!.leave();
+      _playerChannel = null;
     }
 
     if (_socket != null) {
       _socket!.dispose();
       _socket = null;
     }
+
+    _currentPlayer = null;
+    _activeBattles.clear();
+    _presences.clear();
+    _activeUsersCount = 0;
+    notifyListeners();
   }
 
   /// Dispose the service
+  @override
   void dispose() {
     disconnect();
     _battleEventController.close();
+    _playerEventController.close();
+    _activeUsersController.close();
+    super.dispose();
+  }
+
+  // --- Presence Handling Helpers ---
+
+  void _handlePresenceState(Map<String, dynamic> payload) {
+    _presences = Map<String, dynamic>.from(payload);
+    _updateActiveCount();
+  }
+
+  void _handlePresenceDiff(Map<String, dynamic> payload) {
+    final joins = payload['joins'] as Map<String, dynamic>? ?? {};
+    final leaves = payload['leaves'] as Map<String, dynamic>? ?? {};
+
+    // Sync joins
+    joins.forEach((key, value) {
+      if (value is Map && value.containsKey('metas')) {
+        final newMetas = value['metas'] as List? ?? [];
+        if (!_presences.containsKey(key)) {
+          _presences[key] = {'metas': List.from(newMetas)};
+        } else {
+          final existingVal = _presences[key];
+          if (existingVal is Map && existingVal.containsKey('metas')) {
+            final existingMetas = List.from(existingVal['metas'] as List);
+            for (var newMeta in newMetas) {
+              if (newMeta is Map) {
+                final phxRef = newMeta['phx_ref'];
+                // Evitar duplicados
+                existingMetas.removeWhere((m) => m is Map && m['phx_ref'] == phxRef);
+                existingMetas.add(newMeta);
+              }
+            }
+            _presences[key] = {'metas': existingMetas};
+          } else {
+            _presences[key] = {'metas': List.from(newMetas)};
+          }
+        }
+      }
+    });
+
+    // Sync leaves
+    leaves.forEach((key, value) {
+      if (value is Map && value.containsKey('metas')) {
+        final oldMetas = value['metas'] as List? ?? [];
+        if (_presences.containsKey(key)) {
+          final existingVal = _presences[key];
+          if (existingVal is Map && existingVal.containsKey('metas')) {
+            final existingMetas = List.from(existingVal['metas'] as List);
+            for (var oldMeta in oldMetas) {
+              if (oldMeta is Map) {
+                final phxRef = oldMeta['phx_ref'];
+                existingMetas.removeWhere((m) => m is Map && m['phx_ref'] == phxRef);
+              }
+            }
+            if (existingMetas.isEmpty) {
+              _presences.remove(key);
+            } else {
+              _presences[key] = {'metas': existingMetas};
+            }
+          }
+        }
+      }
+    });
+
+    _updateActiveCount();
+  }
+
+  void _updateActiveCount() {
+    int count = 0;
+    if (_presences.containsKey('lobby')) {
+      final lobbyData = _presences['lobby'] as Map<String, dynamic>?;
+      final metas = lobbyData?['metas'] as List?;
+      count = metas?.length ?? 0;
+    } else {
+      _presences.forEach((key, value) {
+        if (value is Map && value.containsKey('metas')) {
+          final metas = value['metas'] as List?;
+          count += metas?.length ?? 0;
+        }
+      });
+    }
+    _activeUsersCount = count;
+    _activeUsersController.add(count);
+    notifyListeners();
   }
 }

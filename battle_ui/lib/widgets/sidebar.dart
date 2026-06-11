@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../theme.dart';
+import '../utils/battle_socket_service.dart';
+import '../utils/pokemon_type_icons.dart';
 
 class Sidebar extends StatefulWidget {
   final int selectedIndex;
@@ -17,8 +20,8 @@ class Sidebar extends StatefulWidget {
 
 class _SidebarState extends State<Sidebar> {
   final TextEditingController _usernameController = TextEditingController();
-  bool _isEditingUsername = true;
-  String _username = '';
+  bool _isRegistering = false;
+  String? _errorMessage;
 
   @override
   void dispose() {
@@ -26,12 +29,26 @@ class _SidebarState extends State<Sidebar> {
     super.dispose();
   }
 
-  void _saveUsername() {
-    if (_usernameController.text.trim().isNotEmpty) {
-      setState(() {
-        _username = _usernameController.text.trim();
-        _isEditingUsername = false;
-      });
+  void _registerTrainer(BattleSocketService service) async {
+    final name = _usernameController.text.trim();
+    if (name.isEmpty) return;
+
+    setState(() {
+      _isRegistering = true;
+      _errorMessage = null;
+    });
+
+    try {
+      await service.registerPlayer(name);
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isRegistering = false;
+          _errorMessage = e.toString().contains("Timeout")
+              ? "Error de conexión."
+              : "Error: $e";
+        });
+      }
     }
   }
 
@@ -39,6 +56,8 @@ class _SidebarState extends State<Sidebar> {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     final text = Theme.of(context).textTheme;
+    final socketService = context.watch<BattleSocketService>();
+    final profile = socketService.currentPlayer;
 
     return Container(
       width: 300,
@@ -104,46 +123,86 @@ class _SidebarState extends State<Sidebar> {
             child: Card(
               child: Padding(
                 padding: const EdgeInsets.all(16),
-                child: _isEditingUsername ? _buildEditProfile(text) : _buildShowProfile(text, colors),
+                child: profile == null
+                    ? _buildEditProfile(text, socketService)
+                    : _buildShowProfile(text, colors, profile, socketService),
               ),
             ),
           ),
 
           const SizedBox(height: 24),
 
-          // Menu label
-          Padding(
-            padding: const EdgeInsets.fromLTRB(24, 0, 24, 8),
-            child: Text(
-              'MENÚ',
-              style: text.labelSmall?.copyWith(
-                color: AppColors.onSurfaceMuted,
-                fontWeight: FontWeight.w700,
-                letterSpacing: 1.2,
+          // Menu label & navigation items (only if profile is registered)
+          if (profile != null) ...[
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 0, 24, 8),
+              child: Text(
+                'MENÚ',
+                style: text.labelSmall?.copyWith(
+                  color: AppColors.onSurfaceMuted,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 1.2,
+                ),
               ),
             ),
-          ),
-
-          _NavItem(
-            icon: Icons.sports_esports,
-            title: 'Arena de Batalla',
-            selected: widget.selectedIndex == 0,
-            onTap: () => widget.onItemSelected(0),
-          ),
-          _NavItem(
-            icon: Icons.shield_outlined,
-            title: 'Constructor de Equipos',
-            selected: widget.selectedIndex == 1,
-            onTap: () => widget.onItemSelected(1),
-          ),
+            _NavItem(
+              icon: Icons.sports_esports,
+              title: 'Arena de Batalla',
+              selected: widget.selectedIndex == 0,
+              onTap: () => widget.onItemSelected(0),
+            ),
+            _NavItem(
+              icon: Icons.shield_outlined,
+              title: 'Constructor de Equipos',
+              selected: widget.selectedIndex == 1,
+              onTap: () => widget.onItemSelected(1),
+            ),
+          ],
 
           const Spacer(),
+          _buildTypeLegend(text),
         ],
       ),
     );
   }
 
-  Widget _buildEditProfile(TextTheme text) {
+  Widget _buildTypeLegend(TextTheme text) {
+    const allTypes = [
+      'normal', 'fire', 'water', 'electric', 'grass', 'ice',
+      'fighting', 'poison', 'ground', 'flying', 'psychic', 'bug',
+      'rock', 'ghost', 'dragon', 'dark', 'steel', 'fairy'
+    ];
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'LEYENDA DE TIPOS',
+            style: text.labelSmall?.copyWith(
+              color: AppColors.onSurfaceMuted,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 1.2,
+            ),
+          ),
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            children: allTypes.map((type) {
+              return Tooltip(
+                message: type.toUpperCase(),
+                child: PokemonTypeIcons.buildTypeIcon(type, size: 16),
+              );
+            }).toList(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEditProfile(TextTheme text, BattleSocketService service) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -158,28 +217,48 @@ class _SidebarState extends State<Sidebar> {
         const SizedBox(height: 12),
         TextField(
           controller: _usernameController,
-          autofocus: true,
-          decoration: const InputDecoration(hintText: 'Ingresa tu nombre'),
-          onSubmitted: (_) => _saveUsername(),
+          enabled: !_isRegistering,
+          maxLength: 20,
+          decoration: const InputDecoration(
+            hintText: 'Ingresa tu nombre',
+            counterText: '',
+          ),
+          onSubmitted: (_) => _registerTrainer(service),
         ),
+        if (_errorMessage != null) ...[
+          const SizedBox(height: 8),
+          Text(
+            _errorMessage!,
+            style: const TextStyle(color: AppColors.danger, fontSize: 12, fontWeight: FontWeight.w500),
+          ),
+        ],
         const SizedBox(height: 12),
-        FilledButton.icon(
-          onPressed: _saveUsername,
-          icon: const Icon(Icons.check, size: 18),
-          label: const Text('Confirmar'),
-        ),
+        _isRegistering
+            ? const Center(
+                child: SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: CircularProgressIndicator(strokeWidth: 2.5),
+                ),
+              )
+            : FilledButton.icon(
+                onPressed: () => _registerTrainer(service),
+                icon: const Icon(Icons.check, size: 18),
+                label: const Text('Confirmar'),
+              ),
       ],
     );
   }
 
-  Widget _buildShowProfile(TextTheme text, ColorScheme colors) {
+  Widget _buildShowProfile(TextTheme text, ColorScheme colors, Map<String, dynamic> profile, BattleSocketService service) {
+    final name = profile['name'] as String? ?? 'Entrenador';
     return Row(
       children: [
         CircleAvatar(
           radius: 22,
           backgroundColor: AppColors.primary.withValues(alpha: 0.18),
           child: Text(
-            _username.isNotEmpty ? _username[0].toUpperCase() : '?',
+            name.isNotEmpty ? name[0].toUpperCase() : '?',
             style: text.titleMedium?.copyWith(color: AppColors.primary, fontWeight: FontWeight.w800),
           ),
         ),
@@ -188,7 +267,7 @@ class _SidebarState extends State<Sidebar> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(_username, style: text.titleSmall?.copyWith(fontWeight: FontWeight.w700), overflow: TextOverflow.ellipsis),
+              Text(name, style: text.titleSmall?.copyWith(fontWeight: FontWeight.w700), overflow: TextOverflow.ellipsis),
               const SizedBox(height: 2),
               Row(
                 children: [
@@ -205,14 +284,16 @@ class _SidebarState extends State<Sidebar> {
           ),
         ),
         IconButton(
-          tooltip: 'Editar',
+          tooltip: 'Desconectar',
           onPressed: () {
+            _usernameController.clear();
             setState(() {
-              _isEditingUsername = true;
-              _usernameController.text = _username;
+              _isRegistering = false;
+              _errorMessage = null;
             });
+            service.disconnect();
           },
-          icon: const Icon(Icons.edit_outlined, size: 18),
+          icon: const Icon(Icons.logout, size: 18, color: AppColors.danger),
         ),
       ],
     );

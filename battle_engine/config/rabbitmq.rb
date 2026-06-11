@@ -18,13 +18,20 @@ module BattleEngine
     end
 
     def channel
-      @channel ||= connection.create_channel
+      chan = Thread.current[:rabbitmq_channel]
+      if chan && chan.open?
+        chan
+      else
+        Thread.current[:rabbitmq_channel] = connection.create_channel
+      end
     end
 
     def disconnect!
-      @channel&.close
+      if (chan = Thread.current[:rabbitmq_channel])
+        chan.close if chan.open?
+        Thread.current[:rabbitmq_channel] = nil
+      end
       @connection&.close
-      @channel = nil
       @connection = nil
       BattleEngine.logger.info("[RabbitMQ] Disconnected")
     end
