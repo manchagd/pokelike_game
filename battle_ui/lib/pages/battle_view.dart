@@ -529,7 +529,7 @@ class _BattleViewState extends State<BattleView> {
                         _scrollToFeedbackBottom();
                         _socketService.sendAction('attack', {
                           'move_id': a['name'].toString().toLowerCase(),
-                          'target_id': _oppActive['name']?.toString().toLowerCase(),
+                          'targets': [_oppActive['name']?.toString().toLowerCase() ?? 'opp_active'],
                         });
                       },
                       child: Padding(

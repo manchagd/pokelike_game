@@ -112,11 +112,18 @@ defmodule BattleRealTime.BattleSession do
       # Cancel old timer and start a new one
       cancel_timeout_timer(state.timer_ref)
       new_timer_ref = start_timeout_timer()
-
       new_expires_at =
         DateTime.utc_now()
         |> DateTime.add(@turn_timeout_seconds, :second)
         |> DateTime.to_unix(:millisecond)
+
+      # Publish consolidated turn_actions to RabbitMQ
+      turn_actions_payload = %{
+        "battle_id" => state.battle_id,
+        "turn" => state.turn,
+        "actions" => Map.values(actions)
+      }
+      BattleRealTime.AMQP.Publishers.BattleActionsPublisher.publish("turn_actions", turn_actions_payload)
 
       # Resolve turn (for now, just log and advance the turn)
       next_turn = state.turn + 1

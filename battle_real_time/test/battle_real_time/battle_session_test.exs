@@ -39,17 +39,30 @@ defmodule BattleRealTime.BattleSessionTest do
     assert :ok = BattleSession.register_player(battle_id, "player_2")
 
     # Player 1 submits action
-    assert {:ok, :pending} = BattleSession.submit_action(battle_id, "player_1", %{"action" => "attack", "move_id" => "tackle"})
+    action1 = %{
+      "action" => "attack",
+      "move_id" => "tackle",
+      "player_id" => "player_1",
+      "battle_id" => battle_id,
+      "targets" => ["player_2"]
+    }
+    assert {:ok, :pending} = BattleSession.submit_action(battle_id, "player_1", action1)
 
     assert {:ok, state} = BattleSession.get_state(battle_id)
     assert state.turn == 1
-    assert state.actions["player_1"] == %{"action" => "attack", "move_id" => "tackle"}
+    assert state.actions["player_1"] == action1
 
     # Subscribe to PubSub to receive the broadcasted state update
     Phoenix.PubSub.subscribe(BattleRealTime.PubSub, "battle_events:#{battle_id}")
 
     # Player 2 submits action -> resolves turn!
-    assert {:ok, :resolved} = BattleSession.submit_action(battle_id, "player_2", %{"action" => "switch", "monster_id" => "pikachu"})
+    action2 = %{
+      "action" => "switch",
+      "monster_id" => "pikachu",
+      "player_id" => "player_2",
+      "battle_id" => battle_id
+    }
+    assert {:ok, :resolved} = BattleSession.submit_action(battle_id, "player_2", action2)
 
     # Check state updated (turn advanced, actions cleared)
     assert {:ok, state2} = BattleSession.get_state(battle_id)

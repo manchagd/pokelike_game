@@ -5,9 +5,11 @@ defmodule BattleRealTime.AMQP.Publishers.BattleActionsPublisher do
   """
   use BattleRealTime.AMQP.Publisher, queue: "battle_actions"
 
+  alias BattleRealTime.Contracts.Publishers.BattleActions.TurnActionsContract
+
   @impl true
-  def validate("turn_actions", _payload) do
-    {:error, %Ecto.Changeset{action: :validate}}
+  def validate("turn_actions", payload) do
+    TurnActionsContract.validate(payload)
   end
 
   def validate(_action, payload) do
