@@ -136,7 +136,9 @@ battle_ui/
 │   │   └── sidebar.dart             # Barra de navegación lateral persistente
 │   │
 │   └── utils/        # Funciones helpers o estáticas
-│       └── pokemon_type_icons.dart  # Iconografía y colorización de tipos de monstruos
+│       ├── pokemon_type_icons.dart  # Iconografía y colorización de tipos de monstruos
+│       ├── battle_socket_service.dart # Servicio de conexión a WebSockets de Phoenix
+│       └── config.dart              # Carga de configuración del entorno (config.json)
 │
 ├── pubspec.yaml      # Dependencias del proyecto y assets declarados
 └── README.md         # Este archivo

@@ -41,6 +41,20 @@ defmodule BattleRealTimeWeb.BattleChannel do
 
   # Client sends an action -> forward to BattleSession and publish to RabbitMQ
   @impl true
+  def handle_in("action", %{"action" => "forfeit"}, socket) do
+    battle_id = socket.assigns.battle_id
+    player_id = socket.assigns.player_id
+
+    Logger.info("Forfeit action received from player '#{player_id}' for battle:#{battle_id}")
+
+    if player_id != nil and player_id != "" do
+      BattleSession.forfeit(battle_id, player_id)
+    end
+
+    {:noreply, socket}
+  end
+
+  @impl true
   def handle_in("action", %{"action" => action} = payload, socket) do
     battle_id = socket.assigns.battle_id
     player_id = socket.assigns.player_id

@@ -18,19 +18,33 @@ defmodule BattleRealTime.BattleSessionTest do
     assert {:ok, state} = BattleSession.get_state(battle_id)
     assert state.battle_id == battle_id
     assert state.turn == 1
-    assert state.phase == "waiting_actions"
+    assert state.phase == :waiting_players
     assert MapSet.equal?(state.players, MapSet.new())
     assert state.actions == %{}
   end
 
-  test "registers players", %{battle_id: battle_id} do
+  test "registers players and transitions phase", %{battle_id: battle_id} do
     assert :ok = BattleSession.register_player(battle_id, "player_1")
     assert {:ok, state} = BattleSession.get_state(battle_id)
     assert MapSet.member?(state.players, "player_1")
+    assert state.phase == :waiting_players
 
     assert :ok = BattleSession.register_player(battle_id, "player_2")
     assert {:ok, state2} = BattleSession.get_state(battle_id)
     assert MapSet.member?(state2.players, "player_2")
+    assert state2.phase == :waiting_actions
+  end
+
+  test "rejects actions when phase is waiting_players", %{battle_id: battle_id} do
+    assert :ok = BattleSession.register_player(battle_id, "player_1")
+    action = %{
+      "action" => "attack",
+      "move_id" => "tackle",
+      "player_id" => "player_1",
+      "battle_id" => battle_id,
+      "targets" => ["player_2"]
+    }
+    assert {:error, :invalid_phase} = BattleSession.submit_action(battle_id, "player_1", action)
   end
 
   test "stores action and resolves turn when both players submit", %{battle_id: battle_id} do
@@ -73,5 +87,23 @@ defmodule BattleRealTime.BattleSessionTest do
     assert_receive {:battle_event, %{event: "battle_state", payload: payload}}
     assert payload["turn"] == 2
     assert payload["log"] == ["Acciones procesadas. ¡Comienza el turno 2!"]
+  end
+
+  test "surrendering player terminates the battle gracefully", %{battle_id: battle_id, pid: pid} do
+    assert :ok = BattleSession.register_player(battle_id, "player_1", "Ash")
+
+    # Subscribe to PubSub to receive the broadcasted battle_ended event
+    Phoenix.PubSub.subscribe(BattleRealTime.PubSub, "battle_events:#{battle_id}")
+
+    # Forfeit!
+    assert :ok = BattleSession.forfeit(battle_id, "player_1")
+
+    # Check broadcast received
+    assert_receive {:battle_event, %{event: "battle_ended", payload: payload}}
+    assert payload["battle_id"] == battle_id
+    assert payload["reason"] == "El entrenador Ash se ha retirado. Combate finalizado."
+
+    # Check that the GenServer process is terminated
+    refute Process.alive?(pid)
   end
 end

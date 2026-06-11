@@ -33,19 +33,25 @@ class _BattleViewState extends State<BattleView> {
   Map<String, dynamic> _oppActive = {};
 
   int _turn = 1;
-  String _phase = 'waiting_actions';
+  BattlePhase _phase = BattlePhase.waitingPlayers;
   String _myName = 'Tú';
   String _oppName = 'Oponente';
   int? _turnExpiresAt;
   Timer? _countdownTimer;
   int _remainingSeconds = 0;
+  String _battleFormat = '1v1';
+  int _expectedPlayers = 2;
+  int _connectedPlayers = 0;
 
   @override
   void initState() {
     super.initState();
 
     _turn = 1;
-    _phase = 'waiting_actions';
+    _phase = BattlePhase.waitingPlayers;
+    _battleFormat = '1v1';
+    _expectedPlayers = 2;
+    _connectedPlayers = 0;
 
     _battleFeedback.addAll([
       '¡Batalla iniciada!',
@@ -145,13 +151,23 @@ class _BattleViewState extends State<BattleView> {
       return;
     }
 
+    if (eventName == 'battle_ended') {
+      final reason = eventPayload['reason'] as String? ?? 'El combate ha finalizado.';
+      _showBattleEndedDialog(reason);
+      return;
+    }
+
     if (eventName == 'battle_state') {
       final myId = _socketService.currentPlayer?['id']?.toString();
       final activeA = eventPayload['active_monster_a'];
       final activeB = eventPayload['active_monster_b'];
       final newTurn = eventPayload['turn'] as int? ?? 1;
-      final newPhase = eventPayload['phase'] as String? ?? 'waiting_actions';
+      final newPhaseStr = eventPayload['phase'] as String?;
+      final newPhase = BattlePhase.fromString(newPhaseStr);
       final newExpiresAt = eventPayload['turn_expires_at'] as int?;
+      final format = eventPayload['battle_format'] as String? ?? '1v1';
+      final expected = eventPayload['expected_players'] as int? ?? 2;
+      final connected = eventPayload['connected_players'] as int? ?? 0;
 
       final playerAName = eventPayload['player_a_name'] as String? ?? 'Entrenador A';
       final playerBName = eventPayload['player_b_name'] as String? ?? 'Entrenador B';
@@ -185,6 +201,9 @@ class _BattleViewState extends State<BattleView> {
         _myName = myName;
         _oppName = oppName;
         _turnExpiresAt = newExpiresAt;
+        _battleFormat = format;
+        _expectedPlayers = expected;
+        _connectedPlayers = connected;
         if (myActiveEvent != null) {
           _myActive = {
             'name': myActiveEvent['name'] ?? '?',
@@ -303,6 +322,75 @@ class _BattleViewState extends State<BattleView> {
     );
   }
 
+  void _showBattleEndedDialog(String reason) {
+    if (!mounted) return;
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: const Row(
+            children: [
+              Icon(Icons.sports_kabaddi_rounded, color: AppColors.primary),
+              SizedBox(width: 10),
+              Text('Combate finalizado'),
+            ],
+          ),
+          content: Text(reason),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(dialogContext).pop();
+                if (mounted) {
+                  context.pop();
+                }
+              },
+              child: const Text('Volver al inicio'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showSurrenderConfirmation() {
+    if (!mounted) return;
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: const Row(
+            children: [
+              Icon(Icons.outlined_flag_rounded, color: AppColors.danger),
+              SizedBox(width: 10),
+              Text('¿Rendirse?'),
+            ],
+          ),
+          content: const Text(
+            '¿Estás seguro de que deseas rendirte? Esto finalizará el combate y registrará tu derrota.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: const Text('Cancelar'),
+            ),
+            FilledButton(
+              style: FilledButton.styleFrom(
+                backgroundColor: AppColors.danger,
+                foregroundColor: Colors.white,
+              ),
+              onPressed: () {
+                Navigator.of(dialogContext).pop();
+                _socketService.sendAction('forfeit', {});
+              },
+              child: const Text('Rendirse'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   void _sendMessage() {
     final t = _chatController.text.trim();
     if (t.isEmpty) return;
@@ -329,9 +417,24 @@ class _BattleViewState extends State<BattleView> {
           ],
         ),
         actions: [
+          if (!_phase.isWaitingPlayers)
+            Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: TextButton.icon(
+                onPressed: _showSurrenderConfirmation,
+                icon: const Icon(Icons.flag_rounded, color: AppColors.danger, size: 18),
+                label: const Text(
+                  'Rendirse',
+                  style: TextStyle(
+                    color: AppColors.danger,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+            ),
           if (widget.battleCode != null)
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              padding: const EdgeInsets.only(right: 16, top: 10, bottom: 10),
               child: Chip(
                 avatar: const Icon(
                   Icons.tag,
@@ -359,6 +462,36 @@ class _BattleViewState extends State<BattleView> {
               child: LayoutBuilder(
                 builder: (context, c) {
                   final isWide = c.maxWidth > 900 && c.maxHeight > 700;
+                  final isWaitingPlayers = _phase.isWaitingPlayers;
+
+                  if (isWaitingPlayers) {
+                    if (!isWide) {
+                      return SingleChildScrollView(
+                        child: Column(
+                          children: [
+                            _buildWaitingRoomPanel(),
+                            const SizedBox(height: 16),
+                            SizedBox(height: 360, child: _buildChatPanel()),
+                          ],
+                        ),
+                      );
+                    }
+                    return Row(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Expanded(
+                          flex: 6,
+                          child: _buildWaitingRoomPanel(),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          flex: 4,
+                          child: _buildChatPanel(),
+                        ),
+                      ],
+                    );
+                  }
+
                   if (!isWide) {
                     return SingleChildScrollView(
                       child: Column(
@@ -409,6 +542,249 @@ class _BattleViewState extends State<BattleView> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildWaitingRoomPanel() {
+    final text = Theme.of(context).textTheme;
+
+    // We want to list players
+    // Player 1 (us or player A)
+    // Player 2 (player B or opponent)
+    final player1Connected = _connectedPlayers >= 1;
+    final player2Connected = _connectedPlayers >= 2;
+
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+        side: BorderSide(
+          color: AppColors.outlineVariant.withValues(alpha: 0.4),
+          width: 1.5,
+        ),
+      ),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(AppRadius.lg),
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              AppColors.surfaceA20.withValues(alpha: 0.95),
+              AppColors.surface.withValues(alpha: 0.98),
+            ],
+          ),
+        ),
+        padding: const EdgeInsets.all(28),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Icon header
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: LinearGradient(
+                  colors: [
+                    AppColors.accent.withValues(alpha: 0.2),
+                    AppColors.primary.withValues(alpha: 0.1),
+                  ],
+                ),
+                border: Border.all(
+                  color: AppColors.accent.withValues(alpha: 0.3),
+                  width: 2,
+                ),
+              ),
+              child: const Icon(
+                Icons.people_alt_rounded,
+                color: AppColors.accent,
+                size: 36,
+              ),
+            ),
+            const SizedBox(height: 20),
+
+            // Title and Subtitle
+            Text(
+              'Lobby de Combate',
+              style: text.headlineSmall?.copyWith(
+                fontWeight: FontWeight.w900,
+                color: AppColors.onSurface,
+                letterSpacing: 0.5,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Esperando entrenadores para iniciar el combate...',
+              textAlign: TextAlign.center,
+              style: text.bodyMedium?.copyWith(
+                color: AppColors.onSurfaceMuted,
+              ),
+            ),
+            const SizedBox(height: 28),
+
+            // Format and progress badge
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: BoxDecoration(
+                color: AppColors.primaryA0.withValues(alpha: 0.05),
+                borderRadius: BorderRadius.circular(100),
+                border: Border.all(
+                  color: AppColors.primary.withValues(alpha: 0.15),
+                ),
+              ),
+              child: Text(
+                'Formato: $_battleFormat • Conectados: $_connectedPlayers / $_expectedPlayers',
+                style: text.bodySmall?.copyWith(
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.primary,
+                  letterSpacing: 0.8,
+                ),
+              ),
+            ),
+            const SizedBox(height: 28),
+
+            // Player list
+            Column(
+              children: [
+                _buildLobbyPlayerTile(
+                  name: player1Connected ? _myName : 'Buscando Entrenador...',
+                  isConnected: player1Connected,
+                  role: 'Jugador 1',
+                  isMe: player1Connected && _myName.contains('(Tú)'),
+                ),
+                const SizedBox(height: 12),
+                _buildLobbyPlayerTile(
+                  name: player2Connected ? _oppName : 'Esperando Oponente...',
+                  isConnected: player2Connected,
+                  role: 'Jugador 2',
+                  isMe: player2Connected && _oppName.contains('(Tú)'),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 24),
+            // Tips banner
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppColors.surfaceA0.withValues(alpha: 0.3),
+                borderRadius: BorderRadius.circular(AppRadius.md),
+                border: Border.all(
+                  color: AppColors.outlineVariant.withValues(alpha: 0.3),
+                ),
+              ),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.info_outline_rounded,
+                    color: AppColors.onSurfaceMuted,
+                    size: 16,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'El combate comenzará automáticamente cuando se complete el cupo.',
+                      style: text.bodySmall?.copyWith(
+                        color: AppColors.onSurfaceMuted,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLobbyPlayerTile({
+    required String name,
+    required bool isConnected,
+    required String role,
+    required bool isMe,
+  }) {
+    final text = Theme.of(context).textTheme;
+    final dotColor = isConnected ? AppColors.success : AppColors.onSurfaceMuted.withValues(alpha: 0.3);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      decoration: BoxDecoration(
+        color: isConnected
+            ? AppColors.surfaceA10.withValues(alpha: 0.4)
+            : AppColors.surfaceA0.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(AppRadius.md),
+        border: Border.all(
+          color: isConnected
+              ? AppColors.success.withValues(alpha: 0.2)
+              : AppColors.outlineVariant.withValues(alpha: 0.3),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        children: [
+          // Connection status dot/indicator
+          if (isConnected)
+            const _PulsingIndicator(color: AppColors.success)
+          else
+            Container(
+              width: 10,
+              height: 10,
+              decoration: BoxDecoration(
+                color: dotColor,
+                shape: BoxShape.circle,
+              ),
+            ),
+          const SizedBox(width: 14),
+
+          // Player info
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  name,
+                  style: text.bodyMedium?.copyWith(
+                    fontWeight: isConnected ? FontWeight.w800 : FontWeight.w500,
+                    color: isConnected ? AppColors.onSurface : AppColors.onSurfaceMuted,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  role + (isMe ? ' (Tú)' : ''),
+                  style: text.bodySmall?.copyWith(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: isMe ? AppColors.secondary : AppColors.onSurfaceMuted,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Right status label
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            decoration: BoxDecoration(
+              color: isConnected
+                  ? AppColors.success.withValues(alpha: 0.15)
+                  : AppColors.surfaceA0.withValues(alpha: 0.2),
+              borderRadius: BorderRadius.circular(AppRadius.sm),
+            ),
+            child: Text(
+              isConnected ? 'Listo' : 'Pendiente',
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w900,
+                color: isConnected ? AppColors.success : AppColors.onSurfaceMuted,
+                letterSpacing: 0.5,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -973,9 +1349,16 @@ class _BattleViewState extends State<BattleView> {
   }
 
   Widget _buildTopTurnBanner(TextTheme text) {
-    final isWaiting = _phase == 'waiting_actions';
-    final statusColor = isWaiting ? AppColors.accent : AppColors.success;
-    final statusText = isWaiting ? 'Esperando acciones...' : 'Procesando turno...';
+    final isWaitingPlayers = _phase.isWaitingPlayers;
+    final isWaiting = _phase.isWaitingActions;
+
+    final statusColor = isWaitingPlayers
+        ? AppColors.warning
+        : (isWaiting ? AppColors.accent : AppColors.success);
+
+    final statusText = isWaitingPlayers
+        ? 'Esperando jugadores...'
+        : (isWaiting ? 'Esperando acciones...' : 'Procesando turno...');
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
@@ -986,14 +1369,14 @@ class _BattleViewState extends State<BattleView> {
       ),
       child: Row(
         children: [
-          const Icon(
-            Icons.hourglass_empty_rounded,
+          Icon(
+            isWaitingPlayers ? Icons.group_add_rounded : Icons.hourglass_empty_rounded,
             color: AppColors.primary,
             size: 18,
           ),
           const SizedBox(width: 8),
           Text(
-            'Turno $_turn',
+            isWaitingPlayers ? 'Lobby' : 'Turno $_turn',
             style: text.bodyMedium?.copyWith(
               fontWeight: FontWeight.w900,
               color: AppColors.onSurface,
@@ -1006,7 +1389,9 @@ class _BattleViewState extends State<BattleView> {
             color: AppColors.outlineVariant,
           ),
           const SizedBox(width: 12),
-          if (isWaiting)
+          if (isWaitingPlayers)
+            const _PulsingIndicator(color: AppColors.warning)
+          else if (isWaiting)
             const _PulsingIndicator(color: AppColors.accent)
           else
             const SizedBox(
@@ -1028,7 +1413,7 @@ class _BattleViewState extends State<BattleView> {
               ),
             ),
           ),
-          if (isWaiting && _remainingSeconds > 0) ...[
+          if (!isWaitingPlayers && isWaiting && _remainingSeconds > 0) ...[
             const Icon(
               Icons.timer_outlined,
               color: AppColors.onSurfaceMuted,
@@ -1193,5 +1578,43 @@ class _PulsingIndicatorState extends State<_PulsingIndicator>
         ),
       ),
     );
+  }
+}
+
+enum BattlePhase {
+  waitingPlayers,
+  waitingActions,
+  resolving,
+  finished;
+
+  bool get isWaitingPlayers => this == BattlePhase.waitingPlayers;
+  bool get isWaitingActions => this == BattlePhase.waitingActions;
+
+  static BattlePhase fromString(String? value) {
+    switch (value) {
+      case 'waiting_players':
+        return BattlePhase.waitingPlayers;
+      case 'waiting_actions':
+        return BattlePhase.waitingActions;
+      case 'resolving':
+        return BattlePhase.resolving;
+      case 'finished':
+        return BattlePhase.finished;
+      default:
+        return BattlePhase.waitingActions;
+    }
+  }
+
+  String toJsonString() {
+    switch (this) {
+      case BattlePhase.waitingPlayers:
+        return 'waiting_players';
+      case BattlePhase.waitingActions:
+        return 'waiting_actions';
+      case BattlePhase.resolving:
+        return 'resolving';
+      case BattlePhase.finished:
+        return 'finished';
+    }
   }
 }
