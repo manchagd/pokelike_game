@@ -18,19 +18,22 @@ defmodule BattleRealTimeWeb.PlayerChannel do
   def handle_in("register", _payload, socket) do
     name = socket.assigns.identifier
     Logger.info("Registration request received for player: #{name}")
-    # Publish to the player_actions queue via PlayerActionsPublisher
-    BattleRealTime.AMQP.Publishers.PlayerActionsPublisher.publish("register", %{"name" => name})
-    {:noreply, socket}
+
+    case BattleRealTime.Players.RegisterPlayer.call(name) do
+      :ok -> {:noreply, socket}
+      {:error, _reason} -> {:noreply, socket}
+    end
   end
 
   @impl true
   def handle_in("create_battle", _payload, socket) do
     player_id = socket.assigns.identifier
     Logger.info("Create battle request received for player: #{player_id}")
-    # team_id is temporarily hardcoded as 1
-    payload = %{"player_id" => player_id, "team_id" => 1}
-    BattleRealTime.AMQP.Publishers.PlayerActionsPublisher.publish("create_battle", payload)
-    {:noreply, socket}
+
+    case BattleRealTime.Players.CreateBattle.call(player_id) do
+      {:ok, _payload} -> {:noreply, socket}
+      {:error, _reason} -> {:noreply, socket}
+    end
   end
 
   @impl true
@@ -38,10 +41,11 @@ defmodule BattleRealTimeWeb.PlayerChannel do
     player_id = socket.assigns.identifier
     battle_id = Map.get(payload, "battle_id")
     Logger.info("Join battle request received for player: #{player_id}, battle: #{battle_id}")
-    # team_id is temporarily hardcoded as 1
-    amqp_payload = %{"player_id" => player_id, "battle_id" => battle_id, "team_id" => 1}
-    BattleRealTime.AMQP.Publishers.PlayerActionsPublisher.publish("join_battle", amqp_payload)
-    {:noreply, socket}
+
+    case BattleRealTime.Players.RequestJoinBattle.call(player_id, battle_id) do
+      {:ok, _payload} -> {:noreply, socket}
+      {:error, _reason} -> {:noreply, socket}
+    end
   end
 
   # Receive player events from PubSub and push them to the client

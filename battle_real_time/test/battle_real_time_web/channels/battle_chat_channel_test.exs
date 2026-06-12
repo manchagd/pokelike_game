@@ -64,6 +64,6 @@ defmodule BattleRealTimeWeb.BattleChatChannelTest do
       subscribe_and_join(socket, BattleChatChannel, "battle_chat:battle_456", %{})
 
     ref = push(join_socket, "send_message", %{"body" => "   "})
-    assert_reply ref, :error, %{reason: "message body cannot be empty"}
+    assert_reply ref, :error, %{reason: :invalid_body}
   end
 end
