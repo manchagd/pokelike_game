@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -384,6 +385,19 @@ class _MatchesViewState extends State<MatchesView> {
     );
   }
 
+  void _showCreateBattleDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => _CreateBattleDialog(
+        socketService: context.read<BattleSocketService>(),
+        onGoToBattle: (code) {
+          context.push('${AppRoutes.battle}?code=$code');
+        },
+      ),
+    );
+  }
+
   Widget _buildActionsCard() {
     return Card(
       child: Padding(
@@ -392,10 +406,7 @@ class _MatchesViewState extends State<MatchesView> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             FilledButton.icon(
-              onPressed: () {
-                final code = _generateBattleCode();
-                _showCreatedDialog(code);
-              },
+              onPressed: _showCreateBattleDialog,
               icon: const Icon(Icons.add_circle_outline),
               label: const Padding(
                 padding: EdgeInsets.symmetric(vertical: 6),
@@ -404,7 +415,17 @@ class _MatchesViewState extends State<MatchesView> {
             ),
             const SizedBox(height: 10),
             OutlinedButton.icon(
-              onPressed: _showJoinBattleDialog,
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  builder: (ctx) => _JoinBattleDialog(
+                    socketService: context.read<BattleSocketService>(),
+                    onJoinedBattle: (code) {
+                      context.push('${AppRoutes.battle}?code=$code');
+                    },
+                  ),
+                );
+              },
               icon: const Icon(Icons.search),
               label: const Padding(
                 padding: EdgeInsets.symmetric(vertical: 6),
@@ -663,6 +684,286 @@ class _BattleCodeFormatter extends TextInputFormatter {
     return TextEditingValue(
       text: formatted,
       selection: TextSelection.collapsed(offset: formatted.length),
+    );
+  }
+}
+
+class _CreateBattleDialog extends StatefulWidget {
+  final BattleSocketService socketService;
+  final ValueChanged<String> onGoToBattle;
+
+  const _CreateBattleDialog({
+    required this.socketService,
+    required this.onGoToBattle,
+  });
+
+  @override
+  State<_CreateBattleDialog> createState() => _CreateBattleDialogState();
+}
+
+class _CreateBattleDialogState extends State<_CreateBattleDialog> {
+  StreamSubscription<String>? _subscription;
+  String? _battleCode;
+
+  @override
+  void initState() {
+    super.initState();
+    _subscription = widget.socketService.battleCreatedEvents.listen(
+      (code) {
+        if (mounted) {
+          setState(() {
+            _battleCode = code;
+          });
+        }
+      },
+    );
+    // Request creation
+    widget.socketService.createBattle();
+  }
+
+  @override
+  void dispose() {
+    _subscription?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final code = _battleCode;
+
+    if (code == null) {
+      return AlertDialog(
+        content: SizedBox(
+          width: 360,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(height: 20),
+              const CircularProgressIndicator(color: AppColors.primary),
+              const SizedBox(height: 24),
+              const Text(
+                'Creando batalla...',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Por favor, espera mientras preparamos la arena.',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: AppColors.onSurfaceMuted,
+                    ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 10),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancelar'),
+          ),
+        ],
+      );
+    }
+
+    return AlertDialog(
+      icon: Container(
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: AppColors.primary.withValues(alpha: 0.16),
+          borderRadius: BorderRadius.circular(AppRadius.md),
+        ),
+        child: const Icon(Icons.celebration, color: AppColors.primary),
+      ),
+      title: const Text('Combate creado'),
+      content: SizedBox(
+        width: 360,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'Comparte este código con tu oponente',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.onSurfaceMuted),
+            ),
+            const SizedBox(height: 16),
+            InkWell(
+              onTap: () {
+                Clipboard.setData(ClipboardData(text: code));
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Código copiado al portapapeles')),
+                );
+              },
+              borderRadius: BorderRadius.circular(AppRadius.md),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                decoration: BoxDecoration(
+                  color: AppColors.surfaceHigh,
+                  borderRadius: BorderRadius.circular(AppRadius.md),
+                  border: Border.all(color: AppColors.primary.withValues(alpha: 0.4)),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      code,
+                      style: const TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 4,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    const Icon(Icons.copy, color: AppColors.primary, size: 18),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Toca para copiar',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.onSurfaceMuted),
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Cerrar'),
+        ),
+        FilledButton.icon(
+          onPressed: () {
+            Navigator.of(context).pop();
+            widget.onGoToBattle(code);
+          },
+          icon: const Icon(Icons.play_arrow, size: 18),
+          label: const Text('Ir al combate'),
+        ),
+      ],
+    );
+  }
+}
+
+class _JoinBattleDialog extends StatefulWidget {
+  final BattleSocketService socketService;
+  final ValueChanged<String> onJoinedBattle;
+
+  const _JoinBattleDialog({
+    required this.socketService,
+    required this.onJoinedBattle,
+  });
+
+  @override
+  State<_JoinBattleDialog> createState() => _JoinBattleDialogState();
+}
+
+class _JoinBattleDialogState extends State<_JoinBattleDialog> {
+  final TextEditingController _controller = TextEditingController();
+  StreamSubscription<String>? _subscription;
+  bool _isConnecting = false;
+  String? _targetCode;
+
+  @override
+  void initState() {
+    super.initState();
+    _subscription = widget.socketService.battleJoinedEvents.listen((code) {
+      if (mounted && _isConnecting && code == _targetCode) {
+        widget.onJoinedBattle(code);
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _subscription?.cancel();
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _handleConnect() {
+    final code = _controller.text.trim();
+    final digits = code.replaceAll(RegExp(r'[^0-9]'), '');
+    if (digits.length == 6) {
+      setState(() {
+        _isConnecting = true;
+        _targetCode = code;
+      });
+      widget.socketService.joinBattle(code);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Código inválido. Debe tener 6 dígitos.')),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      icon: Container(
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: AppColors.secondary.withValues(alpha: 0.16),
+          borderRadius: BorderRadius.circular(AppRadius.md),
+        ),
+        child: Icon(
+          _isConnecting ? Icons.sync : Icons.link,
+          color: AppColors.secondary,
+        ),
+      ),
+      title: Text(_isConnecting ? 'Conectando...' : 'Buscar batalla'),
+      content: SizedBox(
+        width: 360,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              _isConnecting
+                  ? 'Uniéndose al combate $_targetCode...'
+                  : 'Ingresa el código de la batalla',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.onSurfaceMuted),
+              textAlign: _isConnecting ? TextAlign.center : TextAlign.start,
+            ),
+            const SizedBox(height: 16),
+            if (!_isConnecting)
+              TextField(
+                controller: _controller,
+                autofocus: true,
+                textAlign: TextAlign.center,
+                inputFormatters: [_BattleCodeFormatter()],
+                style: const TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 4,
+                  color: AppColors.secondary,
+                ),
+                decoration: const InputDecoration(hintText: '000-000'),
+                onSubmitted: (_) => _handleConnect(),
+              )
+            else
+              const Center(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(vertical: 20),
+                  child: CircularProgressIndicator(color: AppColors.secondary),
+                ),
+              ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: _isConnecting
+              ? null
+              : () => Navigator.of(context).pop(),
+          child: const Text('Cancelar'),
+        ),
+        if (!_isConnecting)
+          FilledButton(
+            onPressed: _handleConnect,
+            child: const Text('Conectar'),
+          ),
+      ],
     );
   }
 }

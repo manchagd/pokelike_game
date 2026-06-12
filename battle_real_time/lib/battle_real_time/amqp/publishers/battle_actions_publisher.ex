@@ -9,13 +9,7 @@ defmodule BattleRealTime.AMQP.Publishers.BattleActionsPublisher do
   alias BattleRealTime.Contracts.Publishers.BattleActions.TerminateBattleContract
 
   @impl true
-  def validate("turn_actions", payload) do
-    TurnActionsContract.validate(payload)
-  end
-
-  def validate("terminate_battle", payload) do
-    TerminateBattleContract.validate(payload)
-  end
-
+  def validate("turn_actions", payload), do: TurnActionsContract.validate(payload)
+  def validate("terminate_battle", payload), do: TerminateBattleContract.validate(payload)
   def validate(action, payload), do: super(action, payload)
 end

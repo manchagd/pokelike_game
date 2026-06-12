@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../theme.dart';
+import '../nav.dart';
 import '../utils/pokemon_type_icons.dart';
 import '../utils/battle_socket_service.dart';
 
@@ -311,7 +312,7 @@ class _BattleViewState extends State<BattleView> {
               onPressed: () {
                 Navigator.of(dialogContext).pop();
                 if (mounted) {
-                  context.pop();
+                  context.go(AppRoutes.home);
                 }
               },
               child: const Text('Aceptar'),
@@ -342,7 +343,7 @@ class _BattleViewState extends State<BattleView> {
               onPressed: () {
                 Navigator.of(dialogContext).pop();
                 if (mounted) {
-                  context.pop();
+                  context.go(AppRoutes.home);
                 }
               },
               child: const Text('Volver al inicio'),
@@ -405,7 +406,7 @@ class _BattleViewState extends State<BattleView> {
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          onPressed: () => context.pop(),
+          onPressed: () => context.go(AppRoutes.home),
           icon: const Icon(Icons.arrow_back),
         ),
         title: Row(
