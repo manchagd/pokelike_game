@@ -6,7 +6,15 @@ defmodule BattleRealTime.Battles.Forfeit do
   end
 
   def call(battle_id, player_id) do
-    BattleSession.forfeit(battle_id, player_id)
-    :ok
+    case BattleSession.forfeit(battle_id, player_id) do
+      :ok ->
+        :ok
+
+      {:error, :not_found} ->
+        {:error, :battle_not_found}
+
+      error ->
+        error
+    end
   end
 end

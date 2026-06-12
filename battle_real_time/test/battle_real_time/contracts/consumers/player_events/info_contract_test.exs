@@ -78,6 +78,7 @@ defmodule BattleRealTime.Contracts.Consumers.PlayerEvents.InfoContractTest do
           "name" => "NoIdPlayer"
         }
       }
+
       assert {:error, changeset} = InfoContract.validate(params)
       errors = errors_on(changeset)
       assert errors.player.id == ["can't be blank"]
@@ -95,6 +96,7 @@ defmodule BattleRealTime.Contracts.Consumers.PlayerEvents.InfoContractTest do
           }
         }
       }
+
       assert {:error, changeset} = InfoContract.validate(params)
       errors = errors_on(changeset)
       assert errors.player.id == ["is invalid"]

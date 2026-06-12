@@ -6,10 +6,11 @@ defmodule BattleRealTime.BattleSessionTest do
     battle_id = "test_battle_#{System.unique_integer([:positive])}"
 
     # Start the process dynamically under the supervisor
-    {:ok, pid} = DynamicSupervisor.start_child(
-      BattleRealTime.BattleSupervisor,
-      {BattleSession, battle_id}
-    )
+    {:ok, pid} =
+      DynamicSupervisor.start_child(
+        BattleRealTime.BattleSupervisor,
+        {BattleSession, battle_id}
+      )
 
     %{battle_id: battle_id, pid: pid}
   end
@@ -37,6 +38,7 @@ defmodule BattleRealTime.BattleSessionTest do
 
   test "rejects actions when phase is waiting_players", %{battle_id: battle_id} do
     assert :ok = BattleSession.register_player(battle_id, "player_1")
+
     action = %{
       "action" => "attack",
       "move_id" => "tackle",
@@ -44,6 +46,7 @@ defmodule BattleRealTime.BattleSessionTest do
       "battle_id" => battle_id,
       "targets" => ["player_2"]
     }
+
     assert {:error, :invalid_phase} = BattleSession.submit_action(battle_id, "player_1", action)
   end
 
@@ -60,6 +63,7 @@ defmodule BattleRealTime.BattleSessionTest do
       "battle_id" => battle_id,
       "targets" => ["player_2"]
     }
+
     assert {:ok, :pending} = BattleSession.submit_action(battle_id, "player_1", action1)
 
     assert {:ok, state} = BattleSession.get_state(battle_id)
@@ -76,6 +80,7 @@ defmodule BattleRealTime.BattleSessionTest do
       "player_id" => "player_2",
       "battle_id" => battle_id
     }
+
     assert {:ok, :resolved} = BattleSession.submit_action(battle_id, "player_2", action2)
 
     # Check state updated (turn advanced, actions cleared)

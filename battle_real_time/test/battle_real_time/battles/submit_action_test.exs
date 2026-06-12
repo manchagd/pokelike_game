@@ -40,4 +40,11 @@ defmodule BattleRealTime.Battles.SubmitActionTest do
     assert {:error, :invalid_player} = SubmitAction.call(battle_id, "", payload)
     assert {:error, :invalid_player} = SubmitAction.call(battle_id, nil, payload)
   end
+
+  test "returns {:error, :battle_not_found} if battle does not exist" do
+    payload = %{"action" => "attack"}
+
+    assert {:error, :battle_not_found} =
+             SubmitAction.call("non_existent_battle", "player_1", payload)
+  end
 end

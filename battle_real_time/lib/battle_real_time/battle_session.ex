@@ -90,20 +90,25 @@ defmodule BattleRealTime.BattleSession do
         cancel_timeout_timer(state.timer_ref)
         timer = start_timeout_timer()
         expires = new_expires_at()
-        {:waiting_actions, timer, expires, "¡Ambos entrenadores listos! Comienza el combate. Turno 1."}
+
+        {:waiting_actions, timer, expires,
+         "¡Ambos entrenadores listos! Comienza el combate. Turno 1."}
       else
         {state.phase, state.timer_ref, state.expires_at, nil}
       end
 
     log_message = log_message || "El entrenador #{username} se ha unido al lobby."
-    new_state = %{state |
-      players: players,
-      player_names: player_names,
-      phase: new_phase,
-      timer_ref: new_timer_ref,
-      expires_at: new_expires_at
-    }
-    |> add_log(log_message)
+
+    new_state =
+      %{
+        state
+        | players: players,
+          player_names: player_names,
+          phase: new_phase,
+          timer_ref: new_timer_ref,
+          expires_at: new_expires_at
+      }
+      |> add_log(log_message)
 
     Logger.info(
       "Player #{player_id} (#{username}) registered in battle #{state.battle_id}. Active players: #{inspect(MapSet.to_list(players))}. Phase: #{new_phase}"
@@ -146,15 +151,16 @@ defmodule BattleRealTime.BattleSession do
         # Resolve turn (for now, just log and advance the turn)
         next_turn = state.turn + 1
 
-        resolved_state = %{
-          new_state
-          | turn: next_turn,
-            actions: %{},
-            phase: :waiting_actions,
-            timer_ref: new_timer_ref,
-            expires_at: new_expires_at()
-        }
-        |> add_log("Acciones procesadas. ¡Comienza el turno #{next_turn}!")
+        resolved_state =
+          %{
+            new_state
+            | turn: next_turn,
+              actions: %{},
+              phase: :waiting_actions,
+              timer_ref: new_timer_ref,
+              expires_at: new_expires_at()
+          }
+          |> add_log("Acciones procesadas. ¡Comienza el turno #{next_turn}!")
 
         # Broadcast resolved state to PubSub
         broadcast_state(resolved_state)
@@ -170,10 +176,16 @@ defmodule BattleRealTime.BattleSession do
   def handle_call({:forfeit, player_id}, _from, state) do
     username = Map.get(state.player_names, player_id, "Entrenador")
 
-    broadcast_battle_ended(state.battle_id, "El entrenador #{username} se ha retirado. Combate finalizado.")
+    broadcast_battle_ended(
+      state.battle_id,
+      "El entrenador #{username} se ha retirado. Combate finalizado."
+    )
+
     publish_terminate_battle(state.battle_id, "El jugador #{username} se rinde.")
 
-    Logger.info("Battle #{state.battle_id} terminated due to forfeit from player #{player_id} (#{username})")
+    Logger.info(
+      "Battle #{state.battle_id} terminated due to forfeit from player #{player_id} (#{username})"
+    )
 
     {:stop, :normal, :ok, state}
   end
@@ -269,6 +281,7 @@ defmodule BattleRealTime.BattleSession do
   end
 
   defp add_log(state, nil), do: state
+
   defp add_log(state, message) do
     if List.last(state.logs) == message do
       state

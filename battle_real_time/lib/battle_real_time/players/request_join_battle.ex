@@ -13,7 +13,10 @@ defmodule BattleRealTime.Players.RequestJoinBattle do
 
   def call(player_id, battle_id, team_id) do
     amqp_payload = %{"player_id" => player_id, "battle_id" => battle_id, "team_id" => team_id}
-    PlayerActionsPublisher.publish("join_battle", amqp_payload)
-    {:ok, amqp_payload}
+
+    case PlayerActionsPublisher.publish("join_battle", amqp_payload) do
+      :ok -> {:ok, amqp_payload}
+      error -> error
+    end
   end
 end

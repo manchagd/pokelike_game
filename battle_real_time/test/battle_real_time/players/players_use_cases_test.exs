@@ -17,9 +17,9 @@ defmodule BattleRealTime.Players.PlayersUseCasesTest do
   end
 
   describe "CreateBattle" do
-    test "returns {:ok, payload} for a valid player" do
-      assert {:ok, payload} = CreateBattle.call("player_1")
-      assert payload["player_id"] == "player_1"
+    test "returns {:ok, payload} for a valid player ID" do
+      assert {:ok, payload} = CreateBattle.call("101")
+      assert payload["player_id"] == "101"
       assert payload["team_id"] == 1
     end
 
@@ -27,12 +27,17 @@ defmodule BattleRealTime.Players.PlayersUseCasesTest do
       assert {:error, :invalid_player} = CreateBattle.call("")
       assert {:error, :invalid_player} = CreateBattle.call(nil)
     end
+
+    test "returns {:error, errors} if contract validation fails" do
+      assert {:error, errors} = CreateBattle.call("non_numeric_player_id")
+      assert errors.player_id == ["is invalid"]
+    end
   end
 
   describe "RequestJoinBattle" do
-    test "returns {:ok, payload} for valid player and battle" do
-      assert {:ok, payload} = RequestJoinBattle.call("player_1", "battle_123")
-      assert payload["player_id"] == "player_1"
+    test "returns {:ok, payload} for valid player ID and battle" do
+      assert {:ok, payload} = RequestJoinBattle.call("101", "battle_123")
+      assert payload["player_id"] == "101"
       assert payload["battle_id"] == "battle_123"
       assert payload["team_id"] == 1
     end
@@ -43,8 +48,13 @@ defmodule BattleRealTime.Players.PlayersUseCasesTest do
     end
 
     test "returns error for empty battle" do
-      assert {:error, :invalid_battle} = RequestJoinBattle.call("player_1", "")
-      assert {:error, :invalid_battle} = RequestJoinBattle.call("player_1", nil)
+      assert {:error, :invalid_battle} = RequestJoinBattle.call("101", "")
+      assert {:error, :invalid_battle} = RequestJoinBattle.call("101", nil)
+    end
+
+    test "returns {:error, errors} if contract validation fails" do
+      assert {:error, errors} = RequestJoinBattle.call("non_numeric_player_id", "battle_123")
+      assert errors.player_id == ["is invalid"]
     end
   end
 end

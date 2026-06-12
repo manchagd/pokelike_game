@@ -9,7 +9,10 @@ defmodule BattleRealTime.Players.CreateBattle do
 
   def call(player_id, team_id) do
     payload = %{"player_id" => player_id, "team_id" => team_id}
-    PlayerActionsPublisher.publish("create_battle", payload)
-    {:ok, payload}
+
+    case PlayerActionsPublisher.publish("create_battle", payload) do
+      :ok -> {:ok, payload}
+      error -> error
+    end
   end
 end

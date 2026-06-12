@@ -39,9 +39,11 @@ defmodule BattleRealTime.Contracts.Publishers.BattleActions.TurnActionsContract 
       "attack" ->
         changeset
         |> validate_required([:move_id, :targets])
+
       "switch" ->
         changeset
         |> validate_required([:monster_id])
+
       _ ->
         add_error(changeset, :action, "must be either 'attack' or 'switch'")
     end

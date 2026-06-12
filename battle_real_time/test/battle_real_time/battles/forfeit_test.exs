@@ -31,4 +31,8 @@ defmodule BattleRealTime.Battles.ForfeitTest do
     assert {:error, :invalid_player} = Forfeit.call(battle_id, "")
     assert {:error, :invalid_player} = Forfeit.call(battle_id, nil)
   end
+
+  test "returns {:error, :battle_not_found} if battle does not exist" do
+    assert {:error, :battle_not_found} = Forfeit.call("non_existent_battle", "player_1")
+  end
 end

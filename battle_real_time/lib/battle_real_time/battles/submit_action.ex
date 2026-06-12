@@ -12,6 +12,9 @@ defmodule BattleRealTime.Battles.SubmitAction do
       {:ok, _status} ->
         {:ok, enriched}
 
+      {:error, :not_found} ->
+        {:error, :battle_not_found}
+
       error ->
         error
     end
