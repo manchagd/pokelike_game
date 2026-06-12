@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "pry"
+
 class Move < ApplicationRecord
   self.inheritance_column = nil
   PHYSICAL = "Physical"
@@ -18,8 +20,8 @@ class Move < ApplicationRecord
 
   private
   def types_exists?
-    unkonwn_types = ([type] + [secondary_type]) - Types::LIST
-
+    unkonwn_types = [type, secondary_type].compact - Types::LIST
+    
     return if unkonwn_types.empty?
 
     errors.add(:type, "#{unkonwn_types} must exist")

@@ -22,7 +22,7 @@ end
 
 BattleEngine::App.init! do |app|
   app.register_workers! [
-    Consumers::BattleEventsConsumer,
+    Consumers::BattleActionsConsumer,
     Consumers::PlayerActionsConsumer,
   ]
 end

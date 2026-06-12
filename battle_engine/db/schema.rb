@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_06_05_154146) do
+ActiveRecord::Schema[7.2].define(version: 2026_06_12_213314) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -19,6 +19,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_06_05_154146) do
     t.bigint "player_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "group", null: false
     t.index ["battle_id"], name: "index_battle_players_on_battle_id"
     t.index ["player_id"], name: "index_battle_players_on_player_id"
   end
@@ -30,6 +31,9 @@ ActiveRecord::Schema[7.2].define(version: 2026_06_05_154146) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.integer "turn", default: 0, null: false
+    t.string "external_id"
+    t.string "status", default: "not_started", null: false
+    t.index ["external_id"], name: "index_battles_on_external_id", unique: true
     t.index ["field_id"], name: "index_battles_on_field_id"
     t.index ["winner_id"], name: "index_battles_on_winner_id"
   end
@@ -71,6 +75,19 @@ ActiveRecord::Schema[7.2].define(version: 2026_06_05_154146) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["name"], name: "index_players_on_name", unique: true
+  end
+
+  create_table "pokemon_battle_snapshots", force: :cascade do |t|
+    t.bigint "pokemon_id", null: false
+    t.integer "hp", null: false
+    t.jsonb "status_condition", default: {}, null: false
+    t.jsonb "stat_stages", default: {}, null: false
+    t.jsonb "turn_afflictions", default: {}, null: false
+    t.jsonb "locked_condition", default: {}, null: false
+    t.jsonb "attack_log", default: {}, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["pokemon_id"], name: "index_pokemon_battle_snapshots_on_pokemon_id"
   end
 
   create_table "pokemon_template_moves", force: :cascade do |t|
@@ -154,6 +171,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_06_05_154146) do
   add_foreign_key "battles", "players", column: "winner_id"
   add_foreign_key "fields", "hazards"
   add_foreign_key "fields", "weathers"
+  add_foreign_key "pokemon_battle_snapshots", "pokemons"
   add_foreign_key "pokemon_template_moves", "moves"
   add_foreign_key "pokemon_template_moves", "pokemon_templates"
   add_foreign_key "pokemons", "pokemon_templates"

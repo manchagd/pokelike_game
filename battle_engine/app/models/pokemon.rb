@@ -8,6 +8,7 @@ class Pokemon < ApplicationRecord
 
   has_and_belongs_to_many :teams, join_table: :team_pokemons
   belongs_to :pokemon_templates
+  has_many :pokemon_battle_snapshots, dependent: :destroy
 
   validates :nickname, length: { maximum: 10 }
   validates :gender, inclusion: { in: GENDERS }, allow_nil: true
