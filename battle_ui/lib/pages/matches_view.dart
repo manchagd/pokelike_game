@@ -869,6 +869,7 @@ class _JoinBattleDialogState extends State<_JoinBattleDialog> {
     super.initState();
     _subscription = widget.socketService.battleJoinedEvents.listen((code) {
       if (mounted && _isConnecting && code == _targetCode) {
+        Navigator.of(context).pop();
         widget.onJoinedBattle(code);
       }
     });

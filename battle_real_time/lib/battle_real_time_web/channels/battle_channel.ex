@@ -62,13 +62,10 @@ defmodule BattleRealTimeWeb.BattleChannel do
 
     Logger.info("Received action '#{action}' from player '#{player_id}' for battle:#{battle_id}")
 
-    # 1. Forward action to BattleSession GenServer
+    # Forward action to BattleSession GenServer
     if player_id != nil and player_id != "" do
       BattleSession.submit_action(battle_id, player_id, enriched)
     end
-
-    # 2. Publish action to RabbitMQ
-    BattleRealTime.AMQP.Publishers.BattleActionsPublisher.publish(action, enriched)
 
     {:noreply, socket}
   end
