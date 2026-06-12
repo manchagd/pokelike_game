@@ -86,7 +86,7 @@ defmodule BattleRealTime.BattleSessionTest do
     # Check broadcast received
     assert_receive {:battle_event, %{event: "battle_state", payload: payload}}
     assert payload["turn"] == 2
-    assert payload["log"] == ["Acciones procesadas. ¡Comienza el turno 2!"]
+    assert "Acciones procesadas. ¡Comienza el turno 2!" in payload["log"]
   end
 
   test "surrendering player terminates the battle gracefully", %{battle_id: battle_id, pid: pid} do

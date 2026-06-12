@@ -224,12 +224,7 @@ class _BattleViewState extends State<BattleView> {
 
         final logs = eventPayload['log'] as List?;
         if (logs != null) {
-          for (var l in logs) {
-            final logStr = l.toString();
-            if (!_battleFeedback.contains(logStr)) {
-              _battleFeedback.add(logStr);
-            }
-          }
+          _battleFeedback = logs.map((l) => l.toString()).toList();
         }
       });
       _startLocalCountdown();

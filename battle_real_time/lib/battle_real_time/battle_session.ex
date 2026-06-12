@@ -61,11 +61,12 @@ defmodule BattleRealTime.BattleSession do
       player_names: %{},
       actions: %{},
       timer_ref: nil,
-      expires_at: nil
+      expires_at: nil,
+      logs: ["Esperando a que se unan los jugadores..."]
     }
 
     # Broadcast initial battle state once started
-    broadcast_state(state, "Esperando a que se unan los jugadores...")
+    broadcast_state(state)
 
     {:ok, state}
   end
@@ -94,6 +95,7 @@ defmodule BattleRealTime.BattleSession do
         {state.phase, state.timer_ref, state.expires_at, nil}
       end
 
+    log_message = log_message || "El entrenador #{username} se ha unido al lobby."
     new_state = %{state |
       players: players,
       player_names: player_names,
@@ -101,13 +103,14 @@ defmodule BattleRealTime.BattleSession do
       timer_ref: new_timer_ref,
       expires_at: new_expires_at
     }
+    |> add_log(log_message)
 
     Logger.info(
       "Player #{player_id} (#{username}) registered in battle #{state.battle_id}. Active players: #{inspect(MapSet.to_list(players))}. Phase: #{new_phase}"
     )
 
     # Broadcast updated state
-    broadcast_state(new_state, log_message)
+    broadcast_state(new_state)
 
     {:reply, :ok, new_state}
   end
@@ -151,9 +154,10 @@ defmodule BattleRealTime.BattleSession do
             timer_ref: new_timer_ref,
             expires_at: new_expires_at()
         }
+        |> add_log("Acciones procesadas. ¡Comienza el turno #{next_turn}!")
 
         # Broadcast resolved state to PubSub
-        broadcast_state(resolved_state, "Acciones procesadas. ¡Comienza el turno #{next_turn}!")
+        broadcast_state(resolved_state)
 
         {:reply, {:ok, :resolved}, resolved_state}
       else
@@ -208,10 +212,17 @@ defmodule BattleRealTime.BattleSession do
     BattleRealTime.AMQP.Publishers.BattleActionsPublisher.publish("turn_actions", payload)
   end
 
-  defp build_payload(state, log_message \\ nil) do
+  defp build_payload(state) do
     players_list = MapSet.to_list(state.players)
     expected = expected_players_count(state.battle_format)
     current_count = MapSet.size(state.players)
+
+    payload_logs =
+      if state.phase in [:waiting_players, :waiting_actions] do
+        state.logs ++ [default_log_message(state)]
+      else
+        state.logs
+      end
 
     %{
       "battle_id" => state.battle_id,
@@ -221,11 +232,7 @@ defmodule BattleRealTime.BattleSession do
       "turn_expires_at" => state.expires_at,
       "expected_players" => expected,
       "connected_players" => current_count,
-      "log" =>
-        if(log_message,
-          do: [log_message],
-          else: [default_log_message(state)]
-        ),
+      "log" => payload_logs,
       "player_a_name" =>
         Map.get(state.player_names, Enum.at(players_list, 0) || "", "Entrenador A"),
       "player_b_name" =>
@@ -249,9 +256,9 @@ defmodule BattleRealTime.BattleSession do
     }
   end
 
-  defp broadcast_state(state, log_message) do
+  defp broadcast_state(state) do
     topic = "battle_events:#{state.battle_id}"
-    payload = build_payload(state, log_message)
+    payload = build_payload(state)
 
     # Broadcast to Phoenix PubSub so BattleChannel receives it and pushes to client
     Phoenix.PubSub.broadcast(
@@ -259,6 +266,15 @@ defmodule BattleRealTime.BattleSession do
       topic,
       {:battle_event, %{event: "battle_state", payload: payload}}
     )
+  end
+
+  defp add_log(state, nil), do: state
+  defp add_log(state, message) do
+    if List.last(state.logs) == message do
+      state
+    else
+      %{state | logs: state.logs ++ [message]}
+    end
   end
 
   defp broadcast_timeout(state) do
