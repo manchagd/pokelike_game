@@ -24,9 +24,9 @@ config :battle_real_time, BattleRealTimeWeb.Endpoint,
   http: [port: String.to_integer(System.get_env("PORT", "4000"))]
 
 # RabbitMQ URL — used in all environments
-config :battle_real_time, :rabbitmq_url,
-  System.get_env("RABBITMQ_URL") || "amqp://guest:admin@localhost:5672"
-
+config :battle_real_time,
+       :rabbitmq_url,
+       System.get_env("RABBITMQ_URL") || "amqp://guest:admin@localhost:5672"
 
 if config_env() == :prod do
   # The secret key base is used to sign/encrypt cookies and other secrets.

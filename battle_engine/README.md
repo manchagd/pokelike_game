@@ -97,6 +97,51 @@ El motor utiliza `dry-validation` para garantizar la integridad de los mensajes 
 - **Inbound (Entrante)**: El `BaseConsumer` busca un contrato en `app/contracts/consumers/<event_name>_contract.rb`. Si existe, valida el payload recibido antes de invocar al servicio correspondiente.
 - **Outbound (Saliente)**: El `BasePublisher` busca un contrato en `app/contracts/publishers/<event_name>_contract.rb`. Si existe, valida el payload generado antes de enviarlo a RabbitMQ. Si falla, escribe un error en el log y descarta la publicación para evitar enviar datos corruptos a la red.
 
+## Integración de Mensajes de Combate (RabbitMQ)
+
+El motor de batalla interactúa con el servidor de tiempo real mediante mensajería en las siguientes colas:
+
+### Eventos Consumidos de `battle_actions` (Inbound)
+
+* **`turn_actions`**: Enviado por el servidor de tiempo real cuando se han recolectado todas las acciones del turno actual de los jugadores.
+  * **Acción**: El motor debe calcular los resultados del turno (velocidades de ataque, daños, fallos, cambios de monstruos, KO) y persistirlos.
+  * **Payload esperado**:
+    ```json
+    {
+      "event": "turn_actions",
+      "payload": {
+        "battle_id": "482-913",
+        "turn": 1,
+        "actions": [
+          {
+            "action": "attack",
+            "player_id": "101",
+            "move_id": "thunderbolt",
+            "targets": ["enemy_pelipper"]
+          },
+          {
+            "action": "switch",
+            "player_id": "102",
+            "monster_id": "swampert"
+          }
+        ]
+      }
+    }
+    ```
+
+* **`terminate_battle`**: Orden de cancelación/finalización forzada o por rendición de un combate activo.
+  * **Acción**: El motor debe registrar la finalización del combate en base de datos, calcular quién es el ganador/perdedor (si aplica) para actualizar el historial de perfil del entrenador, y liberar recursos.
+  * **Payload esperado**:
+    ```json
+    {
+      "event": "terminate_battle",
+      "payload": {
+        "battle_id": "482-913",
+        "reason": "El jugador AshKetchum se rinde."
+      }
+    }
+    ```
+
 ## Variables de entorno
 
 | Variable | Default | Descripción |

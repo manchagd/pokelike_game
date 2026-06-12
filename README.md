@@ -122,23 +122,21 @@ El motor de batalla procesa la solicitud, genera un ID único y crea el perfil i
 
 ## 3. Mensajes del Flujo de Batalla (Battle Flow)
 
-### 3.1 Envío de Acciones de Combate (Acción)
-Durante la batalla, los jugadores envían sus comandos de turno. Phoenix empaqueta el evento agregando el identificador del jugador (obtenido del estado de su socket seguro).
+### 3.1 Envío de Acciones de Combate (Acción Inbound)
+Durante la batalla, los jugadores envían sus comandos de turno o de control inmediato (como rendirse). Phoenix empaqueta el evento agregando el identificador del jugador (obtenido del estado de su socket seguro).
 
 * **Canal Phoenix**: `battle:#{battle_id}`
 * **Evento Phoenix**: `action`
-* **Cola RabbitMQ**: `battle_actions` (publicado por `BattleActionsPublisher`)
+* **Cola RabbitMQ**: `battle_actions` (publicado por `BattleActionsPublisher` en forma de eventos consolidados o de control)
 
 #### Opción A: Acción de Ataque
 ```json
 {
   "event": "action",
   "payload": {
-    "battle_id": "482-913",
-    "player_id": 101,
     "action": "attack",
     "move_id": "thunderbolt",
-    "target_id": "enemy_pelipper"
+    "targets": ["enemy_pelipper"]
   }
 }
 ```
@@ -148,20 +146,72 @@ Durante la batalla, los jugadores envían sus comandos de turno. Phoenix empaque
 {
   "event": "action",
   "payload": {
-    "battle_id": "482-913",
-    "player_id": 101,
     "action": "switch",
     "monster_id": "swampert"
   }
 }
 ```
 
-### 3.2 Actualización del Estado del Combate (Evento)
-El motor de batalla ejecuta el turno cuando ambos jugadores han enviado sus acciones, resuelve la velocidad, prioridades y efectos, y difunde el estado resultante.
+#### Opción C: Acción de Rendición (Forfeit)
+```json
+{
+  "event": "action",
+  "payload": {
+    "action": "forfeit"
+  }
+}
+```
 
-* **Cola RabbitMQ**: `battle_events` (consumido por `BattleEventsConsumer`)
+---
+
+### 3.2 Publicación Consolidada y de Control a RabbitMQ
+El servidor de tiempo real (Elixir) valida las acciones recibidas y las publica a la cola `battle_actions` usando contratos Ecto estructurados.
+
+#### Publicación A: Acciones del Turno Consolidadas (`turn_actions`)
+Cuando se completa el turno y ambos jugadores han ingresado sus acciones, se publica un único mensaje consolidando los movimientos en la cola `battle_actions`.
+```json
+{
+  "event": "turn_actions",
+  "payload": {
+    "battle_id": "482-913",
+    "turn": 1,
+    "actions": [
+      {
+        "action": "attack",
+        "player_id": "101",
+        "move_id": "thunderbolt",
+        "targets": ["enemy_pelipper"]
+      },
+      {
+        "action": "switch",
+        "player_id": "102",
+        "monster_id": "swampert"
+      }
+    ]
+  }
+}
+```
+
+#### Publicación B: Terminación del Combate (`terminate_battle`)
+Cuando un jugador abandona/se rinde, se notifica inmediatamente al motor de batalla para finalizar el combate.
+```json
+{
+  "event": "terminate_battle",
+  "payload": {
+    "battle_id": "482-913",
+    "reason": "El jugador AshKetchum se rinde."
+  }
+}
+```
+
+---
+
+### 3.3 Actualización del Estado del Combate (Evento Outbound)
+El servidor o el motor de batalla difunden el estado resultante a los clientes.
+
+#### Evento A: Estado del Combate (`battle_state`)
 * **Canal Phoenix**: `battle:#{battle_id}`
-* **Evento Phoenix**: `battle_event`
+* **Evento Phoenix**: `battle_event` (subtipo `battle_state`)
 
 **Payload de actualización**:
 ```json
@@ -169,15 +219,19 @@ El motor de batalla ejecuta el turno cuando ambos jugadores han enviado sus acci
   "event": "battle_state",
   "payload": {
     "battle_id": "482-913",
+    "battle_format": "1v1",
     "turn": 3,
-    "phase": "waiting_actions", // Fases: waiting_actions, executing, finished
+    "phase": "waiting_actions", // Fases: waiting_players, waiting_actions, executing, finished
+    "expected_players": 2,
+    "connected_players": 2,
+    "turn_expires_at": 1781223600000,
     "active_monster_a": {
       "id": "mon_1",
       "name": "Pikachu",
       "hp": 80,
       "max_hp": 100,
       "status": "normal",
-      "owner_id": 101
+      "owner_id": "101"
     },
     "active_monster_b": {
       "id": "mon_2",
@@ -185,16 +239,29 @@ El motor de batalla ejecuta el turno cuando ambos jugadores han enviado sus acci
       "hp": 0,
       "max_hp": 120,
       "status": "defeated",
-      "owner_id": 102
+      "owner_id": "102"
     },
-    "weather": "rain",
     "log": [
-      "¡Turno 3 comienza!",
+      "¡Ambos entrenadores listos! Comienza el combate.",
       "Pikachu usó Rayo.",
       "¡Es súper eficaz contra Pelipper enemigo!",
       "Pelipper enemigo ha sido derrotado."
-    ],
-    "winner_id": null
+    ]
+  }
+}
+```
+
+#### Evento B: Combate Finalizado (`battle_ended`)
+Enviado inmediatamente cuando ocurre una rendición o finalización forzada de la partida.
+* **Canal Phoenix**: `battle:#{battle_id}`
+* **Evento Phoenix**: `battle_event` (subtipo `battle_ended`)
+
+```json
+{
+  "event": "battle_ended",
+  "payload": {
+    "battle_id": "482-913",
+    "reason": "El entrenador AshKetchum se ha retirado. Combate finalizado."
   }
 }
 ```

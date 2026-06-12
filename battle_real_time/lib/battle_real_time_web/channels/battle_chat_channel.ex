@@ -13,7 +13,7 @@ defmodule BattleRealTimeWeb.BattleChatChannel do
       |> assign(:username, username)
       |> assign(:player_id, player_id)
 
-    Logger.info("[BattleChatChannel] Player '#{username}' joined battle_chat:#{battle_id}")
+    Logger.info("Player '#{username}' joined battle_chat:#{battle_id}")
 
     {:ok, %{battle_id: battle_id, username: username, player_id: player_id}, socket}
   end
@@ -21,26 +21,24 @@ defmodule BattleRealTimeWeb.BattleChatChannel do
   # Client sends a message -> broadcast to all users in the same room
   @impl true
   def handle_in("send_message", %{"body" => body}, socket) do
-    if is_binary(body) and String.trim(body) != "" do
-      message_payload = %{
-        "body" => body,
-        "username" => socket.assigns.username,
-        "player_id" => socket.assigns.player_id,
-        "timestamp" => DateTime.utc_now() |> DateTime.to_iso8601()
-      }
+    player_id = socket.assigns.player_id
+    username = socket.assigns.username
 
-      # Broadcast to all connections listening to this battle_chat:<battle_id>
-      broadcast!(socket, "new_message", message_payload)
-      {:reply, {:ok, message_payload}, socket}
-    else
-      {:reply, {:error, %{reason: "message body cannot be empty"}}, socket}
+    case BattleRealTime.BattleChats.SendChatMessage.call(player_id, username, body) do
+      {:ok, message_payload} ->
+        # Broadcast to all connections listening to this battle_chat:<battle_id>
+        broadcast!(socket, "new_message", message_payload)
+        {:reply, {:ok, message_payload}, socket}
+
+      {:error, reason} ->
+        {:reply, {:error, %{reason: reason}}, socket}
     end
   end
 
   # Catch-all for unknown incoming events
   @impl true
   def handle_in(event, _payload, socket) do
-    Logger.warning("[BattleChatChannel] Unknown event '#{event}'")
+    Logger.warning("Unknown event '#{event}'")
     {:noreply, socket}
   end
 end

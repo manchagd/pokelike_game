@@ -15,7 +15,7 @@ on:
       websocket_url:
         description: 'Production WebSocket URL'
         required: true
-        default: 'wss://your-production-domain.com/socket/websocket'
+        default: 'wss://overprolix-thanh-elementally.ngrok-free.dev/socket/websocket'
         type: string
 
 env:

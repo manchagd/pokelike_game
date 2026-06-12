@@ -10,10 +10,12 @@ class BattleSocketService with ChangeNotifier {
   PhoenixChannel? _applicationChannel;
   PhoenixChannel? _playerChannel;
   PhoenixChannel? _battleChannel;
+  PhoenixChannel? _chatChannel;
 
   StreamSubscription? _appMessageSub;
   StreamSubscription? _playerMessageSub;
   StreamSubscription? _battleMessageSub;
+  StreamSubscription? _chatMessageSub;
 
   // Track the active player profile in memory
   Map<String, dynamic>? _currentPlayer;
@@ -34,6 +36,9 @@ class BattleSocketService with ChangeNotifier {
   final _battleEventController = StreamController<Map<String, dynamic>>.broadcast();
   final _playerEventController = StreamController<Map<String, dynamic>>.broadcast();
   final _activeUsersController = StreamController<int>.broadcast();
+  final _chatMessageController = StreamController<Map<String, dynamic>>.broadcast();
+  final _battleCreatedController = StreamController<String>.broadcast();
+  final _battleJoinedController = StreamController<String>.broadcast();
 
   /// Stream of raw incoming battle event payloads
   Stream<Map<String, dynamic>> get battleEvents => _battleEventController.stream;
@@ -43,6 +48,15 @@ class BattleSocketService with ChangeNotifier {
 
   /// Stream of active online users count
   Stream<int> get activeUsersStream => _activeUsersController.stream;
+
+  /// Stream of raw incoming chat message payloads
+  Stream<Map<String, dynamic>> get chatEvents => _chatMessageController.stream;
+
+  /// Stream of battle creation events (emits battleId)
+  Stream<String> get battleCreatedEvents => _battleCreatedController.stream;
+
+  /// Stream of battle join events (emits battleId)
+  Stream<String> get battleJoinedEvents => _battleJoinedController.stream;
 
   /// Check whether the socket is currently connected
   bool get isConnected => _socket?.isConnected ?? false;
@@ -136,6 +150,7 @@ class BattleSocketService with ChangeNotifier {
           // Clean up temp channel
           tempSub?.cancel();
           tempChannel.leave();
+          tempChannel.close();
 
           // Join permanent player channel
           _joinPermanentPlayerChannel(playerProfile['id'].toString());
@@ -157,6 +172,7 @@ class BattleSocketService with ChangeNotifier {
       if (!completer.isCompleted) {
         tempSub?.cancel();
         tempChannel.leave();
+        tempChannel.close();
         completer.completeError(TimeoutException("El registro excedió el tiempo límite (10s)"));
       }
     });
@@ -168,6 +184,7 @@ class BattleSocketService with ChangeNotifier {
     if (_playerChannel != null) {
       _playerMessageSub?.cancel();
       _playerChannel!.leave();
+      _playerChannel!.close();
     }
 
     final topic = 'player:$playerId';
@@ -181,8 +198,10 @@ class BattleSocketService with ChangeNotifier {
 
       // Handle any player-specific events here
       if (event == 'player_event' && payload != null) {
+        final innerEvent = payload['event'];
         final innerPayload = payload['payload'];
-        if (innerPayload != null && innerPayload['player'] != null) {
+
+        if (innerEvent == 'info' && innerPayload != null && innerPayload['player'] != null) {
           final playerProfile = innerPayload['player'] as Map<String, dynamic>;
           _currentPlayer = playerProfile;
           final rawBattles = (innerPayload['battles'] ?? playerProfile['battles']) as List?;
@@ -191,6 +210,14 @@ class BattleSocketService with ChangeNotifier {
               : [];
           _playerEventController.add(_currentPlayer!);
           notifyListeners();
+        } else if (innerEvent == 'battle_created' && innerPayload != null) {
+          final battleId = innerPayload['battle_id']?.toString() ?? '';
+          print("Evento battle_created recibido. Battle ID: $battleId");
+          _battleCreatedController.add(battleId);
+        } else if (innerEvent == 'battle_joined' && innerPayload != null) {
+          final battleId = innerPayload['battle_id']?.toString() ?? '';
+          print("Evento battle_joined recibido. Battle ID: $battleId");
+          _battleJoinedController.add(battleId);
         }
       }
     });
@@ -204,7 +231,11 @@ class BattleSocketService with ChangeNotifier {
     leaveBattle();
 
     print("Uniéndose al canal battle:$battleId");
-    _battleChannel = _socket!.addChannel(topic: 'battle:$battleId');
+    final battleParams = {
+      'player_id': _currentPlayer?['id']?.toString() ?? '',
+      'username': _currentPlayer?['name'] ?? 'Entrenador',
+    };
+    _battleChannel = _socket!.addChannel(topic: 'battle:$battleId', parameters: battleParams);
 
     final joinResponse = _battleChannel!.join();
     joinResponse.onReply("ok", (response) {
@@ -217,6 +248,27 @@ class BattleSocketService with ChangeNotifier {
     _battleMessageSub = _battleChannel!.messages.listen((Message message) {
       if (message.event.value == 'battle_event' && message.payload != null) {
         _battleEventController.add(message.payload!);
+      }
+    });
+
+    print("Uniéndose al canal battle_chat:$battleId");
+    final chatParams = {
+      'username': _currentPlayer?['name'] ?? 'Anonymous',
+      'player_id': _currentPlayer?['id']?.toString() ?? '',
+    };
+    _chatChannel = _socket!.addChannel(topic: 'battle_chat:$battleId', parameters: chatParams);
+
+    final chatJoinResponse = _chatChannel!.join();
+    chatJoinResponse.onReply("ok", (response) {
+      print("Unido con éxito al canal battle_chat:$battleId");
+    });
+    chatJoinResponse.onReply("error", (response) {
+      print("Fallo al unirse al canal battle_chat:$battleId: $response");
+    });
+
+    _chatMessageSub = _chatChannel!.messages.listen((Message message) {
+      if (message.event.value == 'new_message' && message.payload != null) {
+        _chatMessageController.add(message.payload!);
       }
     });
   }
@@ -236,6 +288,35 @@ class BattleSocketService with ChangeNotifier {
     }
   }
 
+  /// Request creation of a new battle
+  void createBattle() {
+    if (_playerChannel != null && _playerChannel!.state == PhoenixChannelState.joined) {
+      print("Enviando evento create_battle al canal player");
+      _playerChannel!.push('create_battle', {});
+    } else {
+      print("Advertencia: No se pudo enviar create_battle porque el canal del jugador no está listo.");
+    }
+  }
+
+  /// Request joining an existing battle
+  void joinBattle(String battleId) {
+    if (_playerChannel != null && _playerChannel!.state == PhoenixChannelState.joined) {
+      print("Enviando evento join_battle con ID $battleId al canal player");
+      _playerChannel!.push('join_battle', {'battle_id': battleId});
+    } else {
+      print("Advertencia: No se pudo enviar join_battle porque el canal del jugador no está listo.");
+    }
+  }
+
+  /// Push a chat message to the Phoenix backend
+  void sendChatMessage(String body) {
+    if (_chatChannel != null && _chatChannel!.state == PhoenixChannelState.joined) {
+      _chatChannel!.push('send_message', {'body': body});
+    } else {
+      print("Advertencia: No se pudo enviar el mensaje porque el canal de chat no está listo.");
+    }
+  }
+
   /// Leave the battle channel
   void leaveBattle() {
     _battleMessageSub?.cancel();
@@ -243,7 +324,17 @@ class BattleSocketService with ChangeNotifier {
 
     if (_battleChannel != null) {
       _battleChannel!.leave();
+      _battleChannel!.close();
       _battleChannel = null;
+    }
+
+    _chatMessageSub?.cancel();
+    _chatMessageSub = null;
+
+    if (_chatChannel != null) {
+      _chatChannel!.leave();
+      _chatChannel!.close();
+      _chatChannel = null;
     }
   }
 
@@ -255,6 +346,7 @@ class BattleSocketService with ChangeNotifier {
     _appMessageSub = null;
     if (_applicationChannel != null) {
       _applicationChannel!.leave();
+      _applicationChannel!.close();
       _applicationChannel = null;
     }
 
@@ -262,6 +354,7 @@ class BattleSocketService with ChangeNotifier {
     _playerMessageSub = null;
     if (_playerChannel != null) {
       _playerChannel!.leave();
+      _playerChannel!.close();
       _playerChannel = null;
     }
 
@@ -284,6 +377,9 @@ class BattleSocketService with ChangeNotifier {
     _battleEventController.close();
     _playerEventController.close();
     _activeUsersController.close();
+    _chatMessageController.close();
+    _battleCreatedController.close();
+    _battleJoinedController.close();
     super.dispose();
   }
 

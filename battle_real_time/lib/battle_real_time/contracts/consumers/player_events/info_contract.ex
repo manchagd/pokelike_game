@@ -7,33 +7,33 @@ defmodule BattleRealTime.Contracts.Consumers.PlayerEvents.InfoContract do
   @primary_key false
   embedded_schema do
     embeds_one :player, Player, primary_key: false do
-      field :id, :integer
-      field :name, :string
-      field :team, :string
+      field(:id, :integer)
+      field(:name, :string)
+      field(:team, :string)
 
       embeds_many :teams, Team, primary_key: false do
-        field :name, :string
-        field :description, :string
+        field(:name, :string)
+        field(:description, :string)
 
         embeds_many :monsters, Monster, primary_key: false do
-          field :name, :string
-          field :color, :string
+          field(:name, :string)
+          field(:color, :string)
         end
       end
 
       embeds_one :battle_history, BattleHistory, primary_key: false do
-        field :victories, :integer
-        field :defeats, :integer
-        field :history, {:array, :string}
+        field(:victories, :integer)
+        field(:defeats, :integer)
+        field(:history, {:array, :string})
       end
     end
 
     embeds_many :battles, Battle, primary_key: false do
-      field :id, :integer
+      field(:id, :string)
 
       embeds_many :opponent, Opponent, primary_key: false do
-        field :name, :string
-        field :team, :string
+        field(:name, :string)
+        field(:team, :string)
       end
     end
   end

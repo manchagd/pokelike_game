@@ -5,17 +5,11 @@ defmodule BattleRealTime.AMQP.Publishers.BattleActionsPublisher do
   """
   use BattleRealTime.AMQP.Publisher, queue: "battle_actions"
 
+  alias BattleRealTime.Contracts.Publishers.BattleActions.TurnActionsContract
+  alias BattleRealTime.Contracts.Publishers.BattleActions.TerminateBattleContract
+
   @impl true
-  def validate("attack", _payload) do
-    {:error, %Ecto.Changeset{action: :validate}}
-  end
-
-  def validate("change", _payload) do
-    {:error, %Ecto.Changeset{action: :validate}}
-  end
-
-  def validate(_action, payload) do
-    # Temporarily permit all battle actions until contracts are written
-    {:ok, payload}
-  end
+  def validate("turn_actions", payload), do: TurnActionsContract.validate(payload)
+  def validate("terminate_battle", payload), do: TerminateBattleContract.validate(payload)
+  def validate(action, payload), do: super(action, payload)
 end

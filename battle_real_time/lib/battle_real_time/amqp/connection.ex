@@ -43,14 +43,14 @@ defmodule BattleRealTime.AMQP.Connection do
     case AMQP.Connection.open(url) do
       {:ok, conn} ->
         Process.monitor(conn.pid)
-        Logger.info("[AMQP.Connection] Connected to RabbitMQ")
+        Logger.info("Connected to RabbitMQ")
         # Notify Consumer and Publisher to (re)connect their channels
         notify_children(:connect)
         {:noreply, conn}
 
       {:error, reason} ->
         Logger.error(
-          "[AMQP.Connection] Failed to connect: #{inspect(reason)}. Retrying in #{@reconnect_interval}ms"
+          "Failed to connect: #{inspect(reason)}. Retrying in #{@reconnect_interval}ms"
         )
 
         Process.send_after(self(), :connect, @reconnect_interval)
@@ -59,7 +59,7 @@ defmodule BattleRealTime.AMQP.Connection do
   end
 
   def handle_info({:DOWN, _ref, :process, _pid, reason}, _state) do
-    Logger.error("[AMQP.Connection] Connection lost (#{inspect(reason)}). Reconnecting...")
+    Logger.error("Connection lost (#{inspect(reason)}). Reconnecting...")
     Process.send_after(self(), :connect, @reconnect_interval)
     {:noreply, nil}
   end
@@ -67,12 +67,7 @@ defmodule BattleRealTime.AMQP.Connection do
   # --- Private ---
 
   defp notify_children(:connect) do
-    for child <- [
-          BattleRealTime.AMQP.Consumers.BattleEventsConsumer,
-          BattleRealTime.AMQP.Publishers.BattleActionsPublisher,
-          BattleRealTime.AMQP.Consumers.PlayerEventsConsumer,
-          BattleRealTime.AMQP.Publishers.PlayerActionsPublisher
-        ] do
+    for child <- BattleRealTime.AMQP.children() do
       if pid = Process.whereis(child) do
         send(pid, :connect)
       end

@@ -11,7 +11,7 @@ defmodule BattleRealTime.AMQP.Consumers.BattleEventsConsumer do
     battle_id = Map.get(data, "battle_id", "lobby")
     topic = "battle_events:#{battle_id}"
 
-    Logger.info("[AMQP.BattleEventsConsumer] Broadcasting event '#{event}' to topic '#{topic}'")
+    Logger.info("Broadcasting event '#{event}' to topic '#{topic}'")
 
     Phoenix.PubSub.broadcast(
       BattleRealTime.PubSub,
