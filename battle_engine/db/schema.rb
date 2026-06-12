@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_06_11_165254) do
+ActiveRecord::Schema[7.2].define(version: 2026_06_12_210039) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -31,6 +31,8 @@ ActiveRecord::Schema[7.2].define(version: 2026_06_11_165254) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.integer "turn", default: 0, null: false
+    t.string "external_id"
+    t.index ["external_id"], name: "index_battles_on_external_id", unique: true
     t.index ["field_id"], name: "index_battles_on_field_id"
     t.index ["winner_id"], name: "index_battles_on_winner_id"
   end
