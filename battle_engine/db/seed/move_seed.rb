@@ -119,16 +119,15 @@ if moves_list.empty?
     # Damage class → category
     category = move_data.dig("damage_class", "name")&.capitalize
 
-    # Meta — may be null for some moves
-    raw_meta = move_data["meta"]
+    stat_changes = (move_data["stat_changes"] || []).map do |sc|
+      mapped_stat = stats_map[sc.dig("stat", "name")] || sc.dig("stat", "name")
+      { "stat" => mapped_stat, "change" => sc["change"] }
+    end
 
+    raw_meta = move_data["meta"]
+    
     meta = if raw_meta
       # Stat changes array: [{ stat: "atk", change: 2 }, ...]
-      stat_changes = (raw_meta["stat_changes"] || []).map do |sc|
-        mapped_stat = stats_map[sc.dig("stat", "name")] || sc.dig("stat", "name")
-        { "stat" => mapped_stat, "change" => sc["change"] }
-      end
-
       {
         "ailment" => {
           "name"   => raw_meta.dig("ailment", "name"),
