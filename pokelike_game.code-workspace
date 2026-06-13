@@ -1,6 +1,10 @@
 {
   "folders": [
     {
+      "name": "pokelike_game",
+      "path": "."
+    },
+    {
       "name": "battle_engine",
       "path": "battle_engine"
     },

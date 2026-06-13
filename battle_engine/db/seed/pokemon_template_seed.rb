@@ -145,4 +145,14 @@ pokemon_list.each_slice(100).with_index(1) do |batch, batch_number|
   PokemonTemplate.upsert_all(db_batch, unique_by: :name)
 end
 
+BattleEngine.logger.info("[Seeds] Associating moves with Pokémon templates...")
+pokemon_by_name = pokemon_list.index_by { |p| p["name"] }
+
+PokemonTemplate.find_each do |template|
+  pkmn_data = pokemon_by_name[template.name]
+  next unless pkmn_data
+
+  template.moves = Move.where(pokeapi_id: pkmn_data["moves"])
+end
+
 puts "¡Se han registrado #{PokemonTemplate.count} Pokémon con éxito!"
