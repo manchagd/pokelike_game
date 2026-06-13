@@ -9,7 +9,6 @@ defmodule BattleRealTime.Contracts.Consumers.PlayerEvents.InfoContract do
     embeds_one :player, Player, primary_key: false do
       field(:id, :integer)
       field(:name, :string)
-      field(:team, :string)
 
       embeds_many :teams, Team, primary_key: false do
         field(:name, :string)
@@ -31,7 +30,7 @@ defmodule BattleRealTime.Contracts.Consumers.PlayerEvents.InfoContract do
     embeds_many :battles, Battle, primary_key: false do
       field(:id, :string)
 
-      embeds_many :opponent, Opponent, primary_key: false do
+      embeds_many :players, PlayerInfo, primary_key: false do
         field(:name, :string)
         field(:team, :string)
       end
@@ -49,7 +48,7 @@ defmodule BattleRealTime.Contracts.Consumers.PlayerEvents.InfoContract do
 
   def player_changeset(struct, params) do
     struct
-    |> cast(params, [:id, :name, :team])
+    |> cast(params, [:id, :name])
     |> validate_required([:id, :name])
     |> cast_embed(:teams, with: &team_changeset/2)
     |> cast_embed(:battle_history, required: true, with: &battle_history_changeset/2)
@@ -78,10 +77,10 @@ defmodule BattleRealTime.Contracts.Consumers.PlayerEvents.InfoContract do
     struct
     |> cast(params, [:id])
     |> validate_required([:id])
-    |> cast_embed(:opponent, with: &opponent_changeset/2)
+    |> cast_embed(:players, with: &player_info_changeset/2)
   end
 
-  def opponent_changeset(struct, params) do
+  def player_info_changeset(struct, params) do
     struct
     |> cast(params, [:name, :team])
     |> validate_required([:name])

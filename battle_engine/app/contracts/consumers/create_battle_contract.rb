@@ -2,9 +2,10 @@
 
 module Contracts
   module Consumers
-    class RegisterContract < Dry::Validation::Contract
+    class CreateBattleContract < Dry::Validation::Contract
       params do
-        required(:name).filled(:string)
+        required(:player_id).filled(:integer)
+        required(:team_id).filled(:integer)
         optional(:timestamp).maybe(:string)
       end
     end

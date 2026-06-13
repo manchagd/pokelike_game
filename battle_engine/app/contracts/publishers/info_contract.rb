@@ -7,7 +7,6 @@ module Contracts
         required(:player).hash do
           required(:id).filled(:integer)
           required(:name).filled(:string)
-          required(:team).filled(:string)
           required(:teams).value(:array)
           required(:battle_history).hash do
             required(:victories).filled(:integer)
@@ -17,7 +16,7 @@ module Contracts
         end
         optional(:battles).array(:hash) do
           required(:id).filled
-          required(:opponent).array(:hash) do
+          required(:players).array(:hash) do
             required(:name).filled(:string)
             required(:team).filled(:string)
           end

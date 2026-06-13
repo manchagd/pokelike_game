@@ -9,7 +9,6 @@ defmodule BattleRealTime.Contracts.Consumers.PlayerEvents.InfoContractTest do
         "player" => %{
           "id" => 101,
           "name" => "Mancha",
-          "team" => "A",
           "teams" => [
             %{
               "name" => "Equipo Fuego",
@@ -29,7 +28,7 @@ defmodule BattleRealTime.Contracts.Consumers.PlayerEvents.InfoContractTest do
         "battles" => [
           %{
             "id" => "1",
-            "opponent" => [
+            "players" => [
               %{"name" => "player_x", "team" => "A"}
             ]
           }
@@ -39,12 +38,11 @@ defmodule BattleRealTime.Contracts.Consumers.PlayerEvents.InfoContractTest do
       assert {:ok, result} = InfoContract.validate(params)
       assert result.player.id == 101
       assert result.player.name == "Mancha"
-      assert result.player.team == "A"
       assert hd(result.player.teams).name == "Equipo Fuego"
       assert hd(hd(result.player.teams).monsters).name == "Charizard"
       assert result.player.battle_history.victories == 5
       assert hd(result.battles).id == "1"
-      assert hd(hd(result.battles).opponent).name == "player_x"
+      assert hd(hd(result.battles).players).name == "player_x"
     end
 
     test "returns {:ok, map} with minimum valid parameters (no battles or optional fields)" do

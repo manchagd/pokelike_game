@@ -45,6 +45,82 @@ class _MatchesViewState extends State<MatchesView> {
     return opponentData.toString();
   }
 
+  Widget _buildVSHeader(Map<String, dynamic> b, String currentUserName, TextStyle? vsStyle) {
+    final players = (b['players'] as List?)?.cast<Map>() ?? [];
+    
+    // Find current user's team
+    final currentUser = players.firstWhere((p) => p['name'] == currentUserName, orElse: () => {});
+    final myGroup = currentUser['team'];
+
+    List<Map> leftPlayers = [];
+    List<Map> rightPlayers = [];
+
+    if (myGroup != null && (myGroup == 'A' || myGroup == 'B')) {
+      final otherGroup = myGroup == 'A' ? 'B' : 'A';
+      leftPlayers = players.where((p) => p['team'] == myGroup).toList();
+      rightPlayers = players.where((p) => p['team'] == otherGroup).toList();
+    } else {
+      // Fallback: current user on the left, anyone else on the right
+      leftPlayers = players.where((p) => p['name'] == currentUserName).toList();
+      rightPlayers = players.where((p) => p['name'] != currentUserName).toList();
+    }
+
+    if (leftPlayers.isEmpty && rightPlayers.isEmpty) {
+      // Fallback if players list is empty
+      return Row(
+        children: [
+          Flexible(
+            child: Text(
+              currentUserName,
+              style: const TextStyle(fontWeight: FontWeight.w600, color: AppColors.onSurface),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            child: Text('vs', style: vsStyle),
+          ),
+          const Flexible(
+            child: Text(
+              'Esperando oponente...',
+              style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.onSurface),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      );
+    }
+
+    final leftText = leftPlayers.map((p) => p['name'] ?? '').join(', ');
+    final rightText = rightPlayers.isEmpty 
+        ? 'Esperando oponente...' 
+        : rightPlayers.map((p) => p['name'] ?? '').join(', ');
+
+    return Row(
+      children: [
+        Flexible(
+          child: Text(
+            leftText,
+            style: const TextStyle(fontWeight: FontWeight.w600, color: AppColors.onSurface),
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          child: Text('vs', style: vsStyle),
+        ),
+        Flexible(
+          child: Text(
+            rightText,
+            style: const TextStyle(fontWeight: FontWeight.w600, color: AppColors.onSurface),
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ],
+    );
+  }
+
+
   String _generateBattleCode() {
     final r = Random();
     return '${r.nextInt(900) + 100}-${r.nextInt(900) + 100}';
@@ -95,15 +171,15 @@ class _MatchesViewState extends State<MatchesView> {
           TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('Cancelar')),
           FilledButton(
             onPressed: () {
-              final digits = controller.text.replaceAll(RegExp(r'[^0-9]'), '');
-              if (digits.length == 6) {
+              final cleanCode = controller.text.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '');
+              if (cleanCode.length == 6) {
                 Navigator.of(ctx).pop();
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(content: Text('Buscando batalla: ${controller.text}')),
                 );
               } else {
                 ScaffoldMessenger.of(ctx).showSnackBar(
-                  const SnackBar(content: Text('Código inválido. Debe tener 6 dígitos.')),
+                  const SnackBar(content: Text('Código inválido. Debe tener 6 caracteres.')),
                 );
               }
             },
@@ -521,39 +597,13 @@ class _MatchesViewState extends State<MatchesView> {
                                     ),
                                   ),
                                   const SizedBox(height: 4),
-                                  Row(
-                                    children: [
-                                      Flexible(
-                                        child: Text(
-                                          profile['name'] ?? 'Tú',
-                                          style: const TextStyle(
-                                            fontWeight: FontWeight.w600,
-                                            color: AppColors.onSurface,
-                                          ),
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ),
-                                      Padding(
-                                        padding: const EdgeInsets.symmetric(horizontal: 8),
-                                        child: Text(
-                                          'vs',
-                                          style: text.labelSmall?.copyWith(
-                                            color: AppColors.onSurfaceMuted,
-                                            fontWeight: FontWeight.w700,
-                                          ),
-                                        ),
-                                      ),
-                                      Flexible(
-                                        child: Text(
-                                          _getOpponentDisplay(b['opponent'] ?? b['player']),
-                                          style: const TextStyle(
-                                            fontWeight: FontWeight.w600,
-                                            color: AppColors.onSurface,
-                                          ),
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ),
-                                    ],
+                                  _buildVSHeader(
+                                    b,
+                                    profile['name'] ?? 'Tú',
+                                    text.labelSmall?.copyWith(
+                                      color: AppColors.onSurfaceMuted,
+                                      fontWeight: FontWeight.w700,
+                                    ),
                                   ),
                                 ],
                               ),
@@ -676,8 +726,8 @@ class _StatChip extends StatelessWidget {
 class _BattleCodeFormatter extends TextInputFormatter {
   @override
   TextEditingValue formatEditUpdate(TextEditingValue oldValue, newValue) {
-    final digits = newValue.text.replaceAll(RegExp(r'[^0-9]'), '');
-    final limited = digits.length > 6 ? digits.substring(0, 6) : digits;
+    final chars = newValue.text.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '');
+    final limited = chars.length > 6 ? chars.substring(0, 6) : chars;
     String formatted = limited.length <= 3
         ? limited
         : '${limited.substring(0, 3)}-${limited.substring(3)}';
@@ -861,6 +911,7 @@ class _JoinBattleDialog extends StatefulWidget {
 class _JoinBattleDialogState extends State<_JoinBattleDialog> {
   final TextEditingController _controller = TextEditingController();
   StreamSubscription<String>? _subscription;
+  Timer? _timeoutTimer;
   bool _isConnecting = false;
   String? _targetCode;
 
@@ -868,8 +919,19 @@ class _JoinBattleDialogState extends State<_JoinBattleDialog> {
   void initState() {
     super.initState();
     _subscription = widget.socketService.battleJoinedEvents.listen((code) {
-      if (mounted && _isConnecting && code == _targetCode) {
-        Navigator.of(context).pop();
+      final cleanReceived = code.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '').toLowerCase();
+      final cleanTarget = _targetCode?.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '').toLowerCase();
+      if (mounted && _isConnecting && cleanReceived == cleanTarget) {
+        _subscription?.cancel();
+        _subscription = null;
+        _timeoutTimer?.cancel();
+        _timeoutTimer = null;
+        setState(() {
+          _isConnecting = false;
+        });
+        if (Navigator.of(context).canPop()) {
+          Navigator.of(context).pop();
+        }
         widget.onJoinedBattle(code);
       }
     });
@@ -878,22 +940,39 @@ class _JoinBattleDialogState extends State<_JoinBattleDialog> {
   @override
   void dispose() {
     _subscription?.cancel();
+    _timeoutTimer?.cancel();
     _controller.dispose();
     super.dispose();
   }
 
   void _handleConnect() {
     final code = _controller.text.trim();
-    final digits = code.replaceAll(RegExp(r'[^0-9]'), '');
-    if (digits.length == 6) {
+    final cleanCode = code.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '');
+    if (cleanCode.length == 6) {
       setState(() {
         _isConnecting = true;
         _targetCode = code;
       });
+
+      _timeoutTimer?.cancel();
+      _timeoutTimer = Timer(const Duration(seconds: 10), () {
+        if (mounted && _isConnecting) {
+          setState(() {
+            _isConnecting = false;
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('No se encontró un combate con ese ID o expiró el tiempo de espera.'),
+              backgroundColor: AppColors.danger,
+            ),
+          );
+        }
+      });
+
       widget.socketService.joinBattle(code);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Código inválido. Debe tener 6 dígitos.')),
+        const SnackBar(content: Text('Código inválido. Debe tener 6 caracteres.')),
       );
     }
   }

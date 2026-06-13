@@ -3,13 +3,16 @@
 require 'securerandom'
 
 class Battle < ApplicationRecord
-  has_one :field
-  has_one :winner, class_name: 'Player'
-  has_and_belongs_to_many :players
+  belongs_to :field, inverse_of: :battle
+  belongs_to :winner, class_name: 'Player', optional: true
+  has_many :battle_players, dependent: :destroy
+  has_many :players, through: :battle_players
 
   before_create :set_external_id
 
   enum status: { not_started: 'not_started', in_progress: 'in_progress', finished: 'finished' }
+
+  scope :running, -> { where.not(status: :finished) }
 
   # Logica de equipos, y jugadores
 

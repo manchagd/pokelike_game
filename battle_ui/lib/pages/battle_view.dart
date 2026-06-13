@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../theme.dart';
@@ -224,7 +225,8 @@ class _BattleViewState extends State<BattleView> {
 
         final logs = eventPayload['log'] as List?;
         if (logs != null) {
-          _battleFeedback = logs.map((l) => l.toString()).toList();
+          _battleFeedback.clear();
+          _battleFeedback.addAll(logs.map((l) => l.toString()));
         }
       });
       _startLocalCountdown();
@@ -431,17 +433,32 @@ class _BattleViewState extends State<BattleView> {
           if (widget.battleCode != null)
             Padding(
               padding: const EdgeInsets.only(right: 16, top: 10, bottom: 10),
-              child: Chip(
-                avatar: const Icon(
-                  Icons.tag,
-                  size: 16,
-                  color: AppColors.primary,
-                ),
-                label: Text(
-                  widget.battleCode!,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 1.5,
+              child: GestureDetector(
+                onTap: () {
+                  Clipboard.setData(ClipboardData(text: widget.battleCode!));
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Código ${widget.battleCode!} copiado al portapapeles'),
+                      duration: const Duration(seconds: 2),
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+                },
+                child: MouseRegion(
+                  cursor: SystemMouseCursors.click,
+                  child: Chip(
+                    avatar: const Icon(
+                      Icons.tag,
+                      size: 16,
+                      color: AppColors.primary,
+                    ),
+                    label: Text(
+                      widget.battleCode!,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 1.5,
+                      ),
+                    ),
                   ),
                 ),
               ),

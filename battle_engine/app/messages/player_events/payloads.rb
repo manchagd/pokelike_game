@@ -10,7 +10,6 @@ module Messages
           player: {
             id: player.id,
             name: player.name,
-            team: 'A',
             teams: [],
             battle_history: {
               victories: player.battles.count { |b| b.winner?(player) },
@@ -22,23 +21,37 @@ module Messages
         }
       end
 
-      def battle_info(player)
+      def battle_created(player_id, battle_id)
+        {
+          player_id: player_id,
+          battle_id: battle_id
+        }
+      end
+
+      def battle_joined(player_id, battle_id)
+        {
+          player_id: player_id,
+          battle_id: battle_id
+        }
+      end
+
+      private_class_method def battle_info(player)
         player.battles.running.map do |battle|
           {
-            id: battle.id,
-            opponent: battle_player_names(player, battle.players)
+            id: battle.external_id,
+            players: battle_players_info(battle)
           }
         end
       end
 
-      # Private helper methods
-
-      def battle_player_names(player, players)
-        # Ajustado a equipos (por ahora fijo en "A")
-        # [{name: "player_x", team: "A"}] -> nombre del jugador y su equipo
-        players.filter { |p| p.id != player.id }.map { |p| { name: p.name, team: 'A' } }
+      private_class_method def battle_players_info(battle)
+        battle.battle_players.map do |bp|
+          {
+            name: bp.player.name,
+            team: bp.group
+          }
+        end
       end
-      private_class_method :battle_player_names
     end
   end
 end
