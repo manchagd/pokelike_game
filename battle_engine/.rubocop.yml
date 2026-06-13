@@ -6,10 +6,10 @@ AllCops:
   SuggestExtensions: false
   TargetRubyVersion: 4.0
   Exclude:
-    - "db/**/*"
-    - "log/**/*"
-    - "local_data/**/*"
-    - "vendor/**/*"
+    - "db/schema.rb"
+    - "**/log/**/*"
+    - "**/local_data/**/*"
+    - "**/vendor/**/*"
     - "Rakefile"
 
 # ── Layout ────────────────────────────────────────────────────────────────────

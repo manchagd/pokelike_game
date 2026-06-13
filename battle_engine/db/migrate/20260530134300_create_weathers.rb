@@ -7,7 +7,7 @@ class CreateWeathers < ActiveRecord::Migration[7.2]
       t.integer :duration, null: false, default: 5
       t.integer :harm
       t.jsonb :type_modifiers, default: {}
-      
+
       t.timestamps
     end
 

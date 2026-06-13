@@ -13,7 +13,7 @@ class CreateMoves < ActiveRecord::Migration[7.2]
       t.integer :accuracy, null: false, default: 100
       t.timestamps
     end
-    
+
     add_index :moves, :name, unique: true
   end
 end

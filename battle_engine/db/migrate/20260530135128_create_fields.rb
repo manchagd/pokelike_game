@@ -6,7 +6,7 @@ class CreateFields < ActiveRecord::Migration[7.2]
       t.jsonb :positions, null: false, default: {}
       t.references :weather, foreign_key: true
       t.references :hazard, foreign_key: true
-      
+
       t.timestamps
     end
   end

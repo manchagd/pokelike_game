@@ -9,7 +9,7 @@ class CreatePositions < ActiveRecord::Migration[7.2]
       t.string :side
       t.references :pokemon, null: true, foreign_key: true
       t.references :field, null: false, foreign_key: true
-      
+
       t.timestamps
     end
   end

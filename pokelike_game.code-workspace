@@ -23,8 +23,9 @@
       "editor.formatOnSave": true
     },
     "rubyLsp.formatter": "auto",
-    "rubyLsp.linters": [
-      "rubocop"
+    "rubyLsp.linters": [],
+    "rubocop.commandArgs": [
+      "--force-exclusion"
     ]
   }
 }

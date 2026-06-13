@@ -9,7 +9,7 @@ class CreatePokemonTemplates < ActiveRecord::Migration[7.2]
 
       t.timestamps
     end
-    
+
     add_index :pokemon_templates, :name, unique: true
   end
 end

@@ -14,7 +14,7 @@ class CreatePokemons < ActiveRecord::Migration[7.2]
       t.string :attacks, array: true, default: [], null: false
       t.integer :lvl, null: false
       t.jsonb :metadata, null: false, default: {}
-      t.string :teratype 
+      t.string :teratype
 
       t.timestamps
     end

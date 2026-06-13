@@ -5,7 +5,7 @@ class CreateHazards < ActiveRecord::Migration[7.2]
     create_table :hazards do |t|
       t.string :name, null: false
       t.jsonb :effect, null: false, default: {}
-      
+
       t.timestamps
     end
 
