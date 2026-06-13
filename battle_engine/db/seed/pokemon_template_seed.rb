@@ -10,9 +10,13 @@ BattleEngine.logger.info("[Seeds] Starting PokeAPI-based seed generation")
 local_data_dir = File.expand_path("../../local_data", __dir__)
 json_file_path = File.join(local_data_dir, "pokemon.json")
 
+# $seed_force_fetch is set by the Rake task when the :force argument is "true".
+# When true, the local JSON cache is ignored and data is re-fetched from the API.
+force_fetch = defined?($seed_force_fetch) && $seed_force_fetch
+
 pokemon_list = []
 
-if File.exist?(json_file_path)
+if !force_fetch && File.exist?(json_file_path)
   BattleEngine.logger.info("[Seeds] Found local cache file at #{json_file_path}. Loading Pokémon data...")
   begin
     pokemon_list = JSON.parse(File.read(json_file_path))
@@ -21,6 +25,8 @@ if File.exist?(json_file_path)
     BattleEngine.logger.error("[Seeds] Failed to read or parse local cache file: #{e.message}. Will fetch from API instead.")
     pokemon_list = []
   end
+elsif force_fetch
+  BattleEngine.logger.info("[Seeds] Force fetch enabled — ignoring local cache.")
 end
 
 if pokemon_list.empty?
@@ -66,7 +72,7 @@ if pokemon_list.empty?
     end
 
     pokemon_data = JSON.parse(pokemon_response.body)
-    
+
     # Format name nicely (e.g. mr-mime -> Mr Mime)
     name = pokemon_data["name"].split("-").map(&:capitalize).join(" ")
 
@@ -82,10 +88,19 @@ if pokemon_list.empty?
       stats[mapped_name] = s["base_stat"] if mapped_name
     end
 
+    # Extract sprites with fallback:
+    #   Primary:  sprites.other.showdown.front_default / back_default
+    #   Fallback: sprites.front_default                / back_default
+    showdown     = pokemon_data.dig("sprites", "other", "showdown") || {}
+    front_sprite = showdown["front_default"] || pokemon_data.dig("sprites", "front_default")
+    back_sprite  = showdown["back_default"]  || pokemon_data.dig("sprites", "back_default")
+
     pokemon_list << {
       "name" => name,
       "types" => types,
-      "stats" => stats
+      "stats" => stats,
+      "front_sprite" => front_sprite,
+      "back_sprite"  => back_sprite
     }
   end
 
@@ -106,11 +121,13 @@ now = Time.current
 pokemon_list.each_slice(100).with_index(1) do |batch, batch_number|
   db_batch = batch.map do |pkmn|
     {
-      name: pkmn["name"],
-      types: pkmn["types"],
-      stats: pkmn["stats"],
-      created_at: now,
-      updated_at: now
+      name:         pkmn["name"],
+      types:        pkmn["types"],
+      stats:        pkmn["stats"],
+      front_sprite: pkmn["front_sprite"],
+      back_sprite:  pkmn["back_sprite"],
+      created_at:   now,
+      updated_at:   now
     }
   end
 

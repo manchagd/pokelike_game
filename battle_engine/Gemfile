@@ -17,4 +17,6 @@ gem "faraday", "~> 2.9"
 
 group :development do
   gem "pry", "~> 0.14"
+  gem "rubocop", "~> 1.75", require: false
+  gem "rubocop-performance", require: false
 end
