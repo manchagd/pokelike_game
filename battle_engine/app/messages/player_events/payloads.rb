@@ -23,14 +23,6 @@ module Messages
       end
 
       def battle_info(player)
-        return [
-          {
-            id: '123-123',
-            opponent: [
-              { name: 'p1', team: 'A' }
-            ]
-          }
-        ]
         player.battles.running.map do |battle|
           {
             id: battle.id,

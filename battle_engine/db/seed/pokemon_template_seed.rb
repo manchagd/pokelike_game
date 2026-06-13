@@ -95,12 +95,21 @@ if pokemon_list.empty?
     front_sprite = showdown["front_default"] || pokemon_data.dig("sprites", "front_default")
     back_sprite  = showdown["back_default"]  || pokemon_data.dig("sprites", "back_default")
 
+    # Extract all moves with ID <= 10000 from PokeAPI response
+    pokeapi_move_ids = (pokemon_data["moves"] || []).map do |m|
+      url = m.dig("move", "url")
+      match = url&.match(%r{/move/(\d+)/})
+      match ? match[1].to_i : nil
+    end.compact.select { |id| id <= 10000 }.uniq
+
     pokemon_list << {
       "name" => name,
       "types" => types,
       "stats" => stats,
       "front_sprite" => front_sprite,
-      "back_sprite"  => back_sprite
+      "back_sprite"  => back_sprite,
+      "pokeapi_id"   => pokemon_id,
+      "moves"        => pokeapi_move_ids
     }
   end
 
@@ -126,6 +135,7 @@ pokemon_list.each_slice(100).with_index(1) do |batch, batch_number|
       stats:        pkmn["stats"],
       front_sprite: pkmn["front_sprite"],
       back_sprite:  pkmn["back_sprite"],
+      pokeapi_id:   pkmn["pokeapi_id"],
       created_at:   now,
       updated_at:   now
     }

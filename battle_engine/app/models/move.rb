@@ -16,6 +16,7 @@ class Move < ApplicationRecord
   validates :pp, :category, :type,  presence: true
   validates :power, numericality: { only_integer: true }, allow_nil: true
   validates :category, inclusion: { in: CATEGORIES }
+  validates :pokeapi_id, uniqueness: { allow_nil: true }
   validate :types_exists?
 
   private

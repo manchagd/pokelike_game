@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_06_13_001213) do
+ActiveRecord::Schema[7.2].define(version: 2026_06_13_010412) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -68,7 +68,9 @@ ActiveRecord::Schema[7.2].define(version: 2026_06_13_001213) do
     t.datetime "updated_at", null: false
     t.jsonb "meta", default: {}
     t.string "handler"
+    t.integer "pokeapi_id"
     t.index ["name"], name: "index_moves_on_name", unique: true
+    t.index ["pokeapi_id"], name: "index_moves_on_pokeapi_id", unique: true
   end
 
   create_table "players", force: :cascade do |t|
@@ -108,7 +110,9 @@ ActiveRecord::Schema[7.2].define(version: 2026_06_13_001213) do
     t.datetime "updated_at", null: false
     t.string "front_sprite"
     t.string "back_sprite"
+    t.integer "pokeapi_id"
     t.index ["name"], name: "index_pokemon_templates_on_name", unique: true
+    t.index ["pokeapi_id"], name: "index_pokemon_templates_on_pokeapi_id", unique: true
   end
 
   create_table "pokemons", force: :cascade do |t|

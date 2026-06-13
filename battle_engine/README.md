@@ -196,6 +196,10 @@ Consulta la [PokeAPI](https://pokeapi.co/) para cargar los primeros ~1,000 Poké
 | `stats` | jsonb | `{ hp, atk, def, sp_atk, sp_def, spd }` |
 | `front_sprite` | string | URL del sprite frontal (ver lógica de prioridad) |
 | `back_sprite` | string | URL del sprite trasero (ver lógica de prioridad) |
+| `pokeapi_id` | integer | ID único asignado por la PokeAPI |
+
+> **Nota sobre `moves` en la caché local:**
+> El archivo de caché local `local_data/pokemon.json` almacena además una clave `"moves"` que contiene un arreglo de enteros con los IDs de PokeAPI de todos los movimientos que el Pokémon puede aprender (filtrados para no ser mayores a `10000`). Este arreglo no se guarda en la base de datos por el momento.
 
 **Lógica de sprites (prioridad):**
 
@@ -240,6 +244,7 @@ Consulta la [PokeAPI](https://pokeapi.co/) para cargar los primeros ~900 moves (
 | `priority` | integer | Prioridad de turno |
 | `accuracy` | integer | Precisión (`null` si el move no puede fallar) |
 | `meta` | jsonb | Objeto de metadatos (ver estructura) |
+| `pokeapi_id` | integer | ID único asignado por la PokeAPI |
 
 **Estructura del campo `meta`:**
 

@@ -159,7 +159,8 @@ if moves_list.empty?
       "power"          => move_data["power"],
       "priority"       => move_data["priority"],
       "accuracy"       => move_data["accuracy"],
-      "meta"           => meta
+      "meta"           => meta,
+      "pokeapi_id"     => move_id
     }
   end
 
@@ -190,6 +191,7 @@ moves_list.each_slice(100).with_index(1) do |batch, batch_number|
       priority:       mv["priority"] || 0,
       accuracy:       mv["accuracy"],
       meta:           mv["meta"] || {},
+      pokeapi_id:     mv["pokeapi_id"],
       created_at:     now,
       updated_at:     now
     }
