@@ -1,0 +1,30 @@
+{
+  "folders": [
+    {
+      "name": "pokelike_game",
+      "path": "."
+    },
+    {
+      "name": "battle_engine",
+      "path": "battle_engine"
+    },
+    {
+      "name": "battle_real_time",
+      "path": "battle_real_time"
+    },
+    {
+      "name": "battle_ui",
+      "path": "battle_ui"
+    }
+  ],
+  "settings": {
+    "[ruby]": {
+      "editor.defaultFormatter": "Shopify.ruby-lsp",
+      "editor.formatOnSave": true
+    },
+    "rubyLsp.formatter": "auto",
+    "rubyLsp.linters": [
+      "rubocop"
+    ]
+  }
+}

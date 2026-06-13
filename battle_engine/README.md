@@ -43,6 +43,33 @@ docker compose run battle_engine bundle exec rake db:seed
 docker compose run battle_engine bundle exec rake db:setup
 ```
 
+## Calidad de Código (RuboCop)
+
+El motor utiliza **RuboCop** (con el plugin de performance) para mantener el estilo de código limpio y consistente. Las reglas personalizadas están configuradas en [.rubocop.yml](file:///Users/manchagd/pokelike_game/battle_engine/.rubocop.yml).
+
+### Ejecutar localmente
+
+```bash
+# Inspeccionar el código en busca de ofensas
+bundle exec rubocop
+
+# Correr autocorreciones seguras automáticamente
+bundle exec rubocop -a
+
+# Correr todas las autocorreciones (incluyendo las potencialmente inseguras)
+bundle exec rubocop -A
+```
+
+### Ejecutar con Docker
+
+```bash
+# Inspeccionar el código
+docker compose run --rm battle_engine bundle exec rubocop
+
+# Correr autocorreciones seguras
+docker compose run --rm battle_engine bundle exec rubocop -a
+```
+
 ## Tareas Rake disponibles
 
 Todas las utilidades están definidas en el `Rakefile` y se ejecutan usando `bundle exec rake <tarea>`:
@@ -54,7 +81,9 @@ Todas las utilidades están definidas en el `Rakefile` y se ejecutan usando `bun
 | `db:create_migration[name]` | Genera una nueva migración con timestamp (ej. `bundle exec rake db:create_migration[create_users]`) |
 | `db:migrate` | Ejecuta migraciones pendientes y actualiza `db/schema.rb` |
 | `db:rollback[steps]` | Revierte la(s) última(s) migración(es) y actualiza `db/schema.rb`. Ej: `bundle exec rake db:rollback[3]` (default: 1) |
-| `db:seed` | Ejecuta `db/seeds.rb` |
+| `db:seed` | Ejecuta `db/seeds.rb` (datos iniciales de movimientos) |
+| `db:seed[file]` | Ejecuta un seed específico de `db/seed/<file>_seed.rb`. Ej: `bundle exec rake "db:seed[pokemon_template]"` |
+| `db:seed[file,true]` | Ejecuta el seed ignorando el caché local y forzando un nuevo fetch desde la API. Ej: `bundle exec rake "db:seed[pokemon_template,true]"` |
 | `db:setup` | Ejecuta create + migrate + seed en secuencia |
 | `console` | Abre una sesión interactiva **Pry** con el entorno completo cargado |
 | `rabbitmq:publish_sample` | Publica un mensaje de prueba en la cola `battle_events` de RabbitMQ |
@@ -142,6 +171,133 @@ El motor de batalla interactúa con el servidor de tiempo real mediante mensajer
     }
     ```
 
+## Seeds
+
+El proyecto tiene dos niveles de seeds:
+
+### `db/seeds.rb` — Seeds globales
+Carga datos estáticos de **movimientos** (`Move`). Se ejecuta con:
+
+```bash
+bundle exec rake db:seed
+```
+
+### `db/seed/` — Seeds individuales
+Archivos de seed especializados que se pueden ejecutar de forma independiente.
+
+#### `pokemon_template` — Plantillas de Pokémon (vía PokeAPI)
+
+Consulta la [PokeAPI](https://pokeapi.co/) para cargar los primeros ~1,000 Pokémon (IDs 1–9999) como `PokemonTemplate` en la base de datos. Guarda los siguientes campos por cada Pokémon:
+
+| Campo | Tipo | Descripción |
+|---|---|---|
+| `name` | string | Nombre formateado (ej. `Mr Mime`) |
+| `types` | string[] | Tipos válidos según `Types::LIST` |
+| `stats` | jsonb | `{ hp, atk, def, sp_atk, sp_def, spd }` |
+| `front_sprite` | string | URL del sprite frontal (ver lógica de prioridad) |
+| `back_sprite` | string | URL del sprite trasero (ver lógica de prioridad) |
+| `pokeapi_id` | integer | ID único asignado por la PokeAPI |
+
+> **Nota sobre `moves` en la caché local:**
+> El archivo de caché local `local_data/pokemon.json` almacena además una clave `"moves"` que contiene un arreglo de enteros con los IDs de PokeAPI de todos los movimientos que el Pokémon puede aprender (filtrados para no ser mayores a `10000`). Este arreglo no se guarda en la base de datos por el momento.
+
+**Lógica de sprites (prioridad):**
+
+```
+sprites.other.showdown.front_default  →  front_sprite (fuente primaria)
+  ↓ fallback si no existe
+sprites.front_default                 →  front_sprite
+
+sprites.other.showdown.back_default   →  back_sprite  (fuente primaria)
+  ↓ fallback si no existe
+sprites.back_default                  →  back_sprite
+```
+
+**Caché local (`local_data/pokemon.json`):**
+
+Para evitar consultar la API en cada ejecución (que tarda varios minutos), el seed guarda los resultados en `local_data/pokemon.json` y lo usa automáticamente si existe.
+
+```bash
+# Uso normal — carga desde caché local si existe
+bundle exec rake "db:seed[pokemon_template]"
+
+# Forzar re-fetch desde la API (ignora el caché)
+# Necesario cuando el schema del JSON cambia (nuevos campos, etc.)
+bundle exec rake "db:seed[pokemon_template,true]"
+```
+
+> **Nota:** El archivo `local_data/pokemon.json` está en `.gitignore`. Si no existe en tu entorno local, el seed lo generará automáticamente consultando la API.
+
+#### `move` — Movimientos (vía PokeAPI)
+
+Consulta la [PokeAPI](https://pokeapi.co/) para cargar los primeros ~900 moves (IDs 1–9999) como `Move` en la base de datos. Guarda los siguientes campos:
+
+| Campo | Tipo | Descripción |
+|---|---|---|
+| `name` | string | Nombre formateado (ej. `Swords Dance`) |
+| `type` | string | Tipo Pokémon del move (ej. `Normal`, `Fire`) |
+| `secondary_type` | string | Solo `"Flying"` para Flying Press (ID 560); `null` en los demás |
+| `category` | string | `"Physical"`, `"Special"` o `"Status"` |
+| `handler` | string | Categoría de comportamiento del move (ver tabla) |
+| `pp` | integer | Puntos de poder |
+| `power` | integer | Potencia base (`null` si no aplica) |
+| `priority` | integer | Prioridad de turno |
+| `accuracy` | integer | Precisión (`null` si el move no puede fallar) |
+| `meta` | jsonb | Objeto de metadatos (ver estructura) |
+| `pokeapi_id` | integer | ID único asignado por la PokeAPI |
+
+**Estructura del campo `meta`:**
+
+```json
+{
+  "ailment": { "name": "paralysis", "chance": 10 },
+  "crit_rate": 0,
+  "flinch_chance": 0,
+  "drain": 0,
+  "healing": 0,
+  "max_hits": null,
+  "min_hits": null,
+  "max_turns": null,
+  "min_turns": null,
+  "stat_changes": [
+    { "stat": "atk", "change": 2 }
+  ]
+}
+```
+
+**Columna `handler` — 14 valores posibles:**
+
+| Valor | Descripción |
+|---|---|
+| `damage` | Solo daño, sin efectos adicionales |
+| `ailment` | Aplica una condición (burn, paralysis, sleep...) |
+| `net-good-stats` | Sube/baja stats |
+| `heal` | Recupera HP |
+| `damage-ailment` | Daño + condición |
+| `swagger` | Sube stat del rival y lo confunde |
+| `damage-lower` | Daño + baja stat del rival |
+| `damage-raise` | Daño + sube stat propio |
+| `damage-heal` | Daño + recupera HP |
+| `ohko` | One-hit KO |
+| `whole-field-effect` | Efecto global (lluvia, sol...) |
+| `field-effect` | Efecto de campo propio (spikes, reflect...) |
+| `force-switch` | Fuerza cambio de Pokémon |
+| `unique` | Lógica completamente custom — requiere implementación en el engine |
+
+> El campo `handler` es el entry point para la lógica del engine. El developer puede usarlo para STI (`self.inheritance_column = :handler`) o para un sistema de dispatch por handlers.
+
+**Caché local (`local_data/moves.json`):**
+
+```bash
+# Uso normal — carga desde caché local si existe
+bundle exec rake "db:seed[move]"
+
+# Forzar re-fetch desde la API (ignora el caché)
+bundle exec rake "db:seed[move,true]"
+```
+
+> **Nota:** El archivo `local_data/moves.json` está en `.gitignore`. Si no existe, el seed lo generará automáticamente.
+
 ## Variables de entorno
 
 | Variable | Default | Descripción |
@@ -192,9 +348,14 @@ battle_engine/
 │   └── models/          # Modelos de datos ActiveRecord
 │
 ├── db/
-│   ├── schema.rb        # Esquema ActiveRecord
-│   ├── migrate/         # Migraciones
-│   └── seeds.rb         # Datos iniciales
+│   ├── schema.rb        # Esquema ActiveRecord (auto-generado)
+│   ├── migrate/         # Migraciones de base de datos
+│   ├── seeds.rb         # Seeds globales (movimientos)
+│   └── seed/
+│       └── pokemon_template_seed.rb  # Seed de plantillas Pokémon (PokeAPI)
+│
+├── local_data/
+│   └── pokemon.json     # Caché local del seed de Pokémon (ignorado por git)
 │
 ├── Rakefile             # Utilidades CLI centralizadas (Rake tasks)
 │

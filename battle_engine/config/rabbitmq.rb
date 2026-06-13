@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "bunny"
-require_relative "app_config"
+require 'bunny'
+require_relative 'app_config'
 
 module BattleEngine
   module RabbitMQ
@@ -19,7 +19,7 @@ module BattleEngine
 
     def channel
       chan = Thread.current[:rabbitmq_channel]
-      if chan && chan.open?
+      if chan&.open?
         chan
       else
         Thread.current[:rabbitmq_channel] = connection.create_channel
@@ -33,7 +33,7 @@ module BattleEngine
       end
       @connection&.close
       @connection = nil
-      BattleEngine.logger.info("[RabbitMQ] Disconnected")
+      BattleEngine.logger.info('[RabbitMQ] Disconnected')
     end
   end
 end

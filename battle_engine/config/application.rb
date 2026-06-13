@@ -29,7 +29,7 @@ module BattleEngine
       application = Application.new
 
       yield application
-      BattleEngine.logger.debug("[App] Starting workers...")
+      BattleEngine.logger.debug('[App] Starting workers...')
 
       application.start!
     end

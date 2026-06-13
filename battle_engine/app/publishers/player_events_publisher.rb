@@ -2,6 +2,6 @@
 
 module Publishers
   class PlayerEventsPublisher < BasePublisher
-    QUEUE_NAME = "player_events"
+    QUEUE_NAME = 'player_events'
   end
 end

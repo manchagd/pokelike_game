@@ -2,6 +2,6 @@
 
 module Publishers
   class SamplePublisher < BasePublisher
-    QUEUE_NAME = "battle_events"
+    QUEUE_NAME = 'battle_events'
   end
 end
