@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_06_13_010412) do
+ActiveRecord::Schema[7.2].define(version: 2026_06_13_202413) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -67,7 +67,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_06_13_010412) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.jsonb "meta", default: {}
-    t.string "handler"
+    t.string "handler", null: false
     t.integer "pokeapi_id"
     t.index ["name"], name: "index_moves_on_name", unique: true
     t.index ["pokeapi_id"], name: "index_moves_on_pokeapi_id", unique: true

@@ -184,7 +184,7 @@ moves_list.each_slice(100).with_index(1) do |batch, batch_number|
       type:           mv["type"],
       secondary_type: mv["secondary_type"],
       category:       mv["category"],
-      handler:        mv["handler"],
+      handler:        (mv["handler"] || "unique").underscore.camelize,
       pp:             mv["pp"],
       power:          mv["power"],
       priority:       mv["priority"] || 0,
