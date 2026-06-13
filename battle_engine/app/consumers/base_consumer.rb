@@ -3,7 +3,7 @@
 module Consumers
   class BaseConsumer
     def initialize
-      raise NotImplementedError, "Subclasses must define QUEUE_NAME" unless defined?(self.class::QUEUE_NAME)
+      raise NotImplementedError, 'Subclasses must define QUEUE_NAME' unless defined?(self.class::QUEUE_NAME)
 
       @channel = BattleEngine::RabbitMQ.channel
       @queue   = @channel.queue(self.class::QUEUE_NAME, durable: true)

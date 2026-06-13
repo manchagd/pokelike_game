@@ -1,16 +1,16 @@
 # frozen_string_literal: true
 
-require_relative "boot"
-require "active_record"
-require "active_support/core_ext/string/inflections"
+require_relative 'boot'
+require 'active_record'
+require 'active_support/core_ext/string/inflections'
 
 namespace :db do
-  desc "Create the database"
+  desc 'Create the database'
   task :create do
     db_name = "battle_engine_#{AppConfig.app_env}"
     BattleEngine.logger.info("[DB] Creating database: #{db_name}")
 
-    base_url = AppConfig.database_url.sub(/\/[^\/]+$/, "/postgres")
+    base_url = AppConfig.database_url.sub(%r{/[^/]+$}, '/postgres')
     ActiveRecord::Base.establish_connection(base_url)
 
     begin
@@ -21,12 +21,12 @@ namespace :db do
     end
   end
 
-  desc "Drop the database"
+  desc 'Drop the database'
   task :drop do
     db_name = "battle_engine_#{AppConfig.app_env}"
     BattleEngine.logger.info("[DB] Dropping database: #{db_name}")
 
-    base_url = AppConfig.database_url.sub(/\/[^\/]+$/, "/postgres")
+    base_url = AppConfig.database_url.sub(%r{/[^/]+$}, '/postgres')
     ActiveRecord::Base.establish_connection(base_url)
 
     ActiveRecord::Base.connection.execute(<<~SQL)
@@ -40,23 +40,23 @@ namespace :db do
     BattleEngine.logger.info("[DB] Database '#{db_name}' dropped successfully")
   end
 
-  desc "Create a new migration (e.g. rake db:create_migration[create_users])"
+  desc 'Create a new migration (e.g. rake db:create_migration[create_users])'
   task :create_migration, [:name] do |_t, args|
     migration_name = args[:name]
 
     if migration_name.nil? || migration_name.strip.empty?
-      BattleEngine.logger.error("Usage: bundle exec rake db:create_migration[MigrationName]")
+      BattleEngine.logger.error('Usage: bundle exec rake db:create_migration[MigrationName]')
       exit 1
     end
 
     snake_name = migration_name.underscore
     class_name = migration_name.camelize
 
-    timestamp = Time.now.utc.strftime("%Y%m%d%H%M%S")
+    timestamp = Time.now.utc.strftime('%Y%m%d%H%M%S')
     filename = "#{timestamp}_#{snake_name}.rb"
-    migrate_dir = File.expand_path("db/migrate", __dir__)
+    migrate_dir = File.expand_path('db/migrate', __dir__)
 
-    Dir.mkdir(migrate_dir) unless Dir.exist?(migrate_dir)
+    FileUtils.mkdir_p(migrate_dir)
 
     filepath = File.join(migrate_dir, filename)
 
@@ -73,19 +73,19 @@ namespace :db do
     BattleEngine.logger.info("[DB] Created migration file: db/migrate/#{filename}")
   end
 
-  desc "Run pending migrations"
+  desc 'Run pending migrations'
   task :migrate do
-    migrations_path = File.expand_path("db/migrate", __dir__)
+    migrations_path = File.expand_path('db/migrate', __dir__)
     BattleEngine.logger.info("[DB] Running migrations from #{migrations_path}")
 
     ActiveRecord::MigrationContext.new(migrations_path).migrate
     BattleEngine::Database.dump_schema!
   end
 
-  desc "Rollback the last migration (e.g. rake db:rollback[3])"
+  desc 'Rollback the last migration (e.g. rake db:rollback[3])'
   task :rollback, [:steps] do |_t, args|
     steps = (args[:steps] || 1).to_i
-    migrations_path = File.expand_path("db/migrate", __dir__)
+    migrations_path = File.expand_path('db/migrate', __dir__)
 
     BattleEngine.logger.info("[DB] Rolling back #{steps} migration(s)")
 
@@ -96,73 +96,73 @@ namespace :db do
   desc "Load the seed data from db/seeds.rb or a specific seed file (e.g. rake 'db:seed[pokemon_template,true]')"
   task :seed, [:file, :force] do |_t, args|
     file_arg = args[:file]
-    $seed_force_fetch = args[:force]&.downcase == "true"
+    $seed_force_fetch = args[:force]&.downcase == 'true'
 
     if file_arg
       seed_file = File.expand_path("db/seed/#{file_arg}_seed.rb", __dir__)
 
       if File.exist?(seed_file)
-        BattleEngine.logger.info("[DB] Seeding database with '#{file_arg}'#{$seed_force_fetch ? " (force fetch enabled)" : ""}...")
+        BattleEngine.logger.info("[DB] Seeding database with '#{file_arg}'#{' (force fetch enabled)' if $seed_force_fetch}...")
         load(seed_file)
-        BattleEngine.logger.info("[DB] Seeding complete")
+        BattleEngine.logger.info('[DB] Seeding complete')
       else
         BattleEngine.logger.error("[DB] Seed file not found: #{seed_file}")
         exit 1
       end
     else
-      seeds_file = File.expand_path("db/seeds.rb", __dir__)
-      BattleEngine.logger.info("[DB] Seeding database...")
+      seeds_file = File.expand_path('db/seeds.rb', __dir__)
+      BattleEngine.logger.info('[DB] Seeding database...')
       load(seeds_file)
-      BattleEngine.logger.info("[DB] Seeding complete")
+      BattleEngine.logger.info('[DB] Seeding complete')
     end
   end
 
-  desc "Setup database from scratch (create, migrate, seed)"
-  task setup: [:create, :migrate, :seed]
+  desc 'Setup database from scratch (create, migrate, seed)'
+  task setup: %i[create migrate seed]
 end
 
-desc "Start an interactive console (Pry)"
+desc 'Start an interactive console (Pry)'
 task :console do
-  BattleEngine.logger.info("[Console] Starting interactive console...")
-  require "pry"
+  BattleEngine.logger.info('[Console] Starting interactive console...')
+  require 'pry'
   Pry.start
 end
 
 namespace :rabbitmq do
-  desc "Publish a sample message to the battle_events queue"
+  desc 'Publish a sample message to the battle_events queue'
   task :publish_sample do
-    BattleEngine.logger.info("[RabbitMQ] Preparing sample message...")
-    Publishers::SamplePublisher.publish("battle_started", {
-      trainer_id: 1,
-      opponent_id: 2
-    })
+    BattleEngine.logger.info('[RabbitMQ] Preparing sample message...')
+    Publishers::SamplePublisher.publish('battle_started', {
+                                          trainer_id: 1,
+                                          opponent_id: 2
+                                        })
   end
 
-  desc "Publish a sample message to the player_events queue"
+  desc 'Publish a sample message to the player_events queue'
   task :publish_player_event do
-    BattleEngine.logger.info("[RabbitMQ] Preparing sample player event...")
-    Publishers::PlayerEventsPublisher.publish("info", {
-      player: {
-        id: 101,
-        name: "Mancha",
-        team: "A",
-        teams: [
-          {
-            name: "Equipo Fuego",
-            description: "Estrategia basada en fuego",
-            monsters: [
-              { name: "Charizard", color: "fire" },
-              { name: "Arcanine", color: "fire" }
-            ]
-          }
-        ],
-        battle_history: {
-          victories: 5,
-          defeats: 2,
-          history: ["V", "V", "D", "V", "D"]
-        }
-      },
-      battles: []
-    })
+    BattleEngine.logger.info('[RabbitMQ] Preparing sample player event...')
+    Publishers::PlayerEventsPublisher.publish('info', {
+                                                player: {
+                                                  id: 101,
+                                                  name: 'Mancha',
+                                                  team: 'A',
+                                                  teams: [
+                                                    {
+                                                      name: 'Equipo Fuego',
+                                                      description: 'Estrategia basada en fuego',
+                                                      monsters: [
+                                                        { name: 'Charizard', color: 'fire' },
+                                                        { name: 'Arcanine', color: 'fire' }
+                                                      ]
+                                                    }
+                                                  ],
+                                                  battle_history: {
+                                                    victories: 5,
+                                                    defeats: 2,
+                                                    history: %w[V V D V D]
+                                                  }
+                                                },
+                                                battles: []
+                                              })
   end
 end

@@ -7,7 +7,8 @@ class BattlePlayer < ApplicationRecord
   validates valid_group?
 
   private
+
   def valid_group?
-    errors.add(:group, "must be valid") unless ["A", "B"].include?(group)
+    errors.add(:group, 'must be valid') unless %w[A B].include?(group)
   end
 end

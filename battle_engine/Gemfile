@@ -1,22 +1,22 @@
 # frozen_string_literal: true
 
-source "https://rubygems.org"
+source 'https://rubygems.org'
 
-ruby "4.0.1"
+ruby '4.0.1'
 
-gem "activerecord", "~> 7.1"
-gem "activesupport", "~> 7.1"
-gem "pg", "~> 1.5"
-gem "bunny", "~> 2.24"
-gem "dry-validation", "~> 1.10"
-gem "dotenv", "~> 3.1"
-gem "zeitwerk", "~> 2.6"
-gem "json"
-gem "rake", "~> 13.1"
-gem "faraday", "~> 2.9"
+gem 'activerecord', '~> 7.1'
+gem 'activesupport', '~> 7.1'
+gem 'bunny', '~> 2.24'
+gem 'dotenv', '~> 3.1'
+gem 'dry-validation', '~> 1.10'
+gem 'faraday', '~> 2.9'
+gem 'json'
+gem 'pg', '~> 1.5'
+gem 'rake', '~> 13.1'
+gem 'zeitwerk', '~> 2.6'
 
 group :development do
-  gem "pry", "~> 0.14"
-  gem "rubocop", "~> 1.75", require: false
-  gem "rubocop-performance", require: false
+  gem 'pry', '~> 0.14'
+  gem 'rubocop', '~> 1.75', require: false
+  gem 'rubocop-performance', require: false
 end

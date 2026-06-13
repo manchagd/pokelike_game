@@ -3,7 +3,7 @@
 module Messages
   module PlayerEvents
     module Events
-      INFO = "info"
+      INFO = 'info'
     end
   end
 end

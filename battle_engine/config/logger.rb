@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "logger"
-require_relative "app_config"
+require 'logger'
+require_relative 'app_config'
 
 module BattleEngine
   class MultiLogger
@@ -34,8 +34,8 @@ module BattleEngine
 
   def logger
     @logger ||= begin
-      log_dir = File.expand_path("../log", __dir__)
-      Dir.mkdir(log_dir) unless Dir.exist?(log_dir)
+      log_dir = File.expand_path('../log', __dir__)
+      FileUtils.mkdir_p(log_dir)
 
       file_logger = Logger.new(File.join(log_dir, "#{AppConfig.app_env}.log"))
       stdout_logger = Logger.new($stdout)

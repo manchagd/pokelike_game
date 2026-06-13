@@ -2,6 +2,6 @@
 
 module Consumers
   class PlayerActionsConsumer < BaseConsumer
-    QUEUE_NAME = "player_actions"
+    QUEUE_NAME = 'player_actions'
   end
 end

@@ -5,5 +5,5 @@ class Positions < ApplicationRecord
   has_one :pokemon
 
   validates :group, presence: true, numericality: { only_integer: true }
-  validates :side, inclusion: { in: ["A", "B"] }, allow_nil: true
+  validates :side, inclusion: { in: %w[A B] }, allow_nil: true
 end

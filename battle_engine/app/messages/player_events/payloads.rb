@@ -10,12 +10,12 @@ module Messages
           player: {
             id: player.id,
             name: player.name,
-            team: "A",
+            team: 'A',
             teams: [],
             battle_history: {
-              victories: player.battles.select { |b| b.winner?(player) }.count,
-              defeats: player.battles.select { |b| !b.winner?(player) }.count,
-              history: player.battles.last(10).map { |b| b.winner?(player) ? "V" : "D" }
+              victories: player.battles.count { |b| b.winner?(player) },
+              defeats: player.battles.count { |b| !b.winner?(player) },
+              history: player.battles.last(10).map { |b| b.winner?(player) ? 'V' : 'D' }
             }
           },
           battles: battle_info(player)
@@ -25,9 +25,9 @@ module Messages
       def battle_info(player)
         return [
           {
-            id: "123-123",
+            id: '123-123',
             opponent: [
-              { name: "p1", team: "A" }
+              { name: 'p1', team: 'A' }
             ]
           }
         ]
@@ -44,7 +44,7 @@ module Messages
       def battle_player_names(player, players)
         # Ajustado a equipos (por ahora fijo en "A")
         # [{name: "player_x", team: "A"}] -> nombre del jugador y su equipo
-        players.filter { |p| p.id != player.id }.map { |p| { name: p.name, team: "A" } }
+        players.filter { |p| p.id != player.id }.map { |p| { name: p.name, team: 'A' } }
       end
       private_class_method :battle_player_names
     end

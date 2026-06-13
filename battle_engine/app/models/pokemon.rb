@@ -2,8 +2,8 @@
 
 class Pokemon < ApplicationRecord
   GENDERS = [
-    MALE = "Male",
-    FEMALE = "Female"
+    MALE = 'Male',
+    FEMALE = 'Female'
   ].freeze
 
   has_and_belongs_to_many :teams, join_table: :team_pokemons
