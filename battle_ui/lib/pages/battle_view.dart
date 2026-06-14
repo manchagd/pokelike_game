@@ -296,7 +296,7 @@ class _BattleViewState extends State<BattleView> {
       barrierDismissible: false,
       builder: (BuildContext dialogContext) {
         return AlertDialog(
-          title: const Row(
+          title: Row(
             children: [
               Icon(Icons.warning_amber_rounded, color: AppColors.accent),
               SizedBox(width: 10),
@@ -327,7 +327,7 @@ class _BattleViewState extends State<BattleView> {
       barrierDismissible: false,
       builder: (BuildContext dialogContext) {
         return AlertDialog(
-          title: const Row(
+          title: Row(
             children: [
               Icon(Icons.sports_kabaddi_rounded, color: AppColors.primary),
               SizedBox(width: 10),
@@ -357,7 +357,7 @@ class _BattleViewState extends State<BattleView> {
       context: context,
       builder: (BuildContext dialogContext) {
         return AlertDialog(
-          title: const Row(
+          title: Row(
             children: [
               Icon(Icons.outlined_flag_rounded, color: AppColors.danger),
               SizedBox(width: 10),
@@ -420,8 +420,8 @@ class _BattleViewState extends State<BattleView> {
               padding: const EdgeInsets.only(right: 8),
               child: TextButton.icon(
                 onPressed: _showSurrenderConfirmation,
-                icon: const Icon(Icons.flag_rounded, color: AppColors.danger, size: 18),
-                label: const Text(
+                icon: Icon(Icons.flag_rounded, color: AppColors.danger, size: 18),
+                label: Text(
                   'Rendirse',
                   style: TextStyle(
                     color: AppColors.danger,
@@ -447,7 +447,7 @@ class _BattleViewState extends State<BattleView> {
                 child: MouseRegion(
                   cursor: SystemMouseCursors.click,
                   child: Chip(
-                    avatar: const Icon(
+                    avatar: Icon(
                       Icons.tag,
                       size: 16,
                       color: AppColors.primary,
@@ -584,7 +584,7 @@ class _BattleViewState extends State<BattleView> {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              AppColors.surfaceA20.withValues(alpha: 0.95),
+              AppColors.surfaceHigh.withValues(alpha: 0.95),
               AppColors.surface.withValues(alpha: 0.98),
             ],
           ),
@@ -609,7 +609,7 @@ class _BattleViewState extends State<BattleView> {
                   width: 2,
                 ),
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.people_alt_rounded,
                 color: AppColors.accent,
                 size: 36,
@@ -640,7 +640,7 @@ class _BattleViewState extends State<BattleView> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               decoration: BoxDecoration(
-                color: AppColors.primaryA0.withValues(alpha: 0.05),
+                color: AppColors.primary.withValues(alpha: 0.05),
                 borderRadius: BorderRadius.circular(100),
                 border: Border.all(
                   color: AppColors.primary.withValues(alpha: 0.15),
@@ -681,7 +681,7 @@ class _BattleViewState extends State<BattleView> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: AppColors.surfaceA0.withValues(alpha: 0.3),
+                color: AppColors.background.withValues(alpha: 0.3),
                 borderRadius: BorderRadius.circular(AppRadius.md),
                 border: Border.all(
                   color: AppColors.outlineVariant.withValues(alpha: 0.3),
@@ -689,7 +689,7 @@ class _BattleViewState extends State<BattleView> {
               ),
               child: Row(
                 children: [
-                  const Icon(
+                  Icon(
                     Icons.info_outline_rounded,
                     color: AppColors.onSurfaceMuted,
                     size: 16,
@@ -727,8 +727,8 @@ class _BattleViewState extends State<BattleView> {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
         color: isConnected
-            ? AppColors.surfaceA10.withValues(alpha: 0.4)
-            : AppColors.surfaceA0.withValues(alpha: 0.1),
+            ? AppColors.surface.withValues(alpha: 0.4)
+            : AppColors.background.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(AppRadius.md),
         border: Border.all(
           color: isConnected
@@ -741,7 +741,7 @@ class _BattleViewState extends State<BattleView> {
         children: [
           // Connection status dot/indicator
           if (isConnected)
-            const _PulsingIndicator(color: AppColors.success)
+            _PulsingIndicator(color: AppColors.success)
           else
             Container(
               width: 10,
@@ -784,7 +784,7 @@ class _BattleViewState extends State<BattleView> {
             decoration: BoxDecoration(
               color: isConnected
                   ? AppColors.success.withValues(alpha: 0.15)
-                  : AppColors.surfaceA0.withValues(alpha: 0.2),
+                  : AppColors.background.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(AppRadius.sm),
             ),
             child: Text(
@@ -817,7 +817,7 @@ class _BattleViewState extends State<BattleView> {
               ),
             ),
             const SizedBox(width: 8),
-            const Icon(
+            Icon(
               Icons.offline_bolt_outlined,
               color: AppColors.accent,
               size: 20,
@@ -849,7 +849,7 @@ class _BattleViewState extends State<BattleView> {
               mainAxisAlignment: MainAxisAlignment.center,
               mainAxisSize: MainAxisSize.max,
               children: [
-                const Icon(Icons.flash_on, color: AppColors.accent, size: 25),
+                Icon(Icons.flash_on, color: AppColors.accent, size: 25),
                 const SizedBox(width: 8),
                 Text(
                   'Selecciona tu ataque',
@@ -880,14 +880,14 @@ class _BattleViewState extends State<BattleView> {
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                       colors: [
-                        Color.lerp(c, AppColors.primaryA0, 0.35)!.withValues(alpha: 0.95),
+                        Color.lerp(c, AppColors.primary, 0.35)!.withValues(alpha: 0.95),
                         c.withValues(alpha: 0.55),
-                        AppColors.surfaceA0.withValues(alpha: 0.92),
+                        AppColors.background.withValues(alpha: 0.92),
                       ],
                       stops: const [0.0, 0.45, 1.0],
                     ),
                     border: Border.all(
-                      color: Color.lerp(c, AppColors.primaryA20, 0.3)!
+                      color: Color.lerp(c, AppColors.secondary, 0.3)!
                           .withValues(alpha: 0.75),
                       width: 1.2,
                     ),
@@ -899,7 +899,7 @@ class _BattleViewState extends State<BattleView> {
                         offset: const Offset(0, 6),
                       ),
                       BoxShadow(
-                        color: AppColors.primaryA0.withValues(alpha: 0.18),
+                        color: AppColors.primary.withValues(alpha: 0.18),
                         blurRadius: 20,
                         spreadRadius: -4,
                         offset: const Offset(0, 2),
@@ -1018,7 +1018,7 @@ class _BattleViewState extends State<BattleView> {
         children: [
           Row(
             children: [
-              const Icon(
+              Icon(
                 Icons.receipt_long,
                 color: AppColors.secondary,
                 size: 18,
@@ -1093,7 +1093,7 @@ class _BattleViewState extends State<BattleView> {
           children: [
             Row(
               children: [
-                const Icon(
+                Icon(
                   Icons.catching_pokemon,
                   color: AppColors.primary,
                   size: 18,
@@ -1131,15 +1131,15 @@ class _BattleViewState extends State<BattleView> {
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                       colors: [
-                        Color.lerp(hpColor, AppColors.primaryA0, 0.4)!
+                        Color.lerp(hpColor, AppColors.primary, 0.4)!
                             .withValues(alpha: 0.85),
                         hpColor.withValues(alpha: 0.4),
-                        AppColors.surfaceA0.withValues(alpha: 0.9),
+                        AppColors.background.withValues(alpha: 0.9),
                       ],
                       stops: const [0.0, 0.45, 1.0],
                     ),
                     border: Border.all(
-                      color: Color.lerp(hpColor, AppColors.primaryA20, 0.35)!
+                      color: Color.lerp(hpColor, AppColors.secondary, 0.35)!
                           .withValues(alpha: 0.7),
                       width: 1.2,
                     ),
@@ -1151,7 +1151,7 @@ class _BattleViewState extends State<BattleView> {
                         offset: const Offset(0, 5),
                       ),
                       BoxShadow(
-                        color: AppColors.primaryA0.withValues(alpha: 0.15),
+                        color: AppColors.primary.withValues(alpha: 0.15),
                         blurRadius: 18,
                         spreadRadius: -4,
                         offset: const Offset(0, 2),
@@ -1197,7 +1197,7 @@ class _BattleViewState extends State<BattleView> {
                                   ),
                                   Text(
                                     'Nv.${m['level']} • HP ${m['hp']}/${m['maxHp']}',
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       color: AppColors.onSurfaceMuted,
                                       fontSize: 10,
                                     ),
@@ -1241,7 +1241,7 @@ class _BattleViewState extends State<BattleView> {
           children: [
             Row(
               children: [
-                const Icon(
+                Icon(
                   Icons.chat_bubble_outline,
                   color: AppColors.secondary,
                   size: 18,
@@ -1376,7 +1376,7 @@ class _BattleViewState extends State<BattleView> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       decoration: BoxDecoration(
-        color: AppColors.surfaceA0.withValues(alpha: 0.8),
+        color: AppColors.background.withValues(alpha: 0.8),
         borderRadius: BorderRadius.circular(AppRadius.md),
         border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.5)),
       ),
@@ -1403,11 +1403,11 @@ class _BattleViewState extends State<BattleView> {
           ),
           const SizedBox(width: 12),
           if (isWaitingPlayers)
-            const _PulsingIndicator(color: AppColors.warning)
+            _PulsingIndicator(color: AppColors.warning)
           else if (isWaiting)
-            const _PulsingIndicator(color: AppColors.accent)
+            _PulsingIndicator(color: AppColors.accent)
           else
-            const SizedBox(
+            SizedBox(
               width: 10,
               height: 10,
               child: CircularProgressIndicator(
@@ -1427,7 +1427,7 @@ class _BattleViewState extends State<BattleView> {
             ),
           ),
           if (!isWaitingPlayers && isWaiting && _remainingSeconds > 0) ...[
-            const Icon(
+            Icon(
               Icons.timer_outlined,
               color: AppColors.onSurfaceMuted,
               size: 14,
@@ -1435,7 +1435,7 @@ class _BattleViewState extends State<BattleView> {
             const SizedBox(width: 4),
             Text(
               _formatDuration(_remainingSeconds),
-              style: const TextStyle(
+              style: TextStyle(
                 fontFamily: 'monospace',
                 fontSize: 12,
                 fontWeight: FontWeight.w800,
@@ -1529,7 +1529,7 @@ class _ParticipantTile extends StatelessWidget {
               const SizedBox(width: 10),
               Text(
                 '${mon['hp'] ?? 0}/${mon['maxHp'] ?? 100}',
-                style: const TextStyle(
+                style: TextStyle(
                   fontFamily: 'monospace',
                   fontSize: 11,
                   fontWeight: FontWeight.w700,

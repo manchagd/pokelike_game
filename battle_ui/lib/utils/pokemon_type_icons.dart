@@ -264,4 +264,27 @@ class PokemonTypeIcons {
       ),
     );
   }
+
+  /// Obtiene un color de texto de alto contraste para el tipo dado.
+  /// Si el tema es claro, oscurece el color del tipo para mejorar el contraste.
+  static Color getContrastColor(String type, BuildContext context) {
+    final rawColor = getColor(type);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    if (isDark) return rawColor;
+
+    // Oscurecer el color para tema claro usando HSL
+    final hsl = HSLColor.fromColor(rawColor);
+    final t = type.toLowerCase();
+    final isVeryLight = t == 'electric' || 
+                        t == 'eléctrico' ||
+                        t == 'ice' ||
+                        t == 'hielo' ||
+                        t == 'flying' ||
+                        t == 'volador' ||
+                        t == 'fairy' ||
+                        t == 'hada';
+    final lightnessOffset = isVeryLight ? 0.35 : 0.22;
+    final darkHSL = hsl.withLightness((hsl.lightness - lightnessOffset).clamp(0.0, 0.55));
+    return darkHSL.toColor();
+  }
 }

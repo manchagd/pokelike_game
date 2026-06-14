@@ -69,7 +69,7 @@ class _MatchesViewState extends State<MatchesView> {
           Flexible(
             child: Text(
               currentUserName,
-              style: const TextStyle(fontWeight: FontWeight.w600, color: AppColors.onSurface),
+              style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.onSurface),
               overflow: TextOverflow.ellipsis,
             ),
           ),
@@ -77,7 +77,7 @@ class _MatchesViewState extends State<MatchesView> {
             padding: const EdgeInsets.symmetric(horizontal: 8),
             child: Text('vs', style: vsStyle),
           ),
-          const Flexible(
+          Flexible(
             child: Text(
               'Esperando oponente...',
               style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.onSurface),
@@ -98,7 +98,7 @@ class _MatchesViewState extends State<MatchesView> {
         Flexible(
           child: Text(
             leftText,
-            style: const TextStyle(fontWeight: FontWeight.w600, color: AppColors.onSurface),
+            style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.onSurface),
             overflow: TextOverflow.ellipsis,
           ),
         ),
@@ -109,7 +109,7 @@ class _MatchesViewState extends State<MatchesView> {
         Flexible(
           child: Text(
             rightText,
-            style: const TextStyle(fontWeight: FontWeight.w600, color: AppColors.onSurface),
+            style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.onSurface),
             overflow: TextOverflow.ellipsis,
           ),
         ),
@@ -158,7 +158,7 @@ class _MatchesViewState extends State<MatchesView> {
                     Container(
                       width: 8,
                       height: 8,
-                      decoration: const BoxDecoration(
+                      decoration: BoxDecoration(
                         color: AppColors.success,
                         shape: BoxShape.circle,
                       ),
@@ -166,7 +166,7 @@ class _MatchesViewState extends State<MatchesView> {
                     const SizedBox(width: 8),
                     Text(
                       '$activeUsers en línea',
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: AppColors.success,
                         fontSize: 12,
                         fontWeight: FontWeight.w700,
@@ -252,7 +252,7 @@ class _MatchesViewState extends State<MatchesView> {
                     color: AppColors.secondary.withValues(alpha: 0.16),
                     borderRadius: BorderRadius.circular(AppRadius.sm),
                   ),
-                  child: const Icon(Icons.shield_outlined, color: AppColors.secondary, size: 20),
+                  child: Icon(Icons.shield_outlined, color: AppColors.secondary, size: 20),
                 ),
                 const SizedBox(width: 12),
                 Text('Tu equipo', style: text.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
@@ -319,13 +319,16 @@ class _MatchesViewState extends State<MatchesView> {
                                       final color = types.isNotEmpty
                                           ? PokemonTypeIcons.getColor(types[0])
                                           : AppColors.primary;
+                                      final contrastColor = types.isNotEmpty
+                                          ? PokemonTypeIcons.getContrastColor(types[0], context)
+                                          : AppColors.primary;
                                       return Container(
                                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                                         decoration: BoxDecoration(
-                                          color: color.withValues(alpha: 0.1),
+                                          color: color.withValues(alpha: 0.12),
                                           borderRadius: BorderRadius.circular(12),
                                           border: Border.all(
-                                            color: color.withValues(alpha: 0.3),
+                                            color: contrastColor.withValues(alpha: 0.45),
                                             width: 0.8,
                                           ),
                                         ),
@@ -333,7 +336,7 @@ class _MatchesViewState extends State<MatchesView> {
                                           p['name'] ?? '',
                                           style: TextStyle(
                                             fontSize: 11,
-                                            color: color,
+                                            color: contrastColor,
                                             fontWeight: FontWeight.w600,
                                           ),
                                         ),
@@ -345,7 +348,7 @@ class _MatchesViewState extends State<MatchesView> {
                             ),
                           ),
                           if (selected)
-                            const Padding(
+                            Padding(
                               padding: EdgeInsets.only(top: 2),
                               child: Icon(Icons.check_circle, color: AppColors.primary, size: 20),
                             ),
@@ -395,7 +398,7 @@ class _MatchesViewState extends State<MatchesView> {
                   borderRadius: BorderRadius.circular(AppRadius.md),
                   border: Border.all(color: AppColors.danger.withValues(alpha: 0.4)),
                 ),
-                child: const Row(
+                child: Row(
                   children: [
                     Icon(Icons.warning_amber_rounded, color: AppColors.danger),
                     SizedBox(width: 10),
@@ -468,7 +471,7 @@ class _MatchesViewState extends State<MatchesView> {
                     color: AppColors.primary.withValues(alpha: 0.16),
                     borderRadius: BorderRadius.circular(AppRadius.sm),
                   ),
-                  child: const Icon(Icons.bolt, color: AppColors.primary, size: 20),
+                  child: Icon(Icons.bolt, color: AppColors.primary, size: 20),
                 ),
                 const SizedBox(width: 12),
                 Text('Combates activos', style: text.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
@@ -487,7 +490,7 @@ class _MatchesViewState extends State<MatchesView> {
                 ),
                 child: Column(
                   children: [
-                    const Icon(Icons.sports_esports_outlined,
+                    Icon(Icons.sports_esports_outlined,
                         color: AppColors.onSurfaceMuted, size: 32),
                     const SizedBox(height: 10),
                     Text(
@@ -545,7 +548,7 @@ class _MatchesViewState extends State<MatchesView> {
                               ),
                             ),
                             const SizedBox(width: 8),
-                            const Icon(Icons.arrow_forward_ios,
+                            Icon(Icons.arrow_forward_ios,
                                 size: 14, color: AppColors.onSurfaceMuted),
                           ],
                         ),
@@ -575,7 +578,7 @@ class _MatchesViewState extends State<MatchesView> {
           children: [
             Row(
               children: [
-                const Icon(Icons.history, color: AppColors.secondary, size: 20),
+                Icon(Icons.history, color: AppColors.secondary, size: 20),
                 const SizedBox(width: 8),
                 Text('Historial', style: text.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
               ],
@@ -650,7 +653,7 @@ class _StatChip extends StatelessWidget {
           Expanded(
             child: Text(
               label,
-              style: const TextStyle(color: AppColors.onSurfaceMuted, fontSize: 12),
+              style: TextStyle(color: AppColors.onSurfaceMuted, fontSize: 12),
             ),
           ),
         ],
@@ -727,7 +730,7 @@ class _CreateBattleDialogState extends State<_CreateBattleDialog> {
             mainAxisSize: MainAxisSize.min,
             children: [
               const SizedBox(height: 20),
-              const CircularProgressIndicator(color: AppColors.primary),
+              CircularProgressIndicator(color: AppColors.primary),
               const SizedBox(height: 24),
               const Text(
                 'Creando batalla...',
@@ -761,7 +764,7 @@ class _CreateBattleDialogState extends State<_CreateBattleDialog> {
           color: AppColors.primary.withValues(alpha: 0.16),
           borderRadius: BorderRadius.circular(AppRadius.md),
         ),
-        child: const Icon(Icons.celebration, color: AppColors.primary),
+        child: Icon(Icons.celebration, color: AppColors.primary),
       ),
       title: const Text('Combate creado'),
       content: SizedBox(
@@ -794,7 +797,7 @@ class _CreateBattleDialogState extends State<_CreateBattleDialog> {
                   children: [
                     Text(
                       code,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.w700,
                         letterSpacing: 4,
@@ -802,7 +805,7 @@ class _CreateBattleDialogState extends State<_CreateBattleDialog> {
                       ),
                     ),
                     const SizedBox(width: 12),
-                    const Icon(Icons.copy, color: AppColors.primary, size: 18),
+                    Icon(Icons.copy, color: AppColors.primary, size: 18),
                   ],
                 ),
               ),
@@ -901,7 +904,7 @@ class _JoinBattleDialogState extends State<_JoinBattleDialog> {
             _isConnecting = false;
           });
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
+            SnackBar(
               content: Text('No se encontró un combate con ese ID o expiró el tiempo de espera.'),
               backgroundColor: AppColors.danger,
             ),
@@ -952,7 +955,7 @@ class _JoinBattleDialogState extends State<_JoinBattleDialog> {
                 autofocus: true,
                 textAlign: TextAlign.center,
                 inputFormatters: [_BattleCodeFormatter()],
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.w700,
                   letterSpacing: 4,
@@ -962,7 +965,7 @@ class _JoinBattleDialogState extends State<_JoinBattleDialog> {
                 onSubmitted: (_) => _handleConnect(),
               )
             else
-              const Center(
+              Center(
                 child: Padding(
                   padding: EdgeInsets.symmetric(vertical: 20),
                   child: CircularProgressIndicator(color: AppColors.secondary),

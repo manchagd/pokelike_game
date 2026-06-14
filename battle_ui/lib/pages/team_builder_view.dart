@@ -76,7 +76,7 @@ class _TeamBuilderViewState extends State<TeamBuilderView> {
                               color: AppColors.primary.withValues(alpha: 0.1),
                               shape: BoxShape.circle,
                             ),
-                            child: const Icon(
+                            child: Icon(
                               Icons.shield_outlined,
                               color: AppColors.primary,
                               size: 40,
@@ -156,7 +156,7 @@ class _TeamCard extends StatelessWidget {
                     color: AppColors.primary.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(AppRadius.sm),
                   ),
-                  child: const Icon(Icons.shield, color: AppColors.primary, size: 22),
+                  child: Icon(Icons.shield, color: AppColors.primary, size: 22),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -175,7 +175,7 @@ class _TeamCard extends StatelessWidget {
                 IconButton(onPressed: () {}, icon: const Icon(Icons.edit_outlined, size: 18)),
                 IconButton(
                   onPressed: () {},
-                  icon: const Icon(Icons.delete_outline, size: 18, color: AppColors.danger),
+                  icon: Icon(Icons.delete_outline, size: 18, color: AppColors.danger),
                 ),
               ],
             ),
