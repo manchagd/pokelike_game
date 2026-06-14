@@ -6,7 +6,7 @@ module Services
       def call(payload)
         BattleEngine.logger.info("[Service] Processing registration for player: #{payload[:name]}")
 
-        player = Player.find_or_create_by!(name: payload[:name])
+        player = Player.includes(battles: :players).find_or_create_by!(name: payload[:name])
 
         Publishers::PlayerEventsPublisher.publish(
           Messages::PlayerEvents::Events::INFO,

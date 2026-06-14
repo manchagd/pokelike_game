@@ -12,9 +12,9 @@ module Messages
             name: player.name,
             teams: [],
             battle_history: {
-              victories: player.battles.count { |b| b.winner?(player) },
-              defeats: player.battles.count { |b| !b.winner?(player) },
-              history: player.battles.last(10).map { |b| b.winner?(player) ? 'V' : 'D' }
+              victories: player.battles.count { it.winner?(player) && it.finished? },
+              defeats: player.battles.count { !it.winner?(player) && it.finished? },
+              history: player.battles.filter(&:finished?).last(10).map { it.winner?(player) ? 'V' : 'D' }
             }
           },
           battles: battle_info(player)
@@ -36,7 +36,7 @@ module Messages
       end
 
       private_class_method def battle_info(player)
-        player.battles.running.map do |battle|
+        player.battles.reject(&:finished?).map do |battle|
           {
             id: battle.external_id,
             players: battle_players_info(battle)
