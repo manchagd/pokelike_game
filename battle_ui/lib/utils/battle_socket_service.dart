@@ -289,20 +289,25 @@ class BattleSocketService with ChangeNotifier {
   }
 
   /// Request creation of a new battle
-  void createBattle() {
+  void createBattle({int? teamId}) {
     if (_playerChannel != null && _playerChannel!.state == PhoenixChannelState.joined) {
-      print("Enviando evento create_battle al canal player");
-      _playerChannel!.push('create_battle', {});
+      print("Enviando evento create_battle al canal player con teamId: $teamId");
+      _playerChannel!.push('create_battle', {
+        if (teamId != null) 'team_id': teamId,
+      });
     } else {
       print("Advertencia: No se pudo enviar create_battle porque el canal del jugador no está listo.");
     }
   }
 
   /// Request joining an existing battle
-  void joinBattle(String battleId) {
+  void joinBattle(String battleId, {int? teamId}) {
     if (_playerChannel != null && _playerChannel!.state == PhoenixChannelState.joined) {
-      print("Enviando evento join_battle con ID $battleId al canal player");
-      _playerChannel!.push('join_battle', {'battle_id': battleId});
+      print("Enviando evento join_battle con ID $battleId al canal player con teamId: $teamId");
+      _playerChannel!.push('join_battle', {
+        'battle_id': battleId,
+        if (teamId != null) 'team_id': teamId,
+      });
     } else {
       print("Advertencia: No se pudo enviar join_battle porque el canal del jugador no está listo.");
     }

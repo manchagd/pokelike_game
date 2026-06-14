@@ -7,7 +7,7 @@ import 'package:provider/provider.dart';
 import '../theme.dart';
 import '../nav.dart';
 import '../utils/battle_socket_service.dart';
-
+import '../utils/pokemon_type_icons.dart';
 class MatchesView extends StatefulWidget {
   const MatchesView({super.key});
 
@@ -16,34 +16,31 @@ class MatchesView extends StatefulWidget {
 }
 
 class _MatchesViewState extends State<MatchesView> {
-  String _selectedTeam = 'Equipo Aleatorio';
+  int? _selectedTeamId;
 
-  List<String> _getTeams(Map<String, dynamic> profile) {
+  List<Map<String, dynamic>> _getTeams(Map<String, dynamic> profile) {
     final rawTeams = (profile['teams'] as List?)?.cast<Map>() ?? [];
-    return ['Equipo Aleatorio'] + rawTeams.map((t) => (t['name'] as String?) ?? 'Equipo').toList();
+    final parsedTeams = rawTeams.map((t) => Map<String, dynamic>.from(t)).toList();
+    return <Map<String, dynamic>>[
+      {
+        'id': null,
+        'name': 'Equipo Aleatorio',
+        'pokemons': <Map<String, dynamic>>[]
+      }
+    ] + parsedTeams;
   }
 
-  String _getOpponentDisplay(dynamic opponentData) {
-    if (opponentData == null) return 'Oponente';
-    if (opponentData is String) return opponentData;
-    if (opponentData is List) {
-      if (opponentData.isEmpty) return 'Oponente';
-      return opponentData.map((op) {
-        if (op is Map) {
-          final name = op['name'] ?? '';
-          final team = op['team'] ?? '';
-          return team.isNotEmpty ? '$name ($team)' : name;
-        }
-        return op.toString();
-      }).join(', ');
+  int? _getEffectiveTeamId(Map<String, dynamic> profile) {
+    if (_selectedTeamId != null) {
+      return _selectedTeamId;
     }
-    if (opponentData is Map) {
-      final name = opponentData['name'] ?? '';
-      final team = opponentData['team'] ?? '';
-      return team.isNotEmpty ? '$name ($team)' : name;
-    }
-    return opponentData.toString();
+    final rawTeams = (profile['teams'] as List?)?.cast<Map>() ?? [];
+    if (rawTeams.isEmpty) return null;
+    final parsedTeams = rawTeams.map((t) => Map<String, dynamic>.from(t)).toList();
+    final randomIndex = Random().nextInt(parsedTeams.length);
+    return parsedTeams[randomIndex]['id'] as int?;
   }
+
 
   Widget _buildVSHeader(Map<String, dynamic> b, String currentUserName, TextStyle? vsStyle) {
     final players = (b['players'] as List?)?.cast<Map>() ?? [];
@@ -121,153 +118,6 @@ class _MatchesViewState extends State<MatchesView> {
   }
 
 
-  String _generateBattleCode() {
-    final r = Random();
-    return '${r.nextInt(900) + 100}-${r.nextInt(900) + 100}';
-  }
-
-  void _showJoinBattleDialog() {
-    final controller = TextEditingController();
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        icon: Container(
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            color: AppColors.secondary.withValues(alpha: 0.16),
-            borderRadius: BorderRadius.circular(AppRadius.md),
-          ),
-          child: const Icon(Icons.link, color: AppColors.secondary),
-        ),
-        title: const Text('Buscar batalla'),
-        content: SizedBox(
-          width: 360,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(
-                'Ingresa el código de la batalla',
-                style: Theme.of(ctx).textTheme.bodyMedium?.copyWith(color: AppColors.onSurfaceMuted),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: controller,
-                autofocus: true,
-                textAlign: TextAlign.center,
-                inputFormatters: [_BattleCodeFormatter()],
-                style: const TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 4,
-                  color: AppColors.secondary,
-                ),
-                decoration: const InputDecoration(hintText: '000-000'),
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('Cancelar')),
-          FilledButton(
-            onPressed: () {
-              final cleanCode = controller.text.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '');
-              if (cleanCode.length == 6) {
-                Navigator.of(ctx).pop();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Buscando batalla: ${controller.text}')),
-                );
-              } else {
-                ScaffoldMessenger.of(ctx).showSnackBar(
-                  const SnackBar(content: Text('Código inválido. Debe tener 6 caracteres.')),
-                );
-              }
-            },
-            child: const Text('Conectar'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showCreatedDialog(String code) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        icon: Container(
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            color: AppColors.primary.withValues(alpha: 0.16),
-            borderRadius: BorderRadius.circular(AppRadius.md),
-          ),
-          child: const Icon(Icons.celebration, color: AppColors.primary),
-        ),
-        title: const Text('Combate creado'),
-        content: SizedBox(
-          width: 360,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                'Comparte este código con tu oponente',
-                style: Theme.of(ctx).textTheme.bodyMedium?.copyWith(color: AppColors.onSurfaceMuted),
-              ),
-              const SizedBox(height: 16),
-              InkWell(
-                onTap: () {
-                  Clipboard.setData(ClipboardData(text: code));
-                  ScaffoldMessenger.of(ctx).showSnackBar(
-                    const SnackBar(content: Text('Código copiado al portapapeles')),
-                  );
-                },
-                borderRadius: BorderRadius.circular(AppRadius.md),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-                  decoration: BoxDecoration(
-                    color: AppColors.surfaceHigh,
-                    borderRadius: BorderRadius.circular(AppRadius.md),
-                    border: Border.all(color: AppColors.primary.withValues(alpha: 0.4)),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        code,
-                        style: const TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 4,
-                          color: AppColors.primary,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      const Icon(Icons.copy, color: AppColors.primary, size: 18),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Toca para copiar',
-                style: Theme.of(ctx).textTheme.bodySmall?.copyWith(color: AppColors.onSurfaceMuted),
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('Cerrar')),
-          FilledButton.icon(
-            onPressed: () {
-              Navigator.of(ctx).pop();
-              context.push('${AppRoutes.battle}?code=$code');
-            },
-            icon: const Icon(Icons.play_arrow, size: 18),
-            label: const Text('Ir al combate'),
-          ),
-        ],
-      ),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -343,7 +193,7 @@ class _MatchesViewState extends State<MatchesView> {
                       children: [
                         _buildTeamSelection(teamsList),
                         const SizedBox(height: 20),
-                        _buildActionsCard(),
+                        _buildActionsCard(profile),
                         const SizedBox(height: 20),
                         _buildActiveBattlesCard(socketService, profile),
                         const SizedBox(height: 20),
@@ -367,7 +217,7 @@ class _MatchesViewState extends State<MatchesView> {
                       child: SingleChildScrollView(
                         child: Column(
                           children: [
-                            _buildActionsCard(),
+                            _buildActionsCard(profile),
                             const SizedBox(height: 20),
                             _buildActiveBattlesCard(socketService, profile),
                             const SizedBox(height: 20),
@@ -386,7 +236,7 @@ class _MatchesViewState extends State<MatchesView> {
     );
   }
 
-  Widget _buildTeamSelection(List<String> teams) {
+  Widget _buildTeamSelection(List<Map<String, dynamic>> teams) {
     final text = Theme.of(context).textTheme;
     return Card(
       child: Padding(
@@ -410,7 +260,12 @@ class _MatchesViewState extends State<MatchesView> {
             ),
             const SizedBox(height: 16),
             ...teams.map((t) {
-              final selected = _selectedTeam == t;
+              final id = t['id'] as int?;
+              final name = t['name'] as String;
+              final selected = _selectedTeamId == id;
+              final rawPokemons = t['pokemons'] as List? ?? [];
+              final pokemons = rawPokemons.map((p) => Map<String, dynamic>.from(p as Map)).toList();
+
               return Padding(
                 padding: const EdgeInsets.only(bottom: 10),
                 child: Material(
@@ -420,7 +275,7 @@ class _MatchesViewState extends State<MatchesView> {
                   borderRadius: BorderRadius.circular(AppRadius.md),
                   child: InkWell(
                     borderRadius: BorderRadius.circular(AppRadius.md),
-                    onTap: () => setState(() => _selectedTeam = t),
+                    onTap: () => setState(() => _selectedTeamId = id),
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                       decoration: BoxDecoration(
@@ -431,23 +286,69 @@ class _MatchesViewState extends State<MatchesView> {
                         ),
                       ),
                       child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Icon(
-                            selected ? Icons.shield : Icons.shield_outlined,
-                            color: selected ? AppColors.primary : AppColors.onSurfaceMuted,
+                          Padding(
+                            padding: const EdgeInsets.only(top: 2),
+                            child: Icon(
+                              selected ? Icons.shield : Icons.shield_outlined,
+                              color: selected ? AppColors.primary : AppColors.onSurfaceMuted,
+                            ),
                           ),
                           const SizedBox(width: 12),
                           Expanded(
-                            child: Text(
-                              t,
-                              style: TextStyle(
-                                fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-                                color: selected ? AppColors.onSurface : AppColors.onSurfaceMuted,
-                              ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  name,
+                                  style: TextStyle(
+                                    fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                                    color: selected ? AppColors.onSurface : AppColors.onSurfaceMuted,
+                                    fontSize: 15,
+                                  ),
+                                ),
+                                if (pokemons.isNotEmpty) ...[
+                                  const SizedBox(height: 8),
+                                  Wrap(
+                                    spacing: 6,
+                                    runSpacing: 6,
+                                    children: pokemons.map((p) {
+                                      final rawTypes = p['types'] as List? ?? [];
+                                      final types = rawTypes.cast<String>();
+                                      final color = types.isNotEmpty
+                                          ? PokemonTypeIcons.getColor(types[0])
+                                          : AppColors.primary;
+                                      return Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                        decoration: BoxDecoration(
+                                          color: color.withValues(alpha: 0.1),
+                                          borderRadius: BorderRadius.circular(12),
+                                          border: Border.all(
+                                            color: color.withValues(alpha: 0.3),
+                                            width: 0.8,
+                                          ),
+                                        ),
+                                        child: Text(
+                                          p['name'] ?? '',
+                                          style: TextStyle(
+                                            fontSize: 11,
+                                            color: color,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      );
+                                    }).toList(),
+                                  ),
+                                ],
+                              ],
                             ),
                           ),
                           if (selected)
-                            const Icon(Icons.check_circle, color: AppColors.primary, size: 20),
+                            const Padding(
+                              padding: EdgeInsets.only(top: 2),
+                              child: Icon(Icons.check_circle, color: AppColors.primary, size: 20),
+                            ),
                         ],
                       ),
                     ),
@@ -461,12 +362,13 @@ class _MatchesViewState extends State<MatchesView> {
     );
   }
 
-  void _showCreateBattleDialog() {
+  void _showCreateBattleDialog(int? teamId) {
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (ctx) => _CreateBattleDialog(
         socketService: context.read<BattleSocketService>(),
+        teamId: teamId,
         onGoToBattle: (code) {
           context.push('${AppRoutes.battle}?code=$code');
         },
@@ -474,15 +376,46 @@ class _MatchesViewState extends State<MatchesView> {
     );
   }
 
-  Widget _buildActionsCard() {
+  Widget _buildActionsCard(Map<String, dynamic> profile) {
+    final rawTeams = (profile['teams'] as List?) ?? [];
+    final hasNoTeams = rawTeams.isEmpty;
+    final teamId = _getEffectiveTeamId(profile);
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            if (hasNoTeams) ...[
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppColors.danger.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(AppRadius.md),
+                  border: Border.all(color: AppColors.danger.withValues(alpha: 0.4)),
+                ),
+                child: const Row(
+                  children: [
+                    Icon(Icons.warning_amber_rounded, color: AppColors.danger),
+                    SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        'Debes registrar al menos un equipo en el Constructor de Equipos para poder combatir.',
+                        style: TextStyle(
+                          color: AppColors.danger,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+            ],
             FilledButton.icon(
-              onPressed: _showCreateBattleDialog,
+              onPressed: hasNoTeams ? null : () => _showCreateBattleDialog(teamId),
               icon: const Icon(Icons.add_circle_outline),
               label: const Padding(
                 padding: EdgeInsets.symmetric(vertical: 6),
@@ -491,17 +424,20 @@ class _MatchesViewState extends State<MatchesView> {
             ),
             const SizedBox(height: 10),
             OutlinedButton.icon(
-              onPressed: () {
-                showDialog(
-                  context: context,
-                  builder: (ctx) => _JoinBattleDialog(
-                    socketService: context.read<BattleSocketService>(),
-                    onJoinedBattle: (code) {
-                      context.push('${AppRoutes.battle}?code=$code');
+              onPressed: hasNoTeams
+                  ? null
+                  : () {
+                      showDialog(
+                        context: context,
+                        builder: (ctx) => _JoinBattleDialog(
+                          socketService: context.read<BattleSocketService>(),
+                          teamId: teamId,
+                          onJoinedBattle: (code) {
+                            context.push('${AppRoutes.battle}?code=$code');
+                          },
+                        ),
+                      );
                     },
-                  ),
-                );
-              },
               icon: const Icon(Icons.search),
               label: const Padding(
                 padding: EdgeInsets.symmetric(vertical: 6),
@@ -741,10 +677,12 @@ class _BattleCodeFormatter extends TextInputFormatter {
 class _CreateBattleDialog extends StatefulWidget {
   final BattleSocketService socketService;
   final ValueChanged<String> onGoToBattle;
+  final int? teamId;
 
   const _CreateBattleDialog({
     required this.socketService,
     required this.onGoToBattle,
+    required this.teamId,
   });
 
   @override
@@ -768,7 +706,7 @@ class _CreateBattleDialogState extends State<_CreateBattleDialog> {
       },
     );
     // Request creation
-    widget.socketService.createBattle();
+    widget.socketService.createBattle(teamId: widget.teamId);
   }
 
   @override
@@ -898,10 +836,12 @@ class _CreateBattleDialogState extends State<_CreateBattleDialog> {
 class _JoinBattleDialog extends StatefulWidget {
   final BattleSocketService socketService;
   final ValueChanged<String> onJoinedBattle;
+  final int? teamId;
 
   const _JoinBattleDialog({
     required this.socketService,
     required this.onJoinedBattle,
+    required this.teamId,
   });
 
   @override
@@ -969,7 +909,7 @@ class _JoinBattleDialogState extends State<_JoinBattleDialog> {
         }
       });
 
-      widget.socketService.joinBattle(code);
+      widget.socketService.joinBattle(code, teamId: widget.teamId);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Código inválido. Debe tener 6 caracteres.')),

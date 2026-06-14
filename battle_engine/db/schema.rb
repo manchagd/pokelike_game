@@ -10,9 +10,19 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_06_13_202413) do
+ActiveRecord::Schema[7.2].define(version: 2026_06_14_030528) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
+
+  create_table "attacks", force: :cascade do |t|
+    t.bigint "pokemon_id", null: false
+    t.bigint "move_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["move_id"], name: "index_attacks_on_move_id"
+    t.index ["pokemon_id", "move_id"], name: "index_attacks_on_pokemon_id_and_move_id", unique: true
+    t.index ["pokemon_id"], name: "index_attacks_on_pokemon_id"
+  end
 
   create_table "battle_players", force: :cascade do |t|
     t.bigint "battle_id", null: false
@@ -111,6 +121,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_06_13_202413) do
     t.string "front_sprite"
     t.string "back_sprite"
     t.integer "pokeapi_id"
+    t.decimal "weight", precision: 8, scale: 2
     t.index ["name"], name: "index_pokemon_templates_on_name", unique: true
     t.index ["pokeapi_id"], name: "index_pokemon_templates_on_pokeapi_id", unique: true
   end
@@ -123,7 +134,6 @@ ActiveRecord::Schema[7.2].define(version: 2026_06_13_202413) do
     t.decimal "weight", precision: 8, scale: 2, null: false
     t.jsonb "ivs", default: {}, null: false
     t.jsonb "evs", default: {}, null: false
-    t.string "attacks", default: [], null: false, array: true
     t.integer "lvl", null: false
     t.jsonb "metadata", default: {}, null: false
     t.string "teratype"
@@ -145,15 +155,6 @@ ActiveRecord::Schema[7.2].define(version: 2026_06_13_202413) do
     t.index ["pokemon_id"], name: "index_positions_on_pokemon_id"
   end
 
-  create_table "team_pokemons", force: :cascade do |t|
-    t.bigint "team_id", null: false
-    t.bigint "pokemon_id", null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["pokemon_id"], name: "index_team_pokemons_on_pokemon_id"
-    t.index ["team_id"], name: "index_team_pokemons_on_team_id"
-  end
-
   create_table "teams", force: :cascade do |t|
     t.string "name", null: false
     t.bigint "player_id", null: false
@@ -172,6 +173,8 @@ ActiveRecord::Schema[7.2].define(version: 2026_06_13_202413) do
     t.index ["name"], name: "index_weathers_on_name", unique: true
   end
 
+  add_foreign_key "attacks", "moves"
+  add_foreign_key "attacks", "pokemons"
   add_foreign_key "battle_players", "battles"
   add_foreign_key "battle_players", "players"
   add_foreign_key "battles", "fields"
@@ -185,7 +188,5 @@ ActiveRecord::Schema[7.2].define(version: 2026_06_13_202413) do
   add_foreign_key "pokemons", "teams"
   add_foreign_key "positions", "fields"
   add_foreign_key "positions", "pokemons"
-  add_foreign_key "team_pokemons", "pokemons"
-  add_foreign_key "team_pokemons", "teams"
   add_foreign_key "teams", "players"
 end

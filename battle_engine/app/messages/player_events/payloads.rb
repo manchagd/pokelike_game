@@ -10,7 +10,7 @@ module Messages
           player: {
             id: player.id,
             name: player.name,
-            teams: [],
+            teams: teams_info(player),
             battle_history: {
               victories: player.battles.count { it.winner?(player) && it.finished? },
               defeats: player.battles.count { !it.winner?(player) && it.finished? },
@@ -35,20 +35,31 @@ module Messages
         }
       end
 
-      private_class_method def battle_info(player)
-        player.battles.reject(&:finished?).map do |battle|
+      private_class_method def teams_info(player)
+        player.teams.map do |team|
           {
-            id: battle.external_id,
-            players: battle_players_info(battle)
+            id: team.id,
+            name: team.name,
+            pokemons: team.pokemons.map do |pokemon|
+              {
+                name: pokemon.pokemon_template.name,
+                types: pokemon.pokemon_template.types
+              }
+            end
           }
         end
       end
 
-      private_class_method def battle_players_info(battle)
-        battle.battle_players.map do |bp|
+      private_class_method def battle_info(player)
+        player.battles.reject(&:finished?).map do |battle|
           {
-            name: bp.player.name,
-            team: bp.group
+            id: battle.external_id,
+            players: battle.battle_players.map do |bp|
+              {
+                name: bp.player.name,
+                team: bp.group
+              }
+            end
           }
         end
       end

@@ -6,8 +6,10 @@ class Pokemon < ApplicationRecord
     FEMALE = 'Female'
   ].freeze
 
-  has_and_belongs_to_many :teams, join_table: :team_pokemons
-  belongs_to :pokemon_templates
+  belongs_to :team
+  belongs_to :pokemon_template
+  has_many :attacks, dependent: :destroy
+  has_many :moves, through: :attacks
   has_many :pokemon_battle_snapshots, dependent: :destroy
 
   validates :nickname, length: { maximum: 10 }

@@ -13,12 +13,12 @@ defmodule BattleRealTime.Contracts.Consumers.PlayerEvents.InfoContract do
       field(:name, :string)
 
       embeds_many :teams, Team, primary_key: false do
+        field(:id, :integer)
         field(:name, :string)
-        field(:description, :string)
 
-        embeds_many :monsters, Monster, primary_key: false do
+        embeds_many :pokemons, Pokemon, primary_key: false do
           field(:name, :string)
-          field(:color, :string)
+          field(:types, {:array, :string})
         end
       end
 
@@ -58,15 +58,15 @@ defmodule BattleRealTime.Contracts.Consumers.PlayerEvents.InfoContract do
 
   def team_changeset(struct, params) do
     struct
-    |> cast(params, [:name, :description])
-    |> validate_required([:name])
-    |> cast_embed(:monsters, with: &monster_changeset/2)
+    |> cast(params, [:id, :name])
+    |> validate_required([:id, :name])
+    |> cast_embed(:pokemons, with: &pokemon_changeset/2)
   end
 
-  def monster_changeset(struct, params) do
+  def pokemon_changeset(struct, params) do
     struct
-    |> cast(params, [:name, :color])
-    |> validate_required([:name])
+    |> cast(params, [:name, :types])
+    |> validate_required([:name, :types])
   end
 
   def battle_history_changeset(struct, params) do

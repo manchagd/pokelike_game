@@ -11,11 +11,11 @@ defmodule BattleRealTime.Contracts.Consumers.PlayerEvents.InfoContractTest do
           "name" => "Mancha",
           "teams" => [
             %{
+              "id" => 123,
               "name" => "Equipo Fuego",
-              "description" => "Estrategia basada en fuego",
-              "monsters" => [
-                %{"name" => "Charizard", "color" => "fire"},
-                %{"name" => "Arcanine", "color" => "fire"}
+              "pokemons" => [
+                %{"name" => "Charizard", "types" => ["Fire", "Flying"]},
+                %{"name" => "Arcanine", "types" => ["Fire"]}
               ]
             }
           ],
@@ -39,7 +39,7 @@ defmodule BattleRealTime.Contracts.Consumers.PlayerEvents.InfoContractTest do
       assert result.player.id == 101
       assert result.player.name == "Mancha"
       assert hd(result.player.teams).name == "Equipo Fuego"
-      assert hd(hd(result.player.teams).monsters).name == "Charizard"
+      assert hd(hd(result.player.teams).pokemons).name == "Charizard"
       assert result.player.battle_history.victories == 5
       assert hd(result.battles).id == "1"
       assert hd(hd(result.battles).players).name == "player_x"

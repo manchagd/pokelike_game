@@ -126,38 +126,19 @@ class _TeamCard extends StatelessWidget {
   final Map<String, dynamic> team;
   const _TeamCard({required this.team});
 
-  List<Color> _parseMonsterColors(dynamic value) {
-    if (value is Color) return [value];
-    if (value is String) {
-      final types = value.split(',').map((t) => t.trim()).toList();
-      if (types.isEmpty) return [AppColors.primary];
-
-      if (types.length == 1) {
-        return [PokemonTypeIcons.getColor(types[0])];
-      } else {
-        final c1 = PokemonTypeIcons.getColor(types[0]);
-        final c2 = PokemonTypeIcons.getColor(types[1]);
-        return [c1, c2];
-      }
-    }
-    return [AppColors.primary];
-  }
-
-  List<String> _parseMonsterTypes(dynamic value) {
-    if (value is String) {
-      return value.split(',').map((t) => t.trim()).toList();
-    }
-    return [];
+  List<Color> _getPokemonColors(List<String> types) {
+    if (types.isEmpty) return [AppColors.primary];
+    return types.map((t) => PokemonTypeIcons.getColor(t)).toList();
   }
 
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
 
-    // Safely extract monsters
-    final rawMonsters = team['monsters'] as List?;
-    final monsters = rawMonsters != null
-        ? rawMonsters.map((m) => Map<String, dynamic>.from(m as Map)).toList()
+    // Safely extract pokemons
+    final rawPokemons = team['pokemons'] as List?;
+    final pokemons = rawPokemons != null
+        ? rawPokemons.map((p) => Map<String, dynamic>.from(p as Map)).toList()
         : const <Map<String, dynamic>>[];
 
     return Card(
@@ -206,10 +187,10 @@ class _TeamCard extends StatelessWidget {
                 child: Wrap(
                   spacing: 8,
                   runSpacing: 8,
-                  children: monsters.map((m) {
-                    final colorValue = m['color'];
-                    final colors = _parseMonsterColors(colorValue);
-                    final types = _parseMonsterTypes(colorValue);
+                  children: pokemons.map((p) {
+                    final rawTypes = p['types'] as List? ?? [];
+                    final types = rawTypes.cast<String>();
+                    final colors = _getPokemonColors(types);
                     final c1 = colors[0];
                     final c2 = colors.length > 1 ? colors[1] : c1;
 
@@ -242,7 +223,7 @@ class _TeamCard extends StatelessWidget {
                           ],
                           const SizedBox(width: 8),
                           Text(
-                            m['name'] ?? 'Monstruo',
+                            p['name'] ?? 'Pokémon',
                             style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
                           ),
                         ],

@@ -1,10 +1,14 @@
 defmodule BattleRealTime.Players.CreateBattle do
   alias BattleRealTime.AMQP.Publishers.PlayerActionsPublisher
 
-  def call(player_id, team_id \\ 1)
+  def call(player_id, team_id)
 
   def call(player_id, _team_id) when player_id in [nil, ""] do
     {:error, :invalid_player}
+  end
+
+  def call(_player_id, team_id) when team_id in [nil, ""] do
+    {:error, :invalid_team}
   end
 
   def call(player_id, team_id) do
