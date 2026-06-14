@@ -6,6 +6,7 @@ module Contracts
       params do
         required(:player_id).filled(:integer)
         required(:battle_id).filled(:string)
+        optional(:timestamp).maybe(:string)
       end
     end
   end

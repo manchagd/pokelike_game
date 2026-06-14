@@ -6,7 +6,14 @@ defmodule BattleRealTime.Contracts.Publishers.PlayerActions.RegisterContractTest
   describe "validate/1" do
     test "returns {:ok, map} with valid parameters" do
       params = %{"name" => "Ash"}
-      assert {:ok, %{name: "Ash"}} = RegisterContract.validate(params)
+      assert {:ok, %{name: "Ash", timestamp: nil}} = RegisterContract.validate(params)
+    end
+
+    test "returns {:ok, map} with optional timestamp included" do
+      params = %{"name" => "Ash", "timestamp" => "2026-06-14T01:30:00Z"}
+
+      assert {:ok, %{name: "Ash", timestamp: "2026-06-14T01:30:00Z"}} =
+               RegisterContract.validate(params)
     end
 
     test "returns {:error, changeset} with missing name" do

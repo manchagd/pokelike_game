@@ -8,11 +8,12 @@ defmodule BattleRealTime.Contracts.Publishers.PlayerActions.CreateBattleContract
   embedded_schema do
     field(:player_id, :integer)
     field(:team_id, :integer)
+    field(:timestamp, :string)
   end
 
   def changeset(struct, params) do
     struct
-    |> cast(params, [:player_id, :team_id])
+    |> cast(params, [:player_id, :team_id, :timestamp])
     |> validate_required([:player_id, :team_id])
   end
 end

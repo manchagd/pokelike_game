@@ -8,6 +8,7 @@ defmodule BattleRealTime.Contracts.Publishers.BattleActions.TurnActionsContract 
   embedded_schema do
     field(:battle_id, :string)
     field(:turn, :integer)
+    field(:timestamp, :string)
 
     embeds_many :actions, ActionItem, primary_key: false do
       field(:action, :string)
@@ -20,7 +21,7 @@ defmodule BattleRealTime.Contracts.Publishers.BattleActions.TurnActionsContract 
 
   def changeset(struct, params) do
     struct
-    |> cast(params, [:battle_id, :turn])
+    |> cast(params, [:battle_id, :turn, :timestamp])
     |> validate_required([:battle_id, :turn])
     |> cast_embed(:actions, required: true, with: &action_item_changeset/2)
   end

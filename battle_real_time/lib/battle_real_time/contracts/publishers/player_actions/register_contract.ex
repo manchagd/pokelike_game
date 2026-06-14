@@ -7,11 +7,12 @@ defmodule BattleRealTime.Contracts.Publishers.PlayerActions.RegisterContract do
   @primary_key false
   embedded_schema do
     field(:name, :string)
+    field(:timestamp, :string)
   end
 
   def changeset(struct, params) do
     struct
-    |> cast(params, [:name])
+    |> cast(params, [:name, :timestamp])
     |> validate_required([:name])
   end
 end

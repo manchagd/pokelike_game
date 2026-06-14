@@ -21,6 +21,7 @@ module Contracts
             required(:team).filled(:string)
           end
         end
+        optional(:timestamp).maybe(:string)
       end
     end
   end

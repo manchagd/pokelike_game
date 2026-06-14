@@ -6,6 +6,8 @@ defmodule BattleRealTime.Contracts.Consumers.PlayerEvents.InfoContract do
 
   @primary_key false
   embedded_schema do
+    field(:timestamp, :string)
+
     embeds_one :player, Player, primary_key: false do
       field(:id, :integer)
       field(:name, :string)
@@ -39,7 +41,7 @@ defmodule BattleRealTime.Contracts.Consumers.PlayerEvents.InfoContract do
 
   def changeset(struct, params) do
     struct
-    |> cast(params, [])
+    |> cast(params, [:timestamp])
     |> cast_embed(:player, required: true, with: &player_changeset/2)
     |> cast_embed(:battles, with: &battle_changeset/2)
   end

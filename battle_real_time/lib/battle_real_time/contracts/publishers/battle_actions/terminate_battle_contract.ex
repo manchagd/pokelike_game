@@ -8,11 +8,12 @@ defmodule BattleRealTime.Contracts.Publishers.BattleActions.TerminateBattleContr
   embedded_schema do
     field(:battle_id, :string)
     field(:reason, :string)
+    field(:timestamp, :string)
   end
 
   def changeset(struct, params) do
     struct
-    |> cast(params, [:battle_id, :reason])
+    |> cast(params, [:battle_id, :reason, :timestamp])
     |> validate_required([:battle_id, :reason])
   end
 end

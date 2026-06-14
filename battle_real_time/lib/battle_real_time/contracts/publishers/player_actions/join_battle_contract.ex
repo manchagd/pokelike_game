@@ -9,11 +9,12 @@ defmodule BattleRealTime.Contracts.Publishers.PlayerActions.JoinBattleContract d
     field(:player_id, :integer)
     field(:battle_id, :string)
     field(:team_id, :integer)
+    field(:timestamp, :string)
   end
 
   def changeset(struct, params) do
     struct
-    |> cast(params, [:player_id, :battle_id, :team_id])
+    |> cast(params, [:player_id, :battle_id, :team_id, :timestamp])
     |> validate_required([:player_id, :battle_id, :team_id])
   end
 end
