@@ -2,8 +2,7 @@ defmodule BattleRealTime.BattleSession do
   use GenServer, restart: :transient
   require Logger
 
-  @turn_timeout_seconds 120
-  @turn_timeout_ms 120_000
+  @turn_timeout_seconds 300
 
   # --- Client API ---
 
@@ -330,7 +329,7 @@ defmodule BattleRealTime.BattleSession do
   end
 
   defp start_timeout_timer do
-    Process.send_after(self(), :turn_timeout, @turn_timeout_ms)
+    Process.send_after(self(), :turn_timeout, @turn_timeout_seconds * 1000)
   end
 
   defp new_expires_at do
