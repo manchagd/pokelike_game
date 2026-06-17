@@ -30,6 +30,36 @@ class _BattleViewState extends State<BattleView> {
   StreamSubscription? _chatSub;
   late BattleSocketService _socketService;
 
+  // Audio state
+  static const double _bgmVolumeScale = 0.5; // Límite máximo de volumen real (0.5 = 50%, 0.3 = 30%)
+  final AudioPlayer _audioPlayer = AudioPlayer();
+  double _volume = 0.3;
+  bool _isMuted = false;
+  bool _isMusicPlaying = false;
+  String? _currentTrack;
+
+  static const List<String> _battleMusicTracks = [
+    'bw-rival.mp3',
+    'bw-subway-trainer.mp3',
+    'bw-trainer.mp3',
+    'bw2-homika-dogars.mp3',
+    'bw2-kanto-gym-leader.mp3',
+    'bw2-rival.mp3',
+    'colosseum-miror-b.mp3',
+    'dpp-rival.mp3',
+    'dpp-trainer.mp3',
+    'hgss-johto-trainer.mp3',
+    'hgss-kanto-trainer.mp3',
+    'oras-rival.mp3',
+    'oras-trainer.mp3',
+    'sm-rival.mp3',
+    'sm-trainer.mp3',
+    'spl-elite4.mp3',
+    'xd-miror-b.mp3',
+    'xy-rival.mp3',
+    'xy-trainer.mp3',
+  ];
+
   final List<String> _battleFeedback = [];
   final List<Map<String, String>> _chatMessages = [];
 
@@ -77,6 +107,7 @@ class _BattleViewState extends State<BattleView> {
   @override
   void initState() {
     super.initState();
+    _loadAudioSettings();
 
     _turn = 1;
     _phase = BattlePhase.syncing;
@@ -126,7 +157,104 @@ class _BattleViewState extends State<BattleView> {
     _chatFocusNode.dispose();
     _feedbackScroll.dispose();
     _chatScroll.dispose();
+
+    _audioPlayer.stop();
+    _audioPlayer.dispose();
     super.dispose();
+  }
+
+  // Audio helper methods
+  bool _isInProgress(BattlePhase phase) {
+    return phase == BattlePhase.waitingActions ||
+        phase == BattlePhase.resolving;
+  }
+
+  Future<void> _loadAudioSettings() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      setState(() {
+        _volume = prefs.getDouble('bgm_volume') ?? 0.3;
+        _isMuted = prefs.getBool('bgm_muted') ?? false;
+      });
+      await _audioPlayer.setVolume(_isMuted ? 0.0 : (_volume * _bgmVolumeScale));
+    } catch (e) {
+      debugPrint("Error loading audio preferences: $e");
+    }
+  }
+
+  Future<void> _saveAudioSettings() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setDouble('bgm_volume', _volume);
+      await prefs.setBool('bgm_muted', _isMuted);
+    } catch (e) {
+      debugPrint("Error saving audio preferences: $e");
+    }
+  }
+
+  Future<void> _startBattleMusic() async {
+    if (_isMusicPlaying) return;
+
+    final random = math.Random();
+    final index = random.nextInt(_battleMusicTracks.length);
+    final track = _battleMusicTracks[index];
+    _currentTrack = track;
+    _isMusicPlaying = true;
+
+    try {
+      await _audioPlayer.setReleaseMode(ReleaseMode.loop);
+      await _audioPlayer.setVolume(_isMuted ? 0.0 : (_volume * _bgmVolumeScale));
+      await _audioPlayer.play(UrlSource('https://play.pokemonshowdown.com/audio/$track'));
+      if (mounted) setState(() {});
+    } catch (e) {
+      debugPrint("Error playing battle music ($track): $e");
+      _isMusicPlaying = false;
+    }
+  }
+
+  Future<void> _stopBattleMusic() async {
+    if (!_isMusicPlaying) return;
+    _isMusicPlaying = false;
+    _currentTrack = null;
+    try {
+      await _audioPlayer.stop();
+      if (mounted) setState(() {});
+    } catch (e) {
+      debugPrint("Error stopping battle music: $e");
+    }
+  }
+
+  Future<void> _updateVolume(double val) async {
+    setState(() {
+      _volume = val;
+      if (_volume > 0.0) {
+        _isMuted = false;
+      }
+    });
+    try {
+      await _audioPlayer.setVolume(_isMuted ? 0.0 : (_volume * _bgmVolumeScale));
+      if (!_isMusicPlaying && _isInProgress(_phase) && !_isMuted && _volume > 0.0) {
+        _startBattleMusic();
+      }
+    } catch (e) {
+      debugPrint("Error updating volume: $e");
+    }
+    _saveAudioSettings();
+  }
+
+  Future<void> _toggleMute() async {
+    setState(() {
+      _isMuted = !_isMuted;
+    });
+    try {
+      await _audioPlayer.setVolume(_isMuted ? 0.0 : (_volume * _bgmVolumeScale));
+      if (!_isMusicPlaying && !_isMuted && _isInProgress(_phase)) {
+        _startBattleMusic();
+      }
+    } catch (e) {
+      debugPrint("Error toggling mute: $e");
+    }
+    _saveAudioSettings();
   }
 
   void _handleChatMessage(Map<String, dynamic> msg) {
@@ -162,6 +290,7 @@ class _BattleViewState extends State<BattleView> {
 
     if (eventName == 'connection_error') {
       _cancelSyncTimeoutTimer();
+      _stopBattleMusic();
       setState(() {
         _phase = BattlePhase.error;
         _errorMessage = eventPayload['reason'] as String? ?? 'Error al conectar al canal de combate.';
@@ -190,12 +319,14 @@ class _BattleViewState extends State<BattleView> {
 
     if (eventName == 'battle_timeout') {
       final reason = eventPayload['reason'] as String? ?? 'Se ha agotado el tiempo de gracia de 2 minutos.';
+      _stopBattleMusic();
       _showTimeoutDialog(reason);
       return;
     }
 
     if (eventName == 'battle_ended') {
       final reason = eventPayload['reason'] as String? ?? 'El combate ha finalizado.';
+      _stopBattleMusic();
       _showBattleEndedDialog(reason);
       return;
     }
@@ -289,6 +420,13 @@ class _BattleViewState extends State<BattleView> {
           _battleFeedback.addAll(logs.map((l) => l.toString()));
         }
       });
+
+      if (_isInProgress(newPhase)) {
+        _startBattleMusic();
+      } else if (newPhase == BattlePhase.finished || newPhase == BattlePhase.error) {
+        _stopBattleMusic();
+      }
+
       _startLocalCountdown();
       _scrollToFeedbackBottom();
     } else {
@@ -493,6 +631,120 @@ class _BattleViewState extends State<BattleView> {
                 ),
               ),
             ),
+          Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: PopupMenuButton<double>(
+              icon: Icon(
+                _isMuted
+                    ? Icons.volume_off_rounded
+                    : (_volume == 0
+                        ? Icons.volume_mute_rounded
+                        : (_volume < 0.5
+                            ? Icons.volume_down_rounded
+                            : Icons.volume_up_rounded)),
+                color: _isMuted ? AppColors.onSurfaceMuted : AppColors.primary,
+              ),
+              tooltip: 'Control de volumen BGM',
+              offset: const Offset(0, 40),
+              itemBuilder: (context) => [
+                PopupMenuItem<double>(
+                  enabled: false,
+                  child: StatefulBuilder(
+                    builder: (context, setPopupState) {
+                      return SizedBox(
+                        width: 220,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  'Volumen BGM',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.onSurface,
+                                  ),
+                                ),
+                                IconButton(
+                                  icon: Icon(
+                                    _isMuted
+                                        ? Icons.volume_off_rounded
+                                        : Icons.volume_up_rounded,
+                                    size: 18,
+                                    color: AppColors.primary,
+                                  ),
+                                  onPressed: () {
+                                    _toggleMute();
+                                    setPopupState(() {});
+                                    setState(() {});
+                                  },
+                                ),
+                              ],
+                            ),
+                            Row(
+                              children: [
+                                const Icon(Icons.volume_down_rounded, size: 16),
+                                Expanded(
+                                  child: Slider(
+                                    value: _isMuted ? 0.0 : _volume,
+                                    min: 0.0,
+                                    max: 1.0,
+                                    activeColor: AppColors.primary,
+                                    inactiveColor: AppColors.outline,
+                                    onChanged: (val) {
+                                      _updateVolume(val);
+                                      setPopupState(() {});
+                                      setState(() {});
+                                    },
+                                  ),
+                                ),
+                                const Icon(Icons.volume_up_rounded, size: 16),
+                              ],
+                            ),
+                            if (_currentTrack != null) ...[
+                              const Divider(),
+                              Text(
+                                'Reproduciendo:',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  color: AppColors.onSurfaceMuted,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                _currentTrack!.replaceAll('.mp3', '').toUpperCase(),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  color: AppColors.primary,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ] else ...[
+                              const Divider(),
+                              Text(
+                                'Música silenciada o detenida',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  color: AppColors.onSurfaceMuted,
+                                  fontStyle: FontStyle.italic,
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
           if (widget.battleCode != null)
             Padding(
               padding: const EdgeInsets.only(right: 16, top: 10, bottom: 10),
