@@ -2254,25 +2254,6 @@ class _BattleViewState extends State<BattleView> {
                                       padding: const EdgeInsets.only(left: 3),
                                       child: PokemonTypeIcons.buildTypeBadge(t, fontSize: 8),
                                     )),
-                                    if (isLead) ...[
-                                      const SizedBox(width: 3),
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
-                                        decoration: BoxDecoration(
-                                          color: AppColors.primary,
-                                          borderRadius: BorderRadius.circular(4),
-                                        ),
-                                        child: const Text(
-                                          'LEAD',
-                                          style: TextStyle(
-                                            fontSize: 7,
-                                            fontWeight: FontWeight.w900,
-                                            color: Colors.white,
-                                            letterSpacing: 0.5,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
                                   ],
                                 ),
                               ],
