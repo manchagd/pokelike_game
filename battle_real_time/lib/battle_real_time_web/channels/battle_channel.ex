@@ -89,6 +89,18 @@ defmodule BattleRealTimeWeb.BattleChannel do
     end
   end
 
+  @impl true
+  def handle_in("select_lead", %{"lead" => lead}, socket) do
+    battle_id = socket.assigns.battle_id
+    player_id = socket.assigns.player_id
+    payload = %{"action" => "select_lead", "lead" => lead}
+
+    case BattleRealTime.Battles.SubmitAction.call(battle_id, player_id, payload) do
+      {:ok, _} -> {:noreply, socket}
+      {:error, _} -> {:noreply, socket}
+    end
+  end
+
   # Catch-all for unknown incoming events
   def handle_in(event, _payload, socket) do
     Logger.warning("Unknown event '#{event}'")

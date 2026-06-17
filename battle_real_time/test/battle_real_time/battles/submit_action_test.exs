@@ -15,9 +15,12 @@ defmodule BattleRealTime.Battles.SubmitActionTest do
     # Sync first to transition out of :syncing
     :ok = BattleSession.sync_state(battle_id, %{"turn" => 1, "status" => "not_started"})
 
-    # Register players to transition phase to :waiting_actions
+    # Register players to transition phase
     :ok = BattleSession.register_player(battle_id, "player_1")
     :ok = BattleSession.register_player(battle_id, "player_2")
+
+    # Sync state to in_progress so the phase becomes :waiting_actions
+    :ok = BattleSession.sync_state(battle_id, %{"turn" => 1, "status" => "in_progress"})
 
     %{battle_id: battle_id}
   end

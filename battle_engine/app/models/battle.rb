@@ -11,7 +11,7 @@ class Battle < ApplicationRecord
 
   before_create :set_external_id
 
-  enum :status, { not_started: 'not_started', in_progress: 'in_progress', finished: 'finished' }
+  enum :status, { not_started: 'not_started', setting_up: 'setting_up', in_progress: 'in_progress', finished: 'finished' }
 
   scope :running, -> { where.not(status: :finished) }
 

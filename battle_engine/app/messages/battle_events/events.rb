@@ -4,7 +4,7 @@ module Messages
   module BattleEvents
     module Events
       BATTLE_STATUS = 'battle_status'
-      TERMINATE_BATTLE = 'terminate_battle'
+      MUTATE_BATTLE_STATUS = 'mutate_battle_status'
     end
   end
 end

@@ -36,7 +36,7 @@ defmodule BattleRealTime.BattleSessionTest do
     assert :ok = BattleSession.register_player(battle_id, "player_2")
     assert {:ok, state2} = BattleSession.get_state(battle_id)
     assert MapSet.member?(state2.players, "player_2")
-    assert state2.phase == :waiting_actions
+    assert state2.phase == :setting_up
   end
 
   test "rejects actions when phase is waiting_players", %{battle_id: battle_id} do
@@ -101,7 +101,7 @@ defmodule BattleRealTime.BattleSessionTest do
     assert "Acciones procesadas. ¡Comienza el turno 2!" in payload["log"]
   end
 
-  test "surrendering player publishes terminate_battle and terminates upon engine event", %{
+  test "surrendering player publishes mutate_battle_status and terminates upon engine event", %{
     battle_id: battle_id,
     pid: pid
   } do
@@ -119,5 +119,65 @@ defmodule BattleRealTime.BattleSessionTest do
 
     # Check that the GenServer process is terminated
     refute Process.alive?(pid)
+  end
+
+  test "lobby filling up transitions to setting_up and handles lead selection", %{
+    battle_id: battle_id
+  } do
+    assert :ok = BattleSession.sync_state(battle_id, %{"turn" => 0, "status" => "not_started"})
+
+    # Register player 1
+    assert :ok = BattleSession.register_player(battle_id, "player_1", "Ash")
+    {:ok, state} = BattleSession.get_state(battle_id)
+    assert state.phase == :waiting_players
+
+    # Register player 2 -> lobby full!
+    assert :ok = BattleSession.register_player(battle_id, "player_2", "Gary")
+    {:ok, state} = BattleSession.get_state(battle_id)
+    assert state.phase == :setting_up
+
+    # Simulate engine syncing back with players_data (having snapshots)
+    engine_state = %{
+      "turn" => 0,
+      "status" => "setting_up",
+      "players" => [
+        %{
+          "name" => "Ash",
+          "team" => "A",
+          "pokemons" => [
+            %{"id" => 10, "hp" => 100, "max_hp" => 100, "types" => ["fire"]}
+          ]
+        },
+        %{
+          "name" => "Gary",
+          "team" => "B",
+          "pokemons" => [
+            %{"id" => 20, "hp" => 120, "max_hp" => 120, "types" => ["water"]}
+          ]
+        }
+      ]
+    }
+
+    assert :ok = BattleSession.sync_state(battle_id, engine_state)
+    {:ok, state} = BattleSession.get_state(battle_id)
+    assert state.phase == :setting_up
+    assert length(state.players_data) == 2
+
+    # Player 1 submits select_lead
+    assert {:ok, :pending} =
+             BattleSession.submit_action(battle_id, "player_1", %{
+               "action" => "select_lead",
+               "lead" => 10
+             })
+
+    # Player 2 submits select_lead -> resolves setup and transitions to syncing
+    assert {:ok, :resolved} =
+             BattleSession.submit_action(battle_id, "player_2", %{
+               "action" => "select_lead",
+               "lead" => 20
+             })
+
+    {:ok, state} = BattleSession.get_state(battle_id)
+    assert state.phase == :syncing
   end
 end

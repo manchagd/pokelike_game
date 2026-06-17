@@ -72,10 +72,11 @@ defmodule BattleRealTime.BattleSession do
       phase: :syncing,
       players: MapSet.new(),
       player_names: %{},
+      players_data: [],
       actions: %{},
       timer_ref: nil,
       expires_at: nil,
-      logs: ["Sincronizando Battalla..."]
+      logs: ["Sincronizando Batalla..."]
     }
 
     # Publish battle_sync event instead of broadcasting
@@ -97,16 +98,17 @@ defmodule BattleRealTime.BattleSession do
     expected = expected_players_count(state.battle_format)
     current_count = MapSet.size(players)
 
-    {new_phase, new_timer_ref, new_expires_at, log_message} =
+    {new_phase, new_timer_ref, new_expires_at, log_message, should_broadcast} =
       if waiting_players?(state) and current_count >= expected do
         cancel_timeout_timer(state.timer_ref)
-        timer = start_timeout_timer()
-        expires = new_expires_at()
 
-        {:waiting_actions, timer, expires,
-         "¡Ambos entrenadores listos! Comienza el combate. Turno 1."}
+        # Publish mutation to engine
+        publish_mutate_battle_status(state.battle_id, "setting_up")
+
+        {:setting_up, nil, nil, "Ambos entrenadores conectados. Preparando selección de líder...",
+         false}
       else
-        {state.phase, state.timer_ref, state.expires_at, nil}
+        {state.phase, state.timer_ref, state.expires_at, nil, true}
       end
 
     log_message = log_message || "El entrenador #{username} se ha unido al lobby."
@@ -126,10 +128,37 @@ defmodule BattleRealTime.BattleSession do
       "Player #{player_id} (#{username}) registered in battle #{state.battle_id}. Active players: #{inspect(MapSet.to_list(players))}. Phase: #{new_phase}"
     )
 
-    # Broadcast updated state
-    broadcast_state(new_state)
+    if should_broadcast do
+      broadcast_state(new_state)
+    end
 
     {:reply, :ok, new_state}
+  end
+
+  def handle_call(
+        {:submit_action, player_id, %{"action" => "select_lead", "lead" => lead}},
+        _from,
+        state
+      ) do
+    if state.phase != :setting_up do
+      {:reply, {:error, :invalid_phase}, state}
+    else
+      actions = Map.put(state.actions, player_id, %{"player_id" => player_id, "lead" => lead})
+      new_state = %{state | actions: actions}
+
+      expected = expected_players_count(state.battle_format)
+      current_actions_count = map_size(actions)
+
+      Logger.info("Lead choice received from player #{player_id} in battle #{state.battle_id}")
+
+      if current_actions_count >= expected do
+        publish_select_leads(state.battle_id, Map.values(actions))
+        resolved_state = %{new_state | actions: %{}, phase: :syncing}
+        {:reply, {:ok, :resolved}, resolved_state}
+      else
+        {:reply, {:ok, :pending}, new_state}
+      end
+    end
   end
 
   def handle_call({:submit_action, player_id, action}, _from, state) do
@@ -186,10 +215,10 @@ defmodule BattleRealTime.BattleSession do
   def handle_call({:forfeit, player_id}, _from, state) do
     username = Map.get(state.player_names, player_id, "Entrenador")
 
-    publish_terminate_battle(state.battle_id, "El jugador #{username} se rinde.")
+    publish_mutate_battle_status(state.battle_id, "finished", "El jugador #{username} se rinde.")
 
     Logger.info(
-      "Forfeit requested by player #{player_id} (#{username}) in battle #{state.battle_id}. Published terminate_battle."
+      "Forfeit requested by player #{player_id} (#{username}) in battle #{state.battle_id}. Published mutate_battle_status."
     )
 
     {:reply, :ok, state}
@@ -198,6 +227,7 @@ defmodule BattleRealTime.BattleSession do
   def handle_call({:sync_state, engine_state}, _from, state) do
     new_turn = Map.get(engine_state, "turn", state.turn)
     new_phase_str = Map.get(engine_state, "status", Atom.to_string(state.phase))
+    new_players_data = Map.get(engine_state, "players", [])
 
     new_phase =
       case new_phase_str do
@@ -239,7 +269,8 @@ defmodule BattleRealTime.BattleSession do
         | turn: new_turn,
           phase: new_phase,
           timer_ref: new_timer_ref,
-          expires_at: new_expires_at
+          expires_at: new_expires_at,
+          players_data: new_players_data
       }
       |> add_log(log_msg)
 
@@ -290,6 +321,15 @@ defmodule BattleRealTime.BattleSession do
     BattleRealTime.AMQP.Publishers.BattleActionsPublisher.publish("turn_actions", payload)
   end
 
+  defp publish_select_leads(battle_id, players_leads) do
+    payload = %{
+      "battle_id" => battle_id,
+      "players" => players_leads
+    }
+
+    BattleRealTime.AMQP.Publishers.BattleActionsPublisher.publish("select_leads", payload)
+  end
+
   defp build_payload(state) do
     players_list = MapSet.to_list(state.players)
     expected = expected_players_count(state.battle_format)
@@ -300,6 +340,19 @@ defmodule BattleRealTime.BattleSession do
         state.logs ++ [default_log_message(state)]
       else
         state.logs
+      end
+
+    masked_players =
+      if state.phase == :setting_up do
+        Enum.map(state.players_data, fn player ->
+          %{
+            "name" => player["name"],
+            "team" => player["team"],
+            "pokemon_count" => length(player["pokemons"] || [])
+          }
+        end)
+      else
+        state.players_data
       end
 
     %{
@@ -315,6 +368,7 @@ defmodule BattleRealTime.BattleSession do
         Map.get(state.player_names, Enum.at(players_list, 0) || "", "Entrenador A"),
       "player_b_name" =>
         Map.get(state.player_names, Enum.at(players_list, 1) || "", "Entrenador B"),
+      "players" => masked_players,
       "active_monster_a" => %{
         "id" => "mon_1",
         "name" => "Charizard",
@@ -344,6 +398,39 @@ defmodule BattleRealTime.BattleSession do
       topic,
       {:battle_event, %{event: "battle_state", payload: payload}}
     )
+
+    if state.phase == :setting_up do
+      broadcast_private_setup_pokemons(state)
+    end
+  end
+
+  defp broadcast_private_setup_pokemons(state) do
+    Enum.each(state.players_data, fn player_data ->
+      player_id = find_player_id_by_name(state, player_data["name"])
+
+      if player_id do
+        private_topic = "battle_events:#{state.battle_id}:#{player_id}"
+
+        Phoenix.PubSub.broadcast(
+          BattleRealTime.PubSub,
+          private_topic,
+          {:battle_event,
+           %{
+             event: "setup_pokemons",
+             payload: %{
+               "battle_id" => state.battle_id,
+               "pokemons" => player_data["pokemons"]
+             }
+           }}
+        )
+      end
+    end)
+  end
+
+  defp find_player_id_by_name(state, name) do
+    Enum.find_value(state.player_names, nil, fn {player_id, username} ->
+      if username == name, do: player_id, else: nil
+    end)
   end
 
   defp add_log(state, nil), do: state
@@ -371,13 +458,17 @@ defmodule BattleRealTime.BattleSession do
     )
   end
 
-  defp publish_terminate_battle(battle_id, reason) do
-    payload = %{
-      "battle_id" => battle_id,
-      "reason" => reason
-    }
+  defp publish_mutate_battle_status(battle_id, status, reason \\ nil) do
+    payload =
+      %{
+        "battle_id" => battle_id,
+        "status" => status,
+        "reason" => reason
+      }
+      |> Enum.reject(fn {_, v} -> is_nil(v) end)
+      |> Map.new()
 
-    BattleRealTime.AMQP.Publishers.BattleActionsPublisher.publish("terminate_battle", payload)
+    BattleRealTime.AMQP.Publishers.BattleActionsPublisher.publish("mutate_battle_status", payload)
   end
 
   defp start_timeout_timer do
@@ -427,11 +518,12 @@ defmodule BattleRealTime.BattleSession do
   @impl true
   def handle_info(:turn_timeout, state) do
     Logger.warning(
-      "Turn timeout reached for battle #{state.battle_id}. Publishing terminate_battle."
+      "Turn timeout reached for battle #{state.battle_id}. Publishing mutate_battle_status."
     )
 
-    publish_terminate_battle(
+    publish_mutate_battle_status(
       state.battle_id,
+      "finished",
       "Se ha excedido el límite de tiempo de espera (5 minutos)."
     )
 
