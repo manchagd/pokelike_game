@@ -64,7 +64,8 @@ graph TD
 | `application` | Lobby global y presencia. | `presence_state`, `presence_diff` |
 | `player:#{name}` | Canal temporal para el registro del entrenador. | `register` (inbound), `player_event` (outbound) |
 | `player:#{id}` | Canal permanente del perfil del entrenador registrado. | `player_event` (outbound) |
-| `battle:#{battle_id}` | Combate activo en tiempo real. | `action` (inbound), `battle_event` (outbound) |
+| `battle:#{battle_id}` | Combate activo en tiempo real (público / compartido). | `action` (inbound), `battle_event` (outbound) |
+| `battle:#{battle_id}:#{player_id}` | Canal privado de combate en tiempo real para cada jugador (evita filtrar estadísticas). | `action` (inbound), `battle_event` (outbound) |
 | `battle_chat:#{battle_id}` | Chat volátil de la batalla en tiempo real. | `send_message` (inbound), `new_message` (outbound) |
 
 ### Colas de RabbitMQ (AMQP)
@@ -111,43 +112,37 @@ El motor de batalla procesa la solicitud, genera un ID único y crea el perfil i
     "player": {
       "id": 101,
       "name": "AshKetchum",
-      "team": "A",
       "teams": [
         {
+          "id": 1,
           "name": "Equipo Lluvia",
-          "description": "Estrategia basada en clima de lluvia",
-          "monsters": [
-            { "name": "Pelipper", "color": "blue" },
-            { "name": "Swampert", "color": "blueAccent" },
-            { "name": "Kingdra", "color": "cyan" }
+          "pokemons": [
+            { "name": "Pelipper", "types": ["water", "flying"] },
+            { "name": "Swampert", "types": ["water", "ground"] },
+            { "name": "Kingdra", "types": ["water", "dragon"] }
           ]
         },
         {
+          "id": 2,
           "name": "Trick Room Core",
-          "description": "Control de velocidad",
-          "monsters": [
-            { "name": "Cresselia", "color": "pinkAccent" },
-            { "name": "Ursaluna", "color": "brown" }
+          "pokemons": [
+            { "name": "Cresselia", "types": ["psychic"] },
+            { "name": "Ursaluna", "types": ["ground", "normal"] }
           ]
         }
       ],
       "battle_history": {
         "victories": 12,
         "defeats": 5,
-        "history": ["win", "defeat", "win", "win", "defeat"]
+        "history": ["V", "D", "V", "V", "D"]
       }
     },
     "battles": [
       {
-        "id": 123,
-        "opponent": [
-          { "name": "Tuto", "team": "A" }
-        ]
-      },
-      {
-        "id": 345,
-        "opponent": [
-          { "name": "Syth", "team": "A" }
+        "id": "dp5-Tmr",
+        "players": [
+          { "name": "AshKetchum", "team": "A" },
+          { "name": "Gary", "team": "B" }
         ]
       }
     ]
@@ -226,6 +221,37 @@ El motor confirma que el jugador se unió exitosamente a la batalla.
 }
 ```
 
+### 2.7 Sincronización de Historial y Batallas Activas (`battles_info` - Evento)
+Cuando el motor de batalla detecta cambios en el estado general del jugador (por ejemplo, victorias, derrotas o partidas activas), envía esta información actualizada.
+* **Cola RabbitMQ**: `player_events` (consumido por `PlayerEventsConsumer`)
+* **Canal Phoenix**: `player:#{id}`
+* **Evento Phoenix**: `player_event` (subtipo `battles_info`)
+
+**Payload de respuesta (`battles_info`)**:
+```json
+{
+  "event": "battles_info",
+  "payload": {
+    "player_id": 101,
+    "timestamp": "2026-06-17T17:31:07Z",
+    "battle_history": {
+      "victories": 12,
+      "defeats": 5,
+      "history": ["V", "D", "V", "V", "D"]
+    },
+    "battles": [
+      {
+        "id": "dp5-Tmr",
+        "players": [
+          { "name": "AshKetchum", "team": "A" },
+          { "name": "Gary", "team": "B" }
+        ]
+      }
+    ]
+  }
+}
+```
+
 ---
 
 ## 3. Mensajes del Flujo de Batalla (Battle Flow)
@@ -243,19 +269,19 @@ Durante la batalla, los jugadores envían sus comandos de turno o de control inm
   "event": "action",
   "payload": {
     "action": "attack",
-    "move_id": "thunderbolt",
-    "targets": ["enemy_pelipper"]
+    "move_id": 24,
+    "targets": ["B1"]
   }
 }
 ```
 
-#### Opción B: Acción de Cambio de Monstruo
+#### Opción B: Acción de Cambio de Pokémon
 ```json
 {
   "event": "action",
   "payload": {
     "action": "switch",
-    "monster_id": "swampert"
+    "pokemon_id": 244
   }
 }
 ```
@@ -423,10 +449,53 @@ El servidor o el motor de batalla difunden el estado resultante a los clientes.
 }
 ```
 
-#### Evento A.2: Equipo Privado (`setup_pokemons` / `sync_team`)
-Durante todas las fases de la batalla (incluyendo `setting_up`), el servidor envía a cada jugador sus estadísticas de equipo completas por un canal privado para evitar filtrar los stats al rival.
-* **Canal Phoenix Privado**: `battle_events:#{battle_id}:#{player_id}`
+#### Evento A.2: Equipo Privado (`setup_pokemons`)
+Durante todas las fases de la batalla (incluyendo `setting_up`), el servidor envía a cada jugador sus estadísticas de equipo completas por su canal privado para evitar filtrar los stats al rival.
+* **Canal Phoenix Privado**: `battle:#{battle_id}:#{player_id}`
 * **Evento Phoenix**: `battle_event` (subtipo `setup_pokemons`)
+
+**Payload de respuesta (`setup_pokemons`)**:
+```json
+{
+  "event": "setup_pokemons",
+  "payload": {
+    "battle_id": "482-913",
+    "pokemons": [
+      {
+        "id": 1,
+        "hp": 100,
+        "max_hp": 100,
+        "level": 50,
+        "lead": true,
+        "name": "Pikachu",
+        "pokemon_name": "Pikachu",
+        "types": ["electric"],
+        "status_condition": null,
+        "stat_stages": {
+          "atk": 0,
+          "def": 0,
+          "sp_atk": 0,
+          "sp_def": 0,
+          "spd": 0
+        },
+        "turn_afflictions": {},
+        "locked_condition": null,
+        "attack_log": [],
+        "attacks": [
+          {
+            "id": 24,
+            "name": "Thunderbolt",
+            "power": 90,
+            "accuracy": 100,
+            "pp": 15,
+            "types": ["electric"]
+          }
+        ]
+      }
+    ]
+  }
+}
+```
 
 #### Evento B: Combate Finalizado (`battle_ended`)
 Enviado inmediatamente cuando ocurre una rendición o finalización forzada de la partida.
