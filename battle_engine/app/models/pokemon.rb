@@ -75,7 +75,7 @@ class Pokemon < ApplicationRecord
       iv_stat: ivs[stat_key.to_s],
       ev_stat: evs[stat_key.to_s],
       level: lvl,
-      modifier: Nature.modifier_for(nature, stat_key)
+      nature_modifier: Nature.modifier_for(nature, stat_key)
     )
   end
 end
