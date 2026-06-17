@@ -12,7 +12,7 @@ module Contracts
           required(:player_id).filled(:integer)
           optional(:move_id).maybe(:integer)
           optional(:pokemon_id).maybe(:integer)
-          optional(:targets).array(:string)
+          optional(:targets).maybe { array? & each(:string) }
         end
       end
 

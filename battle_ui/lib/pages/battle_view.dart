@@ -1793,7 +1793,7 @@ class _BattleViewState extends State<BattleView> {
                 if (pct < 0.5) hpColor = AppColors.accent;
                 if (pct < 0.25) hpColor = AppColors.danger;
                 final isLead = m['lead'] == true;
-                final isSelected = _submittedActionType == 'switch' && _submittedActionTargetId == m['name'].toString().toLowerCase();
+                final isSelected = _submittedActionType == 'switch' && _submittedActionTargetId == m['id'];
                 final monTypes = (m['types'] as List?)?.cast<String>() ?? [];
                 return DecoratedBox(
                   decoration: BoxDecoration(
@@ -1816,12 +1816,12 @@ class _BattleViewState extends State<BattleView> {
                       onTap: () {
                         setState(() {
                           _submittedActionType = 'switch';
-                          _submittedActionTargetId = m['name'].toString().toLowerCase();
+                          _submittedActionTargetId = m['id'];
                           _battleFeedback.add('Enviando acción: Cambiar a ${m['name']}...');
                         });
                         _scrollToFeedbackBottom();
                         _socketService.sendAction('switch', {
-                          'monster_id': m['name'].toString().toLowerCase(),
+                          'pokemon_id': m['id'] as int,
                         });
                       },
                       child: Padding(
