@@ -1,9 +1,12 @@
 import 'dart:async';
+import 'dart:math' as math;
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:audioplayers/audioplayers.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../theme.dart';
 import '../nav.dart';
 import '../utils/pokemon_type_icons.dart';
@@ -177,6 +180,7 @@ class _BattleViewState extends State<BattleView> {
             map['level']   = map['level']   ?? 50;
             map['lead']    = map['lead']    ?? false;
             map['attacks'] = map['attacks'] ?? [];
+            map['sprite_url'] = map['sprite_url'] ?? map['spriteUrl'];
             return map;
           }).toList();
         });
@@ -256,6 +260,7 @@ class _BattleViewState extends State<BattleView> {
               'hp': am['hp'] ?? 0,
               'maxHp': am['max_hp'] ?? 100,
               'level': am['level'] ?? 50,
+              'sprite_url': am['sprite_url'] ?? am['spriteUrl'],
             };
           } else {
             _myActive = {};
@@ -271,6 +276,7 @@ class _BattleViewState extends State<BattleView> {
               'hp': am['hp'] ?? 0,
               'maxHp': am['max_hp'] ?? 100,
               'level': am['level'] ?? 50,
+              'sprite_url': am['sprite_url'] ?? am['spriteUrl'],
             };
           } else {
             _oppActive = {};
@@ -1168,7 +1174,7 @@ class _BattleViewState extends State<BattleView> {
                       itemCount: _myMonsters.length,
                       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: 2,
-                        childAspectRatio: 2.2,
+                        childAspectRatio: 3.0,
                         crossAxisSpacing: 12,
                         mainAxisSpacing: 12,
                       ),
@@ -1193,7 +1199,7 @@ class _BattleViewState extends State<BattleView> {
                                 ? (AppColors.isDark
                                     ? AppColors.primary.withValues(alpha: 0.15)
                                     : const Color(0xFFEDE7F6))
-                                : AppColors.surfaceHigh,
+                                : AppColors.surfaceHighest,
                             borderRadius: BorderRadius.circular(AppRadius.md),
                             border: Border.all(
                               color: isSelected
@@ -1224,64 +1230,82 @@ class _BattleViewState extends State<BattleView> {
                                       });
                                     },
                               child: Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                child: Row(
                                   children: [
-                                    Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Expanded(
-                                          child: Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          Row(
+                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                             children: [
-                                              Text(
-                                                name,
-                                                style: const TextStyle(
-                                                  fontWeight: FontWeight.w800,
-                                                  fontSize: 13,
+                                              Expanded(
+                                                child: Column(
+                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                  children: [
+                                                    Text(
+                                                      name,
+                                                      style: const TextStyle(
+                                                        fontWeight: FontWeight.w800,
+                                                        fontSize: 13,
+                                                      ),
+                                                      overflow: TextOverflow.ellipsis,
+                                                    ),
+                                                    Text(
+                                                      'Nv. $level • HP $hp/$maxHp',
+                                                      style: TextStyle(
+                                                        color: AppColors.onSurfaceMuted,
+                                                        fontSize: 10,
+                                                        fontWeight: FontWeight.w600,
+                                                      ),
+                                                    ),
+                                                  ],
                                                 ),
-                                                overflow: TextOverflow.ellipsis,
                                               ),
-                                              Text(
-                                                'Nv. $level • HP $hp/$maxHp',
-                                                style: TextStyle(
-                                                  color: AppColors.onSurfaceMuted,
-                                                  fontSize: 10,
-                                                  fontWeight: FontWeight.w600,
+                                              if (isSelected)
+                                                Icon(
+                                                  Icons.check_circle,
+                                                  color: AppColors.primary,
+                                                  size: 18,
                                                 ),
-                                              ),
                                             ],
                                           ),
-                                        ),
-                                        if (isSelected)
-                                          Icon(
-                                            Icons.check_circle,
-                                            color: AppColors.primary,
-                                            size: 18,
+                                          const SizedBox(height: 3),
+                                          // Types row
+                                          Row(
+                                            children: types.map((t) {
+                                              return Padding(
+                                                padding: const EdgeInsets.only(right: 4),
+                                                child: PokemonTypeIcons.buildTypeBadge(t, fontSize: 8),
+                                              );
+                                            }).toList(),
                                           ),
-                                      ],
-                                    ),
-                                    // Types row
-                                    Row(
-                                      children: types.map((t) {
-                                        return Padding(
-                                          padding: const EdgeInsets.only(right: 4),
-                                          child: PokemonTypeIcons.buildTypeBadge(t, fontSize: 8),
-                                        );
-                                      }).toList(),
-                                    ),
-                                    // HP bar
-                                    ClipRRect(
-                                      borderRadius: BorderRadius.circular(4),
-                                      child: LinearProgressIndicator(
-                                        value: pct,
-                                        minHeight: 3.5,
-                                        backgroundColor: AppColors.surfaceHighest,
-                                        valueColor: AlwaysStoppedAnimation<Color>(hpColor),
+                                          const SizedBox(height: 3),
+                                          // HP bar
+                                          ClipRRect(
+                                            borderRadius: BorderRadius.circular(4),
+                                            child: LinearProgressIndicator(
+                                              value: pct,
+                                              minHeight: 3.5,
+                                              backgroundColor: AppColors.surface,
+                                              valueColor: AlwaysStoppedAnimation<Color>(hpColor),
+                                            ),
+                                          ),
+                                        ],
                                       ),
                                     ),
+                                    if (m['sprite_url'] != null && (m['sprite_url'] as String).isNotEmpty) ...[
+                                      const SizedBox(width: 8),
+                                      Image.network(
+                                        m['sprite_url'] as String,
+                                        height: 50,
+                                        width: 50,
+                                        fit: BoxFit.contain,
+                                        errorBuilder: (context, error, stackTrace) => const SizedBox(),
+                                      ),
+                                    ],
                                   ],
                                 ),
                               ),
@@ -2193,122 +2217,144 @@ class _ParticipantTile extends StatelessWidget {
     final pct = (mon['hp'] as num?) != null && (mon['maxHp'] as num?) != null && (mon['maxHp'] as num) > 0
         ? (mon['hp'] as num) / (mon['maxHp'] as num)
         : 0.0;
+
+    Color hpColor = AppColors.success;
+    if (pct < 0.5) hpColor = AppColors.accent;
+    if (pct < 0.25) hpColor = AppColors.danger;
+
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
-        color: AppColors.surfaceHigh,
+        color: AppColors.surfaceHighest,
         borderRadius: BorderRadius.circular(AppRadius.md),
         border: Border.all(
           color: isLead ? color.withValues(alpha: 0.8) : color.withValues(alpha: 0.35),
           width: isLead ? 1.8 : 1.0,
         ),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Text(
-                  name,
-                  style: text.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.onSurface,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              const SizedBox(width: 6),
-              if (isLead)
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: color,
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: const Text(
-                    'LEAD',
-                    style: TextStyle(
-                      fontSize: 8,
-                      fontWeight: FontWeight.w900,
-                      color: Colors.white,
-                      letterSpacing: 0.5,
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        name,
+                        style: text.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.onSurface,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
-                  ),
-                )
-              else
-                Text(
-                  'Nv.${mon['level'] ?? 50}',
-                  style: text.bodySmall?.copyWith(
-                    color: AppColors.onSurfaceMuted,
-                    fontWeight: FontWeight.w600,
-                  ),
+                    const SizedBox(width: 6),
+                    if (isLead)
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: color,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: const Text(
+                          'LEAD',
+                          style: TextStyle(
+                            fontSize: 8,
+                            fontWeight: FontWeight.w900,
+                            color: Colors.white,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      )
+                    else
+                      Text(
+                        'Nv.${mon['level'] ?? 50}',
+                        style: text.bodySmall?.copyWith(
+                          color: AppColors.onSurfaceMuted,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                  ],
                 ),
-            ],
+                const SizedBox(height: 3),
+                Row(
+                  children: [
+                    Icon(Icons.catching_pokemon, color: color, size: 14),
+                    const SizedBox(width: 4),
+                    Expanded(
+                      child: Text(
+                        mon['name'] ?? '?',
+                        style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    if (isLead)
+                      Text(
+                        'Nv.${mon['level'] ?? 50}',
+                        style: text.bodySmall?.copyWith(
+                          color: AppColors.onSurfaceMuted,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 2),
+                // Pokeball icons for alive count
+                Row(
+                  children: List.generate(6, (index) {
+                    return Icon(
+                      Icons.catching_pokemon,
+                      size: 10,
+                      color: index < aliveCount
+                          ? color.withValues(alpha: 0.8)
+                          : AppColors.outlineVariant.withValues(alpha: 0.3),
+                    );
+                  }),
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(4),
+                        child: LinearProgressIndicator(
+                          value: pct,
+                          minHeight: 5,
+                          backgroundColor: AppColors.surface,
+                          valueColor: AlwaysStoppedAnimation<Color>(hpColor),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Text(
+                      '${mon['hp'] ?? 0}/${mon['maxHp'] ?? 100}',
+                      style: TextStyle(
+                        fontFamily: 'monospace',
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.onSurfaceMuted,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
-          const SizedBox(height: 6),
-          Row(
-            children: [
-              Icon(Icons.catching_pokemon, color: color, size: 14),
-              const SizedBox(width: 4),
-              Expanded(
-                child: Text(
-                  mon['name'] ?? '?',
-                  style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              if (isLead)
-                Text(
-                  'Nv.${mon['level'] ?? 50}',
-                  style: text.bodySmall?.copyWith(
-                    color: AppColors.onSurfaceMuted,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-            ],
-          ),
-          const SizedBox(height: 4),
-          // Pokeball icons for alive count
-          Row(
-            children: List.generate(6, (index) {
-              return Icon(
-                Icons.catching_pokemon,
-                size: 10,
-                color: index < aliveCount
-                    ? color.withValues(alpha: 0.8)
-                    : AppColors.outlineVariant.withValues(alpha: 0.3),
-              );
-            }),
-          ),
-          const SizedBox(height: 8),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(4),
-                  child: LinearProgressIndicator(
-                    value: pct,
-                    minHeight: 5,
-                    backgroundColor: AppColors.surfaceHighest,
-                    valueColor: AlwaysStoppedAnimation<Color>(color),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Text(
-                '${mon['hp'] ?? 0}/${mon['maxHp'] ?? 100}',
-                style: TextStyle(
-                  fontFamily: 'monospace',
-                  fontSize: 11,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.onSurfaceMuted,
-                ),
-              ),
-            ],
-          ),
+          if (mon['sprite_url'] != null && (mon['sprite_url'] as String).isNotEmpty) ...[
+            const SizedBox(width: 8),
+            Image.network(
+              mon['sprite_url'],
+              height: 60,
+              width: 60,
+              fit: BoxFit.contain,
+              errorBuilder: (context, error, stackTrace) => const SizedBox(),
+            ),
+          ],
         ],
       ),
     );

@@ -26,6 +26,7 @@ module Contracts
             required(:name).filled(:string)
             required(:pokemon_name).filled(:string)
             required(:types).array(:string)
+            required(:sprite_url).maybe(:string)
             required(:attacks).array(:hash) do
               required(:id).filled(:integer)
               required(:name).filled(:string)

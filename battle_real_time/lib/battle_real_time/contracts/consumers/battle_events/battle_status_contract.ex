@@ -25,6 +25,7 @@ defmodule BattleRealTime.Contracts.Consumers.BattleEvents.BattleStatusContract d
         field(:name, :string)
         field(:pokemon_name, :string)
         field(:types, {:array, :string})
+        field(:sprite_url, :string)
         field(:status_condition, :map)
         field(:stat_stages, :map)
         field(:turn_afflictions, :map)
@@ -70,6 +71,7 @@ defmodule BattleRealTime.Contracts.Consumers.BattleEvents.BattleStatusContract d
       :name,
       :pokemon_name,
       :types,
+      :sprite_url,
       :status_condition,
       :stat_stages,
       :turn_afflictions,

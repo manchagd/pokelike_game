@@ -44,6 +44,7 @@ module Messages
       private_class_method def pokemons_snap_list(player_snapshots, lead_ids = Set.new)
         player_snapshots.map do |snap|
           is_lead = lead_ids.include?(snap.id)
+          template = snap.pokemon.pokemon_template
 
           {
             id: snap.id,
@@ -54,11 +55,12 @@ module Messages
             turn_afflictions: snap.turn_afflictions,
             locked_condition: snap.locked_condition,
             attack_log: snap.attack_log,
-            name: snap.pokemon.nickname.presence || snap.pokemon.pokemon_template.name,
-            pokemon_name: snap.pokemon.pokemon_template.name,
-            types: snap.pokemon.pokemon_template.types,
+            name: snap.pokemon.nickname.presence || template.name,
+            pokemon_name: template.name,
+            types: template.types,
             level: snap.pokemon.lvl,
             lead: is_lead,
+            sprite_url: template.front_sprite.presence || template.back_sprite,
             attacks: is_lead ? attacks_list(snap.pokemon.attacks) : []
           }
         end
