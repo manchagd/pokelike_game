@@ -71,15 +71,8 @@ defmodule BattleRealTime.AMQP.Consumers.BattleEventsConsumer do
   end
 
   def process_message(event, data) do
-    battle_id = Map.get(data, "battle_id", "lobby")
-    topic = "battle_events:#{battle_id}"
-
-    Logger.info("Broadcasting event '#{event}' to topic '#{topic}'")
-
-    Phoenix.PubSub.broadcast(
-      BattleRealTime.PubSub,
-      topic,
-      {:battle_event, %{event: event, payload: data}}
+    Logger.warning(
+      "Invalid or unhandled event '#{event}' on battle_events queue: #{inspect(data)}"
     )
   end
 end

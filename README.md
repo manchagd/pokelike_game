@@ -19,6 +19,45 @@ graph TD
     RMQ -->|Consume Events| RT
 ```
 
+### Detalle de Módulos y Flujos de Colas
+
+```mermaid
+graph TD
+    subgraph Battle Real Time [Battle Real Time - Elixir]
+        RTC[BattleChannel / BattleSession]
+        RT_Cons[Consumers]
+        RT_Pub[Publishers]
+    end
+
+    subgraph RabbitMQ [RabbitMQ Broker]
+        QA[player_actions]
+        QE[player_events]
+        QBA[battle_actions]
+        QBE[battle_events]
+    end
+
+    subgraph Battle Engine [Battle Engine - Ruby]
+        ENG_Cons[Consumers]
+        ENG_Pub[Publishers]
+        ENG_Srv[Services]
+    end
+
+    %% Flow Real Time -> Engine
+    RTC -->|Publica| RT_Pub
+    RT_Pub -->|register / create_battle / join_battle| QA
+    RT_Pub -->|select_leads / turn_actions / mutate_battle_status / battle_sync| QBA
+    QA --> ENG_Cons
+    QBA --> ENG_Cons
+
+    %% Flow Engine -> Real Time
+    ENG_Srv -->|Publica| ENG_Pub
+    ENG_Pub -->|info / battle_created / battle_joined| QE
+    ENG_Pub -->|battle_status / mutate_battle_status| QBE
+    QE --> RT_Cons
+    QBE --> RT_Cons
+```
+
+
 ### Canales de Phoenix (WebSockets)
 | Tópico | Propósito | Eventos Principales |
 | :--- | :--- | :--- |
