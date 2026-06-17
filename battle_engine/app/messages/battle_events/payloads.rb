@@ -33,6 +33,7 @@ module Messages
           player_snapshots = snapshots.select { |snap| snap.pokemon.team.player_id == bp.player_id }
 
           {
+            id: bp.player_id,
             name: bp.player.name,
             team: bp.group,
             pokemons: pokemons_snap_list(player_snapshots, lead_ids)

@@ -14,24 +14,42 @@ module Services
 
         case status
         when 'finished'
-          battle.finished!
-
-          Publishers::BattleEventsPublisher.publish(
-            Messages::BattleEvents::Events::MUTATE_BATTLE_STATUS,
-            Messages::BattleEvents::Payloads.mutate_battle_status(battle.external_id, 'finished', reason)
-          )
+          handle_finished(battle, reason)
         when 'setting_up'
-          battle.setting_up!
-
-          Publishers::BattleEventsPublisher.publish(
-            Messages::BattleEvents::Events::BATTLE_STATUS,
-            Messages::BattleEvents::Payloads.battle_status(battle)
-          )
+          handle_setting_up(battle)
         else
           BattleEngine.logger.warn("[MutateBattleStatusEvent] Unknown or unhandled status: #{status}")
         end
       rescue ActiveRecord::RecordNotFound => e
         BattleEngine.logger.error("[MutateBattleStatusEvent] Battle not found: #{battle_id}. Error: #{e.message}")
+      end
+
+      private
+
+      def handle_finished(battle, reason)
+        battle.finished!
+
+        Publishers::BattleEventsPublisher.publish(
+          Messages::BattleEvents::Events::MUTATE_BATTLE_STATUS,
+          Messages::BattleEvents::Payloads.mutate_battle_status(battle.external_id, 'finished', reason)
+        )
+
+        players = Player.includes(battles: { battle_players: :player }).where(id: battle.battle_players.map(&:player_id))
+        players.each do |player|
+          Publishers::PlayerEventsPublisher.publish(
+            Messages::PlayerEvents::Events::BATTLES_INFO,
+            Messages::PlayerEvents::Payloads.battles_info(player)
+          )
+        end
+      end
+
+      def handle_setting_up(battle)
+        battle.setting_up!
+
+        Publishers::BattleEventsPublisher.publish(
+          Messages::BattleEvents::Events::BATTLE_STATUS,
+          Messages::BattleEvents::Payloads.battle_status(battle)
+        )
       end
     end
   end

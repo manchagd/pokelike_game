@@ -20,6 +20,12 @@ module Services
           Messages::PlayerEvents::Events::BATTLE_CREATED,
           Messages::PlayerEvents::Payloads.battle_created(player_id, battle.external_id)
         )
+
+        player = Player.includes(battles: { battle_players: :player }).find(player_id)
+        Publishers::PlayerEventsPublisher.publish(
+          Messages::PlayerEvents::Events::BATTLES_INFO,
+          Messages::PlayerEvents::Payloads.battles_info(player)
+        )
       rescue ActiveRecord::RecordNotFound => e
         BattleEngine.logger.error("[Service] Failed to create battle: #{e.message}")
       rescue StandardError => e

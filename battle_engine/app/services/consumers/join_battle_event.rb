@@ -24,6 +24,14 @@ module Services
           Messages::PlayerEvents::Events::BATTLE_JOINED,
           Messages::PlayerEvents::Payloads.battle_joined(player_id, battle.external_id)
         )
+
+        players = Player.includes(battles: { battle_players: :player }).where(id: battle.battle_players.map(&:player_id))
+        players.each do |player|
+          Publishers::PlayerEventsPublisher.publish(
+            Messages::PlayerEvents::Events::BATTLES_INFO,
+            Messages::PlayerEvents::Payloads.battles_info(player)
+          )
+        end
       rescue ActiveRecord::RecordNotFound => e
         BattleEngine.logger.error("[Service] Failed to join battle: #{e.message}")
       rescue StandardError => e

@@ -343,7 +343,11 @@ defmodule BattleRealTime.BattleSession do
 
     clean_players =
       Enum.map(state.players_data, fn player ->
-        player_id = find_player_id_by_name(state, player["name"])
+        player_id =
+          if player["id"],
+            do: to_string(player["id"]),
+            else: find_player_id_by_name(state, player["name"])
+
         pokemons = player["pokemons"] || []
         alive_count = Enum.count(pokemons, fn p -> (p["hp"] || 0) > 0 end)
         active_monster = build_active_monster(player, player_id)
@@ -412,7 +416,10 @@ defmodule BattleRealTime.BattleSession do
 
   defp broadcast_private_setup_pokemons(state) do
     Enum.each(state.players_data, fn player_data ->
-      player_id = find_player_id_by_name(state, player_data["name"])
+      player_id =
+        if player_data["id"],
+          do: to_string(player_data["id"]),
+          else: find_player_id_by_name(state, player_data["name"])
 
       if player_id do
         private_topic = "battle_events:#{state.battle_id}:#{player_id}"

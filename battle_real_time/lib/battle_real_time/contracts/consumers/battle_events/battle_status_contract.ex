@@ -12,6 +12,7 @@ defmodule BattleRealTime.Contracts.Consumers.BattleEvents.BattleStatusContract d
     field(:timestamp, :string)
 
     embeds_many :players, Player, primary_key: false do
+      field(:id, :integer)
       field(:name, :string)
       field(:team, :string)
 
@@ -53,9 +54,9 @@ defmodule BattleRealTime.Contracts.Consumers.BattleEvents.BattleStatusContract d
 
   def player_changeset(struct, params) do
     struct
-    |> cast(params, [:name, :team])
+    |> cast(params, [:id, :name, :team])
     |> cast_embed(:pokemons, required: false, with: &pokemon_changeset/2)
-    |> validate_required([:name, :team])
+    |> validate_required([:id, :name, :team])
   end
 
   def pokemon_changeset(struct, params) do

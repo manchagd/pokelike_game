@@ -233,6 +233,12 @@ class BattleSocketService with ChangeNotifier {
           final battleId = innerPayload['battle_id']?.toString() ?? '';
           print("Evento battle_joined recibido. Battle ID: $battleId");
           _battleJoinedController.add(battleId);
+        } else if (innerEvent == 'battles_info' && innerPayload != null) {
+          final rawBattles = innerPayload['battles'] as List?;
+          _activeBattles = rawBattles != null
+              ? rawBattles.map((b) => Map<String, dynamic>.from(b as Map)).toList()
+              : [];
+          notifyListeners();
         }
       }
     });

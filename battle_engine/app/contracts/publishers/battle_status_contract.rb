@@ -9,6 +9,7 @@ module Contracts
         required(:turn).filled(:integer)
         optional(:timestamp).maybe(:string)
         optional(:players).array(:hash) do
+          required(:id).filled(:integer)
           required(:name).filled(:string)
           required(:team).filled(:string)
           required(:pokemons).array(:hash) do
