@@ -23,7 +23,11 @@ module Messages
       end
 
       private_class_method def battle_players_data(battle)
-        snapshots = battle.pokemon_battle_snapshots.includes(pokemon: %i[pokemon_template team]).to_a
+        snapshots = battle.pokemon_battle_snapshots
+                          .includes(pokemon: [:pokemon_template, :team, { attacks: :move }])
+                          .to_a
+
+        lead_ids = battle.field.positions.pluck(:pokemon_snapshot_id).to_set
 
         battle.battle_players.includes(:player).map do |bp|
           player_snapshots = snapshots.select { |snap| snap.pokemon.team.player_id == bp.player_id }
@@ -31,13 +35,15 @@ module Messages
           {
             name: bp.player.name,
             team: bp.group,
-            pokemons: pokemons_snap_list(player_snapshots)
+            pokemons: pokemons_snap_list(player_snapshots, lead_ids)
           }
         end
       end
 
-      private_class_method def pokemons_snap_list(player_snapshots)
+      private_class_method def pokemons_snap_list(player_snapshots, lead_ids = Set.new)
         player_snapshots.map do |snap|
+          is_lead = lead_ids.include?(snap.id)
+
           {
             id: snap.id,
             hp: snap.hp,
@@ -49,7 +55,24 @@ module Messages
             attack_log: snap.attack_log,
             name: snap.pokemon.nickname.presence || snap.pokemon.pokemon_template.name,
             pokemon_name: snap.pokemon.pokemon_template.name,
-            types: snap.pokemon.pokemon_template.types
+            types: snap.pokemon.pokemon_template.types,
+            level: snap.pokemon.lvl,
+            lead: is_lead,
+            attacks: is_lead ? attacks_list(snap.pokemon.attacks) : []
+          }
+        end
+      end
+
+      private_class_method def attacks_list(attacks)
+        attacks.map do |attack|
+          move = attack.move
+          {
+            id: attack.id,
+            name: move.name,
+            power: move.power,
+            accuracy: move.accuracy,
+            pp: move.pp,
+            types: [move.type, move.secondary_type].compact
           }
         end
       end

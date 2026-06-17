@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_06_17_030551) do
+ActiveRecord::Schema[7.2].define(version: 2026_06_17_050455) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -150,12 +150,12 @@ ActiveRecord::Schema[7.2].define(version: 2026_06_17_030551) do
   create_table "positions", force: :cascade do |t|
     t.integer "group", null: false
     t.string "side"
-    t.bigint "pokemon_id"
     t.bigint "field_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "pokemon_snapshot_id", null: false
     t.index ["field_id"], name: "index_positions_on_field_id"
-    t.index ["pokemon_id"], name: "index_positions_on_pokemon_id"
+    t.index ["pokemon_snapshot_id"], name: "index_positions_on_pokemon_snapshot_id"
   end
 
   create_table "teams", force: :cascade do |t|
@@ -191,6 +191,6 @@ ActiveRecord::Schema[7.2].define(version: 2026_06_17_030551) do
   add_foreign_key "pokemons", "pokemon_templates"
   add_foreign_key "pokemons", "teams"
   add_foreign_key "positions", "fields"
-  add_foreign_key "positions", "pokemons"
+  add_foreign_key "positions", "pokemon_battle_snapshots", column: "pokemon_snapshot_id"
   add_foreign_key "teams", "players"
 end

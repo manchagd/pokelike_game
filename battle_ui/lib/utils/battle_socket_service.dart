@@ -262,6 +262,12 @@ class BattleSocketService with ChangeNotifier {
     });
     joinResponse.onReply("error", (response) {
       print("Fallo al unirse al canal público battle:$battleId: $response");
+      final payload = response.response;
+      final reason = (payload is Map) ? (payload['reason'] ?? 'Fallo al unirse al canal de combate.') : 'Fallo al unirse al canal de combate.';
+      _battleEventController.add({
+        'event': 'connection_error',
+        'payload': {'reason': reason}
+      });
       notifyListeners();
     });
 
@@ -283,6 +289,12 @@ class BattleSocketService with ChangeNotifier {
       });
       privateJoinResponse.onReply("error", (response) {
         print("Fallo al unirse al canal privado battle:$battleId:$playerId: $response");
+        final payload = response.response;
+        final reason = (payload is Map) ? (payload['reason'] ?? 'Fallo al unirse al canal privado.') : 'Fallo al unirse al canal privado.';
+        _battleEventController.add({
+          'event': 'connection_error',
+          'payload': {'reason': reason}
+        });
         notifyListeners();
       });
 

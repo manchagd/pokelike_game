@@ -20,6 +20,13 @@ module Services
             Messages::BattleEvents::Events::MUTATE_BATTLE_STATUS,
             Messages::BattleEvents::Payloads.mutate_battle_status(battle.external_id, 'finished', reason)
           )
+        when 'setting_up'
+          battle.setting_up!
+
+          Publishers::BattleEventsPublisher.publish(
+            Messages::BattleEvents::Events::BATTLE_STATUS,
+            Messages::BattleEvents::Payloads.battle_status(battle)
+          )
         else
           BattleEngine.logger.warn("[MutateBattleStatusEvent] Unknown or unhandled status: #{status}")
         end
