@@ -1724,6 +1724,7 @@ class _BattleViewState extends State<BattleView> {
                 mon: _myActive,
                 isLead: myIsLead,
                 aliveCount: _myAliveCount,
+                mirror: false,
               ),
             ),
             const SizedBox(width: 8),
@@ -1741,6 +1742,7 @@ class _BattleViewState extends State<BattleView> {
                 mon: _oppActive,
                 isLead: false, // opp lead not exposed
                 aliveCount: _oppAliveCount,
+                mirror: true,
               ),
             ),
           ],
@@ -2166,27 +2168,46 @@ class _BattleViewState extends State<BattleView> {
                                 ),
                               ],
                             ),
-                            // Row 2: HP Text (left) and HP Bar (right)
+
+                            // Row 2: Sprite (Max 36x36) and Health Bar (Centered)
                             Row(
+                              crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
-                                Text(
-                                  'HP ${m['hp']}/${m['maxHp']}',
-                                  style: TextStyle(
-                                    color: AppColors.onSurfaceMuted,
-                                    fontSize: 9,
-                                    fontWeight: FontWeight.w500,
+                                if (m['sprite_url'] != null && (m['sprite_url'] as String).isNotEmpty) ...[
+                                  Image.network(
+                                    m['sprite_url'] as String,
+                                    height: 36,
+                                    width: 36,
+                                    fit: BoxFit.contain,
+                                    errorBuilder: (context, error, stackTrace) => const SizedBox(width: 36, height: 36),
                                   ),
-                                ),
-                                const SizedBox(width: 8),
+                                  const SizedBox(width: 8),
+                                ],
                                 Expanded(
-                                  child: ClipRRect(
-                                    borderRadius: BorderRadius.circular(4),
-                                    child: LinearProgressIndicator(
-                                      value: pct,
-                                      minHeight: 4,
-                                      backgroundColor: AppColors.surfaceHighest,
-                                      valueColor: AlwaysStoppedAnimation<Color>(hpColor),
-                                    ),
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        'HP ${m['hp']}/${m['maxHp']}',
+                                        style: TextStyle(
+                                          color: AppColors.onSurfaceMuted,
+                                          fontSize: 9,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 3),
+                                      ClipRRect(
+                                        borderRadius: BorderRadius.circular(4),
+                                        child: LinearProgressIndicator(
+                                          value: pct,
+                                          minHeight: 4,
+                                          backgroundColor: AppColors.surfaceHighest,
+                                          valueColor: AlwaysStoppedAnimation<Color>(hpColor),
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ],
@@ -2454,6 +2475,7 @@ class _ParticipantTile extends StatelessWidget {
   final Map<String, dynamic> mon;
   final bool isLead;
   final int aliveCount;
+  final bool mirror;
   const _ParticipantTile({
     required this.label,
     required this.name,
@@ -2461,6 +2483,7 @@ class _ParticipantTile extends StatelessWidget {
     required this.mon,
     this.isLead = false,
     this.aliveCount = 0,
+    this.mirror = false,
   });
 
   @override
@@ -2474,103 +2497,104 @@ class _ParticipantTile extends StatelessWidget {
     if (pct < 0.5) hpColor = AppColors.accent;
     if (pct < 0.25) hpColor = AppColors.danger;
 
-    return Container(
-      padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        color: AppColors.surfaceHighest,
-        borderRadius: BorderRadius.circular(AppRadius.md),
-        border: Border.all(
-          color: isLead ? color.withValues(alpha: 0.8) : color.withValues(alpha: 0.35),
-          width: isLead ? 1.8 : 1.0,
-        ),
-      ),
-      child: Row(
+    final textInfo = Expanded(
+      child: Column(
+        crossAxisAlignment: mirror ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        name,
-                        style: text.titleSmall?.copyWith(
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.onSurface,
-                        ),
-                        overflow: TextOverflow.ellipsis,
+          Text(
+            name,
+            textAlign: mirror ? TextAlign.right : TextAlign.left,
+            style: text.titleSmall?.copyWith(
+              fontWeight: FontWeight.w800,
+              color: AppColors.onSurface,
+            ),
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 4),
+          Row(
+            mainAxisAlignment: mirror ? MainAxisAlignment.end : MainAxisAlignment.start,
+            children: mirror
+                ? [
+                    Text(
+                      'Nv.${mon['level'] ?? 50}',
+                      style: text.bodySmall?.copyWith(
+                        color: AppColors.onSurfaceMuted,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                     const SizedBox(width: 6),
-                    if (isLead)
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: color,
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: const Text(
-                          'LEAD',
-                          style: TextStyle(
-                            fontSize: 8,
-                            fontWeight: FontWeight.w900,
-                            color: Colors.white,
-                            letterSpacing: 0.5,
-                          ),
-                        ),
-                      )
-                    else
-                      Text(
-                        'Nv.${mon['level'] ?? 50}',
-                        style: text.bodySmall?.copyWith(
-                          color: AppColors.onSurfaceMuted,
-                          fontWeight: FontWeight.w600,
-                        ),
+                    Flexible(
+                      child: Text(
+                        mon['name'] ?? '?',
+                        textAlign: TextAlign.right,
+                        style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13),
+                        overflow: TextOverflow.ellipsis,
                       ),
-                  ],
-                ),
-                const SizedBox(height: 3),
-                Row(
-                  children: [
+                    ),
+                    const SizedBox(width: 4),
+                    Icon(Icons.catching_pokemon, color: color, size: 14),
+                  ]
+                : [
                     Icon(Icons.catching_pokemon, color: color, size: 14),
                     const SizedBox(width: 4),
-                    Expanded(
+                    Flexible(
                       child: Text(
                         mon['name'] ?? '?',
                         style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13),
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    if (isLead)
-                      Text(
-                        'Nv.${mon['level'] ?? 50}',
-                        style: text.bodySmall?.copyWith(
-                          color: AppColors.onSurfaceMuted,
-                          fontWeight: FontWeight.w600,
+                    const SizedBox(width: 6),
+                    Text(
+                      'Nv.${mon['level'] ?? 50}',
+                      style: text.bodySmall?.copyWith(
+                        color: AppColors.onSurfaceMuted,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+          ),
+          const SizedBox(height: 4),
+          Row(
+            mainAxisAlignment: mirror ? MainAxisAlignment.end : MainAxisAlignment.start,
+            children: List.generate(6, (index) {
+              return Icon(
+                Icons.catching_pokemon,
+                size: 10,
+                color: index < aliveCount
+                    ? color.withValues(alpha: 0.8)
+                    : AppColors.outlineVariant.withValues(alpha: 0.3),
+              );
+            }),
+          ),
+          const SizedBox(height: 6),
+          Row(
+            children: mirror
+                ? [
+                    Text(
+                      '${mon['hp'] ?? 0}/${mon['maxHp'] ?? 100}',
+                      style: TextStyle(
+                        fontFamily: 'monospace',
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.onSurfaceMuted,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(4),
+                        child: LinearProgressIndicator(
+                          value: pct,
+                          minHeight: 5,
+                          backgroundColor: AppColors.surface,
+                          valueColor: AlwaysStoppedAnimation<Color>(hpColor),
                         ),
                       ),
-                  ],
-                ),
-                const SizedBox(height: 2),
-                // Pokeball icons for alive count
-                Row(
-                  children: List.generate(6, (index) {
-                    return Icon(
-                      Icons.catching_pokemon,
-                      size: 10,
-                      color: index < aliveCount
-                          ? color.withValues(alpha: 0.8)
-                          : AppColors.outlineVariant.withValues(alpha: 0.3),
-                    );
-                  }),
-                ),
-                const SizedBox(height: 4),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
+                    ),
+                  ]
+                : [
                     Expanded(
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(4),
@@ -2593,21 +2617,45 @@ class _ParticipantTile extends StatelessWidget {
                       ),
                     ),
                   ],
-                ),
-              ],
-            ),
           ),
-          if (mon['sprite_url'] != null && (mon['sprite_url'] as String).isNotEmpty) ...[
-            const SizedBox(width: 8),
-            Image.network(
-              mon['sprite_url'],
-              height: 60,
-              width: 60,
-              fit: BoxFit.contain,
-              errorBuilder: (context, error, stackTrace) => const SizedBox(),
-            ),
-          ],
         ],
+      ),
+    );
+
+    final spriteImage = mon['sprite_url'] != null && (mon['sprite_url'] as String).isNotEmpty
+        ? SizedBox(
+            height: 70,
+            width: 70,
+            child: Image.network(
+              mon['sprite_url'],
+              fit: BoxFit.contain,
+              errorBuilder: (context, error, stackTrace) => const SizedBox(width: 70, height: 70),
+            ),
+          )
+        : const SizedBox(width: 70, height: 70);
+
+    return Container(
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceHighest,
+        borderRadius: BorderRadius.circular(AppRadius.md),
+        border: Border.all(
+          color: isLead ? color.withValues(alpha: 0.8) : color.withValues(alpha: 0.35),
+          width: isLead ? 1.8 : 1.0,
+        ),
+      ),
+      child: Row(
+        children: mirror
+            ? [
+                spriteImage,
+                const SizedBox(width: 8),
+                textInfo,
+              ]
+            : [
+                textInfo,
+                const SizedBox(width: 8),
+                spriteImage,
+              ],
       ),
     );
   }
