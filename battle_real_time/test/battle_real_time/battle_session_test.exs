@@ -18,13 +18,16 @@ defmodule BattleRealTime.BattleSessionTest do
   test "starts with initial state", %{battle_id: battle_id} do
     assert {:ok, state} = BattleSession.get_state(battle_id)
     assert state.battle_id == battle_id
-    assert state.turn == 1
-    assert state.phase == :waiting_players
+    assert state.turn == 0
+    assert state.phase == :syncing
     assert MapSet.equal?(state.players, MapSet.new())
     assert state.actions == %{}
   end
 
   test "registers players and transitions phase", %{battle_id: battle_id} do
+    # Sync first to transition out of :syncing
+    assert :ok = BattleSession.sync_state(battle_id, %{"turn" => 1, "status" => "not_started"})
+
     assert :ok = BattleSession.register_player(battle_id, "player_1")
     assert {:ok, state} = BattleSession.get_state(battle_id)
     assert MapSet.member?(state.players, "player_1")
@@ -37,6 +40,7 @@ defmodule BattleRealTime.BattleSessionTest do
   end
 
   test "rejects actions when phase is waiting_players", %{battle_id: battle_id} do
+    assert :ok = BattleSession.sync_state(battle_id, %{"turn" => 1, "status" => "not_started"})
     assert :ok = BattleSession.register_player(battle_id, "player_1")
 
     action = %{
@@ -51,6 +55,9 @@ defmodule BattleRealTime.BattleSessionTest do
   end
 
   test "stores action and resolves turn when both players submit", %{battle_id: battle_id} do
+    # Sync first to in_progress
+    assert :ok = BattleSession.sync_state(battle_id, %{"turn" => 1, "status" => "in_progress"})
+
     # Register 2 players
     assert :ok = BattleSession.register_player(battle_id, "player_1")
     assert :ok = BattleSession.register_player(battle_id, "player_2")
@@ -94,19 +101,21 @@ defmodule BattleRealTime.BattleSessionTest do
     assert "Acciones procesadas. ¡Comienza el turno 2!" in payload["log"]
   end
 
-  test "surrendering player terminates the battle gracefully", %{battle_id: battle_id, pid: pid} do
+  test "surrendering player publishes terminate_battle and terminates upon engine event", %{
+    battle_id: battle_id,
+    pid: pid
+  } do
+    assert :ok = BattleSession.sync_state(battle_id, %{"turn" => 1, "status" => "in_progress"})
     assert :ok = BattleSession.register_player(battle_id, "player_1", "Ash")
-
-    # Subscribe to PubSub to receive the broadcasted battle_ended event
-    Phoenix.PubSub.subscribe(BattleRealTime.PubSub, "battle_events:#{battle_id}")
 
     # Forfeit!
     assert :ok = BattleSession.forfeit(battle_id, "player_1")
 
-    # Check broadcast received
-    assert_receive {:battle_event, %{event: "battle_ended", payload: payload}}
-    assert payload["battle_id"] == battle_id
-    assert payload["reason"] == "El entrenador Ash se ha retirado. Combate finalizado."
+    # GenServer is still alive because it is waiting for the engine to confirm the termination
+    assert Process.alive?(pid)
+
+    # Simulate engine confirming the termination via terminate_session/2 call
+    assert :ok = BattleSession.terminate_session(battle_id, "El jugador Ash se rinde.")
 
     # Check that the GenServer process is terminated
     refute Process.alive?(pid)

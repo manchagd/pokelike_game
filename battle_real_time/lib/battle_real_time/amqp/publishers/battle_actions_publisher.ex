@@ -7,9 +7,11 @@ defmodule BattleRealTime.AMQP.Publishers.BattleActionsPublisher do
 
   alias BattleRealTime.Contracts.Publishers.BattleActions.TurnActionsContract
   alias BattleRealTime.Contracts.Publishers.BattleActions.TerminateBattleContract
+  alias BattleRealTime.Contracts.Publishers.BattleActions.BattleSyncContract
 
   @impl true
   def validate("turn_actions", payload), do: TurnActionsContract.validate(payload)
   def validate("terminate_battle", payload), do: TerminateBattleContract.validate(payload)
+  def validate("battle_sync", payload), do: BattleSyncContract.validate(payload)
   def validate(action, payload), do: super(action, payload)
 end

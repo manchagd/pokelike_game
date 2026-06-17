@@ -45,6 +45,20 @@ defmodule BattleRealTime.BattleSession do
     end
   end
 
+  def sync_state(battle_id, engine_state) do
+    case get_pid(battle_id) do
+      nil -> {:error, :not_found}
+      pid -> GenServer.call(pid, {:sync_state, engine_state})
+    end
+  end
+
+  def terminate_session(battle_id, reason) do
+    case get_pid(battle_id) do
+      nil -> {:error, :not_found}
+      pid -> GenServer.call(pid, {:terminate_session, reason})
+    end
+  end
+
   # --- Callbacks ---
 
   @impl true
@@ -54,18 +68,18 @@ defmodule BattleRealTime.BattleSession do
     state = %{
       battle_id: battle_id,
       battle_format: "1v1",
-      turn: 1,
-      phase: :waiting_players,
+      turn: 0,
+      phase: :syncing,
       players: MapSet.new(),
       player_names: %{},
       actions: %{},
       timer_ref: nil,
       expires_at: nil,
-      logs: ["Esperando a que se unan los jugadores..."]
+      logs: ["Sincronizando Battalla..."]
     }
 
-    # Broadcast initial battle state once started
-    broadcast_state(state)
+    # Publish battle_sync event instead of broadcasting
+    publish_battle_sync(battle_id)
 
     {:ok, state}
   end
@@ -75,7 +89,6 @@ defmodule BattleRealTime.BattleSession do
     handle_call({:register_player, player_id, "Entrenador"}, from, state)
   end
 
-  @impl true
   def handle_call({:register_player, player_id, username}, _from, state) do
     # Add player to set
     players = MapSet.put(state.players, player_id)
@@ -119,7 +132,6 @@ defmodule BattleRealTime.BattleSession do
     {:reply, :ok, new_state}
   end
 
-  @impl true
   def handle_call({:submit_action, player_id, action}, _from, state) do
     if not waiting_actions?(state) do
       {:reply, {:error, :invalid_phase}, state}
@@ -171,30 +183,85 @@ defmodule BattleRealTime.BattleSession do
     end
   end
 
-  @impl true
   def handle_call({:forfeit, player_id}, _from, state) do
     username = Map.get(state.player_names, player_id, "Entrenador")
-
-    broadcast_battle_ended(
-      state.battle_id,
-      "El entrenador #{username} se ha retirado. Combate finalizado."
-    )
 
     publish_terminate_battle(state.battle_id, "El jugador #{username} se rinde.")
 
     Logger.info(
-      "Battle #{state.battle_id} terminated due to forfeit from player #{player_id} (#{username})"
+      "Forfeit requested by player #{player_id} (#{username}) in battle #{state.battle_id}. Published terminate_battle."
     )
 
-    {:stop, :normal, :ok, state}
+    {:reply, :ok, state}
   end
 
-  @impl true
+  def handle_call({:sync_state, engine_state}, _from, state) do
+    new_turn = Map.get(engine_state, "turn", state.turn)
+    new_phase_str = Map.get(engine_state, "status", Atom.to_string(state.phase))
+
+    new_phase =
+      case new_phase_str do
+        "not_started" ->
+          :waiting_players
+
+        "in_progress" ->
+          :waiting_actions
+
+        "finished" ->
+          :finished
+
+        other ->
+          try do
+            String.to_existing_atom(other)
+          rescue
+            _ -> String.to_atom(other)
+          end
+      end
+
+    {new_timer_ref, new_expires_at} =
+      if new_phase == :waiting_actions do
+        cancel_timeout_timer(state.timer_ref)
+        {start_timeout_timer(), new_expires_at()}
+      else
+        if new_phase in [:finished, :syncing, :setting_up] do
+          cancel_timeout_timer(state.timer_ref)
+          {nil, nil}
+        else
+          {state.timer_ref, state.expires_at}
+        end
+      end
+
+    log_msg = "Estado sincronizado con el Engine. Turno #{new_turn}."
+
+    new_state =
+      %{
+        state
+        | turn: new_turn,
+          phase: new_phase,
+          timer_ref: new_timer_ref,
+          expires_at: new_expires_at
+      }
+      |> add_log(log_msg)
+
+    broadcast_state(new_state)
+
+    {:reply, :ok, new_state}
+  end
+
+  def handle_call({:terminate_session, reason}, _from, state) do
+    Logger.info("Terminating battle session #{state.battle_id} with reason: #{reason}")
+
+    cancel_timeout_timer(state.timer_ref)
+
+    new_state = %{state | phase: :finished, timer_ref: nil, expires_at: nil}
+
+    {:stop, :normal, :ok, new_state}
+  end
+
   def handle_call(:get_state, _from, state) do
     {:reply, {:ok, state}, state}
   end
 
-  @impl true
   def handle_call(:get_state_payload, _from, state) do
     payload = build_payload(state)
     {:reply, {:ok, payload}, state}
@@ -289,22 +356,7 @@ defmodule BattleRealTime.BattleSession do
     end
   end
 
-  defp broadcast_timeout(state) do
-    topic = "battle_events:#{state.battle_id}"
-
-    payload = %{
-      "battle_id" => state.battle_id,
-      "reason" => "Se ha excedido el límite de tiempo de espera (2 minutos)."
-    }
-
-    Phoenix.PubSub.broadcast(
-      BattleRealTime.PubSub,
-      topic,
-      {:battle_event, %{event: "battle_timeout", payload: payload}}
-    )
-  end
-
-  defp broadcast_battle_ended(battle_id, reason) do
+  def broadcast_battle_ended(battle_id, reason) do
     topic = "battle_events:#{battle_id}"
 
     payload = %{
@@ -348,8 +400,19 @@ defmodule BattleRealTime.BattleSession do
   defp expected_players_count("2v2"), do: 4
   defp expected_players_count(_other), do: 2
 
-  defp waiting_players?(state), do: state.phase == :waiting_players
-  defp waiting_actions?(state), do: state.phase == :waiting_actions
+  def syncing?(state), do: state.phase == :syncing
+  def setting_up?(state), do: state.phase == :setting_up
+  def waiting_players?(state), do: state.phase == :waiting_players
+  def waiting_actions?(state), do: state.phase == :waiting_actions
+  def finished?(state), do: state.phase == :finished
+
+  defp publish_battle_sync(battle_id) do
+    payload = %{
+      "battle_id" => battle_id
+    }
+
+    BattleRealTime.AMQP.Publishers.BattleActionsPublisher.publish("battle_sync", payload)
+  end
 
   defp default_log_message(%{phase: :waiting_players} = state) do
     expected = expected_players_count(state.battle_format)
@@ -363,8 +426,15 @@ defmodule BattleRealTime.BattleSession do
 
   @impl true
   def handle_info(:turn_timeout, state) do
-    Logger.warning("Turn timeout reached for battle #{state.battle_id}. Ending battle session.")
-    broadcast_timeout(state)
-    {:stop, :normal, state}
+    Logger.warning(
+      "Turn timeout reached for battle #{state.battle_id}. Publishing terminate_battle."
+    )
+
+    publish_terminate_battle(
+      state.battle_id,
+      "Se ha excedido el límite de tiempo de espera (5 minutos)."
+    )
+
+    {:noreply, state}
   end
 end

@@ -10,11 +10,13 @@ class BattleSocketService with ChangeNotifier {
   PhoenixChannel? _applicationChannel;
   PhoenixChannel? _playerChannel;
   PhoenixChannel? _battleChannel;
+  PhoenixChannel? _privateBattleChannel;
   PhoenixChannel? _chatChannel;
 
   StreamSubscription? _appMessageSub;
   StreamSubscription? _playerMessageSub;
   StreamSubscription? _battleMessageSub;
+  StreamSubscription? _privateBattleMessageSub;
   StreamSubscription? _chatMessageSub;
 
   // Track the active player profile in memory
@@ -61,6 +63,12 @@ class BattleSocketService with ChangeNotifier {
   /// Check whether the socket is currently connected
   bool get isConnected => _socket?.isConnected ?? false;
 
+  /// Check whether both the socket is connected and the battle channel is active
+  bool get isBattleConnected =>
+      isConnected &&
+      _battleChannel != null &&
+      _battleChannel!.state == PhoenixChannelState.joined;
+
   /// Ensure the socket connection is initialized
   void _ensureSocketConnected() {
     if (_socket != null && _socket!.isConnected) return;
@@ -75,9 +83,16 @@ class BattleSocketService with ChangeNotifier {
     _socket!.openStream.listen((_) {
       print("¡Phoenix WebSocket conectado exitosamente!");
       connectAndJoinLobby();
+      notifyListeners();
     });
-    _socket!.closeStream.listen((_) => print("Phoenix WebSocket cerrado."));
-    _socket!.errorStream.listen((err) => print("Error en Phoenix WebSocket: $err"));
+    _socket!.closeStream.listen((_) {
+      print("Phoenix WebSocket cerrado.");
+      notifyListeners();
+    });
+    _socket!.errorStream.listen((err) {
+      print("Error en Phoenix WebSocket: $err");
+      notifyListeners();
+    });
 
     _socket!.connect();
   }
@@ -230,19 +245,24 @@ class BattleSocketService with ChangeNotifier {
     // Clean up existing battle channel if any
     leaveBattle();
 
-    print("Uniéndose al canal battle:$battleId");
+    final playerId = _currentPlayer?['id']?.toString() ?? '';
     final battleParams = {
-      'player_id': _currentPlayer?['id']?.toString() ?? '',
+      'player_id': playerId,
       'username': _currentPlayer?['name'] ?? 'Entrenador',
     };
+
+    // 1. Join public channel
+    print("Uniéndose al canal público battle:$battleId");
     _battleChannel = _socket!.addChannel(topic: 'battle:$battleId', parameters: battleParams);
 
     final joinResponse = _battleChannel!.join();
     joinResponse.onReply("ok", (response) {
-      print("Unido con éxito al canal battle:$battleId");
+      print("Unido con éxito al canal público battle:$battleId");
+      notifyListeners();
     });
     joinResponse.onReply("error", (response) {
-      print("Fallo al unirse al canal battle:$battleId: $response");
+      print("Fallo al unirse al canal público battle:$battleId: $response");
+      notifyListeners();
     });
 
     _battleMessageSub = _battleChannel!.messages.listen((Message message) {
@@ -250,6 +270,28 @@ class BattleSocketService with ChangeNotifier {
         _battleEventController.add(message.payload!);
       }
     });
+
+    // 2. Join private channel (if player_id is available)
+    if (playerId.isNotEmpty) {
+      print("Uniéndose al canal privado battle:$battleId:$playerId");
+      _privateBattleChannel = _socket!.addChannel(topic: 'battle:$battleId:$playerId', parameters: battleParams);
+
+      final privateJoinResponse = _privateBattleChannel!.join();
+      privateJoinResponse.onReply("ok", (response) {
+        print("Unido con éxito al canal privado battle:$battleId:$playerId");
+        notifyListeners();
+      });
+      privateJoinResponse.onReply("error", (response) {
+        print("Fallo al unirse al canal privado battle:$battleId:$playerId: $response");
+        notifyListeners();
+      });
+
+      _privateBattleMessageSub = _privateBattleChannel!.messages.listen((Message message) {
+        if (message.event.value == 'battle_event' && message.payload != null) {
+          _battleEventController.add(message.payload!);
+        }
+      });
+    }
 
     print("Uniéndose al canal battle_chat:$battleId");
     final chatParams = {
@@ -331,6 +373,15 @@ class BattleSocketService with ChangeNotifier {
       _battleChannel!.leave();
       _battleChannel!.close();
       _battleChannel = null;
+    }
+
+    _privateBattleMessageSub?.cancel();
+    _privateBattleMessageSub = null;
+
+    if (_privateBattleChannel != null) {
+      _privateBattleChannel!.leave();
+      _privateBattleChannel!.close();
+      _privateBattleChannel = null;
     }
 
     _chatMessageSub?.cancel();

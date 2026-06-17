@@ -21,11 +21,13 @@ module Services
         end
 
         ActiveRecord::Base.transaction do
-          # Associate the player to the battle
-          # Callback on BattlePlayer will automatically set the group (A or B)
-          BattlePlayer.create!(
+          battle.battle_players.create!(player:)
+
+          # Create snapshots for the player's team
+          Services::Battles::CreateSnapshotsService.new.call(
             battle: battle,
-            player: player
+            player: player,
+            team_id: team_id
           )
 
           battle

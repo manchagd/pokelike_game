@@ -21,6 +21,13 @@ module Services
 
           battle.battle_players.create!(player:)
 
+          # Create snapshots for the player's team
+          Services::Battles::CreateSnapshotsService.new.call(
+            battle: battle,
+            player: player,
+            team_id: team_id
+          )
+
           battle
         end
       end

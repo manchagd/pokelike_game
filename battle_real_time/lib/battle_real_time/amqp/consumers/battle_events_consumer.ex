@@ -7,6 +7,45 @@ defmodule BattleRealTime.AMQP.Consumers.BattleEventsConsumer do
   """
   use BattleRealTime.AMQP.Consumer, queue: "battle_events"
 
+  def process_message("terminate_battle", data) do
+    battle_id = Map.get(data, "battle_id")
+    reason = Map.get(data, "reason", "")
+
+    Logger.info(
+      "Received terminate_battle from RabbitMQ. Terminating GenServer session for battle: #{battle_id}"
+    )
+
+    case BattleRealTime.BattleSession.terminate_session(battle_id, reason) do
+      :ok ->
+        Logger.info(
+          "GenServer session for battle #{battle_id} terminated. Broadcasting battle_ended."
+        )
+
+        BattleRealTime.BattleSession.broadcast_battle_ended(battle_id, reason)
+
+      {:error, :not_found} ->
+        Logger.warning("Attempted to terminate non-existent battle session: #{battle_id}")
+        # Still broadcast to ensure clients clean up
+        BattleRealTime.BattleSession.broadcast_battle_ended(battle_id, reason)
+    end
+  end
+
+  def process_message("battle_status", data) do
+    battle_id = Map.get(data, "external_id")
+
+    Logger.info(
+      "Received battle_status from RabbitMQ. Syncing GenServer state for battle: #{battle_id}"
+    )
+
+    case BattleRealTime.BattleSession.sync_state(battle_id, data) do
+      :ok ->
+        :ok
+
+      {:error, :not_found} ->
+        Logger.warning("Attempted to sync state for non-existent battle session: #{battle_id}")
+    end
+  end
+
   def process_message(event, data) do
     battle_id = Map.get(data, "battle_id", "lobby")
     topic = "battle_events:#{battle_id}"

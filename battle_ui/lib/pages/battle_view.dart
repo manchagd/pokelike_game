@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
@@ -400,6 +401,9 @@ class _BattleViewState extends State<BattleView> {
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
+    final isBattleConnected = context.watch<BattleSocketService>().isBattleConnected;
+    final showWarning = !isBattleConnected && _phase != BattlePhase.finished;
+
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -465,95 +469,174 @@ class _BattleViewState extends State<BattleView> {
             ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          children: [
-            _buildTopTurnBanner(text),
-            const SizedBox(height: 16),
-            Expanded(
-              child: LayoutBuilder(
-                builder: (context, c) {
-                  final isWide = c.maxWidth > 900 && c.maxHeight > 700;
-                  final isWaitingPlayers = _phase.isWaitingPlayers;
+      body: Stack(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              children: [
+                _buildTopTurnBanner(text),
+                const SizedBox(height: 16),
+                Expanded(
+                  child: LayoutBuilder(
+                    builder: (context, c) {
+                      final isWide = c.maxWidth > 900 && c.maxHeight > 700;
+                      final isWaitingPlayers = _phase.isWaitingPlayers;
 
-                  if (isWaitingPlayers) {
-                    if (!isWide) {
-                      return SingleChildScrollView(
-                        child: Column(
+                      if (isWaitingPlayers) {
+                        if (!isWide) {
+                          return SingleChildScrollView(
+                            child: Column(
+                              children: [
+                                _buildWaitingRoomPanel(),
+                                const SizedBox(height: 16),
+                                SizedBox(height: 360, child: _buildChatPanel()),
+                              ],
+                            ),
+                          );
+                        }
+                        return Row(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            _buildWaitingRoomPanel(),
-                            const SizedBox(height: 16),
-                            SizedBox(height: 360, child: _buildChatPanel()),
+                            Expanded(
+                              flex: 6,
+                              child: _buildWaitingRoomPanel(),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              flex: 4,
+                              child: _buildChatPanel(),
+                            ),
                           ],
-                        ),
-                      );
-                    }
-                    return Row(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Expanded(
-                          flex: 6,
-                          child: _buildWaitingRoomPanel(),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          flex: 4,
-                          child: _buildChatPanel(),
-                        ),
-                      ],
-                    );
-                  }
+                        );
+                      }
 
-                  if (!isWide) {
-                    return SingleChildScrollView(
-                      child: Column(
+                      if (!isWide) {
+                        return SingleChildScrollView(
+                          child: Column(
+                            children: [
+                              _buildParticipants(),
+                              const SizedBox(height: 16),
+                              _buildAttackPanel(),
+                              const SizedBox(height: 16),
+                              _buildLogPanel(height: 250),
+                              const SizedBox(height: 16),
+                              _buildMonstersPanel(),
+                              const SizedBox(height: 16),
+                              SizedBox(height: 360, child: _buildChatPanel()),
+                            ],
+                          ),
+                        );
+                      }
+                      return Row(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          _buildParticipants(),
-                          const SizedBox(height: 16),
-                          _buildAttackPanel(),
-                          const SizedBox(height: 16),
-                          _buildLogPanel(height: 250),
-                          const SizedBox(height: 16),
-                          _buildMonstersPanel(),
-                          const SizedBox(height: 16),
-                          SizedBox(height: 360, child: _buildChatPanel()),
+                          Expanded(
+                            flex: 6,
+                            child: Column(
+                              children: [
+                                _buildParticipants(),
+                                const SizedBox(height: 16),
+                                _buildAttackPanel(),
+                                const SizedBox(height: 16),
+                                Expanded(child: _buildLogPanel()),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            flex: 4,
+                            child: Column(
+                              children: [
+                                _buildMonstersPanel(),
+                                const SizedBox(height: 16),
+                                Expanded(child: _buildChatPanel()),
+                              ],
+                            ),
+                          ),
                         ],
-                      ),
-                    );
-                  }
-                  return Row(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Expanded(
-                        flex: 6,
-                        child: Column(
-                          children: [
-                            _buildParticipants(),
-                            const SizedBox(height: 16),
-                            _buildAttackPanel(),
-                            const SizedBox(height: 16),
-                            Expanded(child: _buildLogPanel()),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        flex: 4,
-                        child: Column(
-                          children: [
-                            _buildMonstersPanel(),
-                            const SizedBox(height: 16),
-                            Expanded(child: _buildChatPanel()),
-                          ],
-                        ),
-                      ),
-                    ],
-                  );
-                },
-              ),
+                      );
+                    },
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
+          if (showWarning)
+            Positioned(
+              top: 12,
+              left: 24,
+              right: 24,
+              child: _buildNoConnectionBanner(text),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNoConnectionBanner(TextTheme text) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(AppRadius.md),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          decoration: BoxDecoration(
+            color: AppColors.danger.withValues(alpha: 0.15),
+            borderRadius: BorderRadius.circular(AppRadius.md),
+            border: Border.all(
+              color: AppColors.danger.withValues(alpha: 0.6),
+              width: 1.5,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.danger.withValues(alpha: 0.2),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              _PulsingIcon(
+                icon: Icons.wifi_off_rounded,
+                color: AppColors.danger,
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'Conexión perdida',
+                      style: text.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w900,
+                        color: AppColors.onSurface,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Intentando reconectar al combate...',
+                      style: text.bodySmall?.copyWith(
+                        color: AppColors.onSurfaceMuted,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 16),
+              SizedBox(
+                width: 18,
+                height: 18,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(AppColors.danger),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -1589,6 +1672,50 @@ class _PulsingIndicatorState extends State<_PulsingIndicator>
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _PulsingIcon extends StatefulWidget {
+  final IconData icon;
+  final Color color;
+  const _PulsingIcon({required this.icon, required this.color});
+
+  @override
+  State<_PulsingIcon> createState() => _PulsingIconState();
+}
+
+class _PulsingIconState extends State<_PulsingIcon> with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _scaleAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1000),
+    )..repeat(reverse: true);
+    _scaleAnimation = Tween<double>(begin: 0.9, end: 1.15).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ScaleTransition(
+      scale: _scaleAnimation,
+      child: Icon(
+        widget.icon,
+        color: widget.color,
+        size: 24,
       ),
     );
   }

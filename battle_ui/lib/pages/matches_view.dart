@@ -316,29 +316,48 @@ class _MatchesViewState extends State<MatchesView> {
                                     children: pokemons.map((p) {
                                       final rawTypes = p['types'] as List? ?? [];
                                       final types = rawTypes.cast<String>();
-                                      final color = types.isNotEmpty
-                                          ? PokemonTypeIcons.getColor(types[0])
-                                          : AppColors.primary;
-                                      final contrastColor = types.isNotEmpty
-                                          ? PokemonTypeIcons.getContrastColor(types[0], context)
-                                          : AppColors.primary;
+                                      final colors = types.isEmpty
+                                          ? [AppColors.primary]
+                                          : types.map((t) => PokemonTypeIcons.getColor(t)).toList();
+                                      final c1 = colors[0];
+                                      final c2 = colors.length > 1 ? colors[1] : c1;
+
                                       return Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                                         decoration: BoxDecoration(
-                                          color: color.withValues(alpha: 0.12),
-                                          borderRadius: BorderRadius.circular(12),
+                                          gradient: LinearGradient(
+                                            colors: [
+                                              c1.withValues(alpha: 0.14),
+                                              c2.withValues(alpha: 0.14),
+                                            ],
+                                          ),
+                                          borderRadius: BorderRadius.circular(16),
                                           border: Border.all(
-                                            color: contrastColor.withValues(alpha: 0.45),
-                                            width: 0.8,
+                                            color: Color.lerp(c1, c2, 0.5)!.withValues(alpha: 0.4),
+                                            width: 1,
                                           ),
                                         ),
-                                        child: Text(
-                                          p['name'] ?? '',
-                                          style: TextStyle(
-                                            fontSize: 11,
-                                            color: contrastColor,
-                                            fontWeight: FontWeight.w600,
-                                          ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            if (types.isNotEmpty) ...[
+                                              PokemonTypeIcons.buildSvgIcon(types[0], color: c1, size: 12),
+                                              if (types.length > 1) ...[
+                                                const SizedBox(width: 3),
+                                                PokemonTypeIcons.buildSvgIcon(types[1], color: c2, size: 12),
+                                              ],
+                                            ] else ...[
+                                              Icon(Icons.catching_pokemon, color: c1, size: 12),
+                                            ],
+                                            const SizedBox(width: 6),
+                                            Text(
+                                              p['name'] ?? '',
+                                              style: const TextStyle(
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                            ),
+                                          ],
                                         ),
                                       );
                                     }).toList(),
