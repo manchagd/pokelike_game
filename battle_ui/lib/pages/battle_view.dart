@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../theme.dart';
 import '../nav.dart';
 import '../utils/pokemon_type_icons.dart';
@@ -392,6 +393,7 @@ class _BattleViewState extends State<BattleView> {
               'maxHp': am['max_hp'] ?? 100,
               'level': am['level'] ?? 50,
               'sprite_url': am['sprite_url'] ?? am['spriteUrl'],
+              'status': am['status'] ?? 'normal',
             };
           } else {
             _myActive = {};
@@ -408,6 +410,7 @@ class _BattleViewState extends State<BattleView> {
               'maxHp': am['max_hp'] ?? 100,
               'level': am['level'] ?? 50,
               'sprite_url': am['sprite_url'] ?? am['spriteUrl'],
+              'status': am['status'] ?? 'normal',
             };
           } else {
             _oppActive = {};
@@ -613,6 +616,45 @@ class _BattleViewState extends State<BattleView> {
               'Combate en vivo',
               style: text.titleLarge?.copyWith(fontWeight: FontWeight.w800),
             ),
+            if (!_phase.isWaitingPlayers) ...[
+              Expanded(
+                child: Center(
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        _myName.replaceAll(' (Tú)', ''),
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.onSurface,
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        child: Text(
+                          'VS',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w900,
+                            color: AppColors.accent,
+                          ),
+                        ),
+                      ),
+                      Text(
+                        _oppName,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.onSurface,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ] else
+              const Spacer(),
           ],
         ),
         actions: [
@@ -1707,6 +1749,28 @@ class _BattleViewState extends State<BattleView> {
     );
   }
 
+  Widget _buildPokeballs(int aliveCount, Color color, bool alignRight) {
+    final isDark = AppColors.isDark;
+    // Use AppColors.primary for active pokeballs so both sides have symmetric brightness
+    final Color activeColor = AppColors.primary;
+    // High contrast solid fainted colors (dark grey in dark mode, light grey in light mode)
+    final Color faintedColor = isDark ? const Color(0xFF4A4A4A) : const Color(0xFFCCCCCC);
+
+    return Row(
+      mainAxisAlignment: alignRight ? MainAxisAlignment.end : MainAxisAlignment.start,
+      children: List.generate(6, (index) {
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 1.5),
+          child: Icon(
+            Icons.catching_pokemon,
+            size: 11,
+            color: index < aliveCount ? activeColor : faintedColor,
+          ),
+        );
+      }),
+    );
+  }
+
   Widget _buildParticipants() {
     // The active mon IS the lead — just check if any lead exists
     final myIsLead = _myMonsters.any((m) => m['lead'] == true);
@@ -1714,36 +1778,77 @@ class _BattleViewState extends State<BattleView> {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(12),
-        child: Row(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Expanded(
-              child: _ParticipantTile(
-                label: 'TÚ',
-                name: _myName,
-                color: AppColors.secondary,
-                mon: _myActive,
-                isLead: myIsLead,
-                aliveCount: _myAliveCount,
-                mirror: false,
-              ),
+            // Row 1: Pokeballs row aligned with cards
+            Row(
+              children: [
+                Expanded(
+                  child: _buildPokeballs(_myAliveCount, AppColors.secondary, false),
+                ),
+                const SizedBox(width: 46), // Middle gap matching VS container width + horizontal gaps
+                Expanded(
+                  child: _buildPokeballs(_oppAliveCount, AppColors.tertiary, true),
+                ),
+              ],
             ),
-            const SizedBox(width: 8),
-            Icon(
-              Icons.offline_bolt_outlined,
-              color: AppColors.accent,
-              size: 20,
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: _ParticipantTile(
-                label: 'OPONENTE',
-                name: _oppName,
-                color: AppColors.tertiary,
-                mon: _oppActive,
-                isLead: false, // opp lead not exposed
-                aliveCount: _oppAliveCount,
-                mirror: true,
-              ),
+            const SizedBox(height: 6),
+            // Row 2: Cards and clashing swords VS indicator
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Expanded(
+                  child: _ParticipantTile(
+                    label: 'TÚ',
+                    name: _myName,
+                    color: AppColors.secondary,
+                    mon: _myActive,
+                    isLead: myIsLead,
+                    aliveCount: _myAliveCount,
+                    mirror: false,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Container(
+                  width: 30,
+                  height: 30,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: AppColors.surfaceHighest,
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: AppColors.accent,
+                      width: 1.5,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.accent.withValues(alpha: 0.15),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
+                      )
+                    ],
+                  ),
+                  child: SvgPicture.string(
+                    _crossedSwordsSvg,
+                    width: 16,
+                    height: 16,
+                    colorFilter: ColorFilter.mode(AppColors.accent, BlendMode.srcIn),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: _ParticipantTile(
+                    label: 'OPONENTE',
+                    name: _oppName,
+                    color: AppColors.tertiary,
+                    mon: _oppActive,
+                    isLead: false, // opp lead not exposed
+                    aliveCount: _oppAliveCount,
+                    mirror: true,
+                  ),
+                ),
+              ],
             ),
           ],
         ),
@@ -2073,7 +2178,9 @@ class _BattleViewState extends State<BattleView> {
                 final isLead = m['lead'] == true;
                 final isSelected = _submittedActionType == 'switch' && _submittedActionTargetId == m['id'];
                 final monTypes = (m['types'] as List?)?.cast<String>() ?? [];
-                return DecoratedBox(
+                final isFainted = (m['hp'] as int) == 0;
+
+                final card = DecoratedBox(
                   decoration: BoxDecoration(
                     color: AppColors.surfaceHigh,
                     borderRadius: BorderRadius.circular(AppRadius.md),
@@ -2091,7 +2198,9 @@ class _BattleViewState extends State<BattleView> {
                     borderRadius: BorderRadius.circular(AppRadius.md),
                     child: InkWell(
                       borderRadius: BorderRadius.circular(AppRadius.md),
-                      onTap: () {
+                      onTap: isFainted
+                          ? null
+                          : () {
                         setState(() {
                           _submittedActionType = 'switch';
                           _submittedActionTargetId = m['id'];
@@ -2218,6 +2327,7 @@ class _BattleViewState extends State<BattleView> {
                     ),
                   ),
                 );
+                return isFainted ? Opacity(opacity: 0.45, child: card) : card;
               },
             ),
           ],
@@ -2486,6 +2596,71 @@ class _ParticipantTile extends StatelessWidget {
     this.mirror = false,
   });
 
+  Widget _buildStatusBadge(String? status) {
+    if (status == null || status.isEmpty || status.toLowerCase() == 'normal') {
+      return const SizedBox(height: 16); // placeholder spacer to keep the card height constant!
+    }
+
+    final normalized = status.toLowerCase();
+    String label = status.toUpperCase();
+    Color badgeColor = Colors.grey;
+
+    if (normalized.contains('paral')) {
+      label = 'PAR';
+      badgeColor = const Color(0xFFF1C40F); // Yellow
+    } else if (normalized.contains('burn') || normalized.contains('quem')) {
+      label = 'BRN';
+      badgeColor = const Color(0xFFE74C3C); // Red
+    } else if (normalized.contains('badly') || normalized.contains('toxic') || normalized.contains('tox')) {
+      label = 'TOX';
+      badgeColor = const Color(0xFF6C3483); // Darker purple (Badly Poisoned)
+    } else if (normalized.contains('pois') || normalized.contains('env')) {
+      label = 'PSN';
+      badgeColor = const Color(0xFF9B59B6); // Regular purple (Poison)
+    } else if (normalized.contains('sleep') || normalized.contains('sue')) {
+      label = 'SLP';
+      badgeColor = const Color(0xFF95A5A6); // Grey
+    } else if (normalized.contains('freez') || normalized.contains('congel')) {
+      label = 'FRZ';
+      badgeColor = const Color(0xFF3498DB); // Blue
+    } else if (normalized == 'par') {
+      label = 'PAR';
+      badgeColor = const Color(0xFFF1C40F);
+    } else if (normalized == 'brn') {
+      label = 'BRN';
+      badgeColor = const Color(0xFFE74C3C);
+    } else if (normalized == 'psn') {
+      label = 'PSN';
+      badgeColor = const Color(0xFF9B59B6);
+    } else if (normalized == 'tox') {
+      label = 'TOX';
+      badgeColor = const Color(0xFF6C3483);
+    } else if (normalized == 'slp') {
+      label = 'SLP';
+      badgeColor = const Color(0xFF95A5A6);
+    } else if (normalized == 'frz') {
+      label = 'FRZ';
+      badgeColor = const Color(0xFF3498DB);
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+      decoration: BoxDecoration(
+        color: badgeColor,
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Text(
+        label,
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 9,
+          fontWeight: FontWeight.w900,
+          letterSpacing: 0.5,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
@@ -2502,16 +2677,6 @@ class _ParticipantTile extends StatelessWidget {
         crossAxisAlignment: mirror ? CrossAxisAlignment.end : CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
-            name,
-            textAlign: mirror ? TextAlign.right : TextAlign.left,
-            style: text.titleSmall?.copyWith(
-              fontWeight: FontWeight.w800,
-              color: AppColors.onSurface,
-            ),
-            overflow: TextOverflow.ellipsis,
-          ),
-          const SizedBox(height: 4),
           Row(
             mainAxisAlignment: mirror ? MainAxisAlignment.end : MainAxisAlignment.start,
             children: mirror
@@ -2558,15 +2723,9 @@ class _ParticipantTile extends StatelessWidget {
           const SizedBox(height: 4),
           Row(
             mainAxisAlignment: mirror ? MainAxisAlignment.end : MainAxisAlignment.start,
-            children: List.generate(6, (index) {
-              return Icon(
-                Icons.catching_pokemon,
-                size: 10,
-                color: index < aliveCount
-                    ? color.withValues(alpha: 0.8)
-                    : AppColors.outlineVariant.withValues(alpha: 0.3),
-              );
-            }),
+            children: [
+              _buildStatusBadge(mon['status']),
+            ],
           ),
           const SizedBox(height: 6),
           Row(
@@ -2810,3 +2969,16 @@ enum BattlePhase {
     }
   }
 }
+
+const String _crossedSwordsSvg = '''
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <polyline points="14.5 17.5 3 6 3 3 6 3 17.5 14.5" />
+  <line x1="13" x2="19" y1="19" y2="13" />
+  <line x1="16" x2="20" y1="16" y2="20" />
+  <line x1="19" x2="21" y1="21" y2="19" />
+  <polyline points="14.5 6.5 18 3 21 3 21 6 17.5 9.5" />
+  <line x1="5" x2="9" y1="14" y2="18" />
+  <line x1="7" x2="4" y1="17" y2="20" />
+  <line x1="3" x2="5" y1="19" y2="21" />
+</svg>
+''';
