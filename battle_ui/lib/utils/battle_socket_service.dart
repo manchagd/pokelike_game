@@ -234,6 +234,9 @@ class BattleSocketService with ChangeNotifier {
           print("Evento battle_joined recibido. Battle ID: $battleId");
           _battleJoinedController.add(battleId);
         } else if (innerEvent == 'battles_info' && innerPayload != null) {
+          if (_currentPlayer != null && innerPayload['battle_history'] != null) {
+            _currentPlayer!['battle_history'] = Map<String, dynamic>.from(innerPayload['battle_history'] as Map);
+          }
           final rawBattles = innerPayload['battles'] as List?;
           _activeBattles = rawBattles != null
               ? rawBattles.map((b) => Map<String, dynamic>.from(b as Map)).toList()

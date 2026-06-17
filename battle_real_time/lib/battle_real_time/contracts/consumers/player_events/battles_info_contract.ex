@@ -9,6 +9,12 @@ defmodule BattleRealTime.Contracts.Consumers.PlayerEvents.BattlesInfoContract do
     field(:player_id, :integer)
     field(:timestamp, :string)
 
+    embeds_one :battle_history, BattleHistory, primary_key: false do
+      field(:victories, :integer)
+      field(:defeats, :integer)
+      field(:history, {:array, :string})
+    end
+
     embeds_many :battles, Battle, primary_key: false do
       field(:id, :string)
 
@@ -23,7 +29,14 @@ defmodule BattleRealTime.Contracts.Consumers.PlayerEvents.BattlesInfoContract do
     struct
     |> cast(params, [:player_id, :timestamp])
     |> validate_required([:player_id])
+    |> cast_embed(:battle_history, required: true, with: &battle_history_changeset/2)
     |> cast_embed(:battles, with: &battle_changeset/2)
+  end
+
+  def battle_history_changeset(struct, params) do
+    struct
+    |> cast(params, [:victories, :defeats, :history])
+    |> validate_required([:victories, :defeats])
   end
 
   def battle_changeset(struct, params) do

@@ -72,6 +72,11 @@ defmodule BattleRealTime.AMQP.Consumers.PlayerEventsConsumerTest do
 
       data = %{
         "player_id" => player_id,
+        "battle_history" => %{
+          "victories" => 5,
+          "defeats" => 2,
+          "history" => ["V", "D", "V"]
+        },
         "battles" => [
           %{
             "id" => "battle-uuid-1",
@@ -89,6 +94,9 @@ defmodule BattleRealTime.AMQP.Consumers.PlayerEventsConsumerTest do
       # Assert PubSub broadcast occurred and payload has atom keys/nested structure
       assert_receive {:player_event, %{event: "battles_info", payload: payload}}
       assert payload.player_id == player_id
+      assert payload.battle_history.victories == 5
+      assert payload.battle_history.defeats == 2
+      assert payload.battle_history.history == ["V", "D", "V"]
       assert length(payload.battles) == 1
       [battle] = payload.battles
       assert battle.id == "battle-uuid-1"

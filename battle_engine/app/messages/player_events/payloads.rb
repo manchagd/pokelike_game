@@ -24,6 +24,11 @@ module Messages
       def battles_info(player)
         {
           player_id: player.id,
+          battle_history: {
+            victories: player.battles.count { it.winner?(player) && it.finished? },
+            defeats: player.battles.count { !it.winner?(player) && it.finished? },
+            history: player.battles.filter(&:finished?).last(10).map { it.winner?(player) ? 'V' : 'D' }
+          },
           battles: battle_info(player)
         }
       end
