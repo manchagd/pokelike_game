@@ -33,6 +33,7 @@ module Contracts
               optional(:power).maybe(:integer)
               optional(:accuracy).maybe(:integer)
               required(:pp).filled(:integer)
+              required(:category).filled(:string)
               required(:types).array(:string)
             end
           end

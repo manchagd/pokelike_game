@@ -38,6 +38,7 @@ defmodule BattleRealTime.Contracts.Consumers.BattleEvents.BattleStatusContract d
           field(:power, :integer)
           field(:accuracy, :integer)
           field(:pp, :integer)
+          field(:category, :string)
           field(:types, {:array, :string})
         end
       end
@@ -84,7 +85,7 @@ defmodule BattleRealTime.Contracts.Consumers.BattleEvents.BattleStatusContract d
 
   def attack_changeset(struct, params) do
     struct
-    |> cast(params, [:id, :name, :power, :accuracy, :pp, :types])
-    |> validate_required([:id, :name, :pp, :types])
+    |> cast(params, [:id, :name, :power, :accuracy, :pp, :types, :category])
+    |> validate_required([:id, :name, :pp, :types, :category])
   end
 end

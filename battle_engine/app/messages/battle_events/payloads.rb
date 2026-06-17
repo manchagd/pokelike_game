@@ -75,6 +75,7 @@ module Messages
             power: move.power,
             accuracy: move.accuracy,
             pp: move.pp,
+            category: move.category,
             types: [move.type, move.secondary_type].compact
           }
         end

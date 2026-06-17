@@ -1865,49 +1865,41 @@ class _BattleViewState extends State<BattleView> {
 
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
-                Icon(Icons.flash_on, color: AppColors.accent, size: 20),
+                Icon(Icons.flash_on, color: AppColors.accent, size: 18),
                 const SizedBox(width: 8),
                 Text(
                   'Movimientos',
-                  style: text.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+                  style: text.titleMedium?.copyWith(fontWeight: FontWeight.w700, fontSize: 13),
                 ),
               ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 10),
             if (attacks.isEmpty)
               Center(
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
                   child: Text(
                     'Elige tu Pokémon líder para ver sus movimientos.',
-                    style: TextStyle(color: AppColors.onSurfaceMuted, fontSize: 12),
+                    style: TextStyle(color: AppColors.onSurfaceMuted, fontSize: 11),
                     textAlign: TextAlign.center,
                   ),
                 ),
               )
             else
-              Column(
-                children: List.generate((attacks.length / 2).ceil(), (rowIndex) {
-                  final firstIndex = rowIndex * 2;
-                  final secondIndex = firstIndex + 1;
-                  return Padding(
-                    padding: EdgeInsets.only(bottom: rowIndex < (attacks.length / 2).ceil() - 1 ? 8.0 : 0.0),
-                    child: Row(
-                      children: [
-                        Expanded(child: _buildAttackCard(attacks[firstIndex])),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: secondIndex < attacks.length
-                              ? _buildAttackCard(attacks[secondIndex])
-                              : const SizedBox.shrink(),
-                        ),
-                      ],
+              Row(
+                children: List.generate(attacks.length, (index) {
+                  return Expanded(
+                    child: Padding(
+                      padding: EdgeInsets.only(
+                        right: index < attacks.length - 1 ? 6.0 : 0.0,
+                      ),
+                      child: _buildAttackCard(attacks[index]),
                     ),
                   );
                 }),
@@ -1922,8 +1914,9 @@ class _BattleViewState extends State<BattleView> {
     final types = (attack['types'] as List?)?.cast<String>() ?? [];
     final name     = attack['name']     as String? ?? '—';
     final power    = attack['power']    as int?;
-    final accuracy = attack['accuracy'] as int?;
     final pp       = attack['pp']       as int?;
+    final accuracy = attack['accuracy'] as int?;
+    final category = attack['category'] as String? ?? 'Physical';
 
     final accentColor = types.isNotEmpty
         ? PokemonTypeIcons.getColor(types.first)
@@ -1963,95 +1956,123 @@ class _BattleViewState extends State<BattleView> {
                 ]
               : null,
         ),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 5),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // Row 1: Name on the left, type badges on the right
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Text(
-                    name,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w800,
-                      fontSize: 14,
-                      letterSpacing: 0.2,
+            // Left: name + stats
+            Expanded(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Row 1: name + (pp/pp)
+                  Text.rich(
+                    TextSpan(
+                      children: [
+                        TextSpan(
+                          text: name,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w800,
+                            fontSize: 9.5,
+                            letterSpacing: 0.1,
+                          ),
+                        ),
+                        if (pp != null)
+                          TextSpan(
+                            text: ' ($pp/$pp)',
+                            style: TextStyle(
+                              fontSize: 7.5,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.onSurfaceMuted,
+                            ),
+                          ),
+                      ],
                     ),
                     overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
                   ),
-                ),
-                const SizedBox(width: 6),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: types.map((t) => Padding(
-                    padding: const EdgeInsets.only(left: 4),
-                    child: PokemonTypeIcons.buildTypeBadge(t, fontSize: 8),
-                  )).toList(),
-                ),
-              ],
-            ),
-            const SizedBox(height: 6),
-            // Row 2: stats (power, accuracy on the left, pp on the right)
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                // Power and Accuracy
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (power != null) ...[
-                      Icon(Icons.bolt_rounded, size: 12, color: AppColors.onSurfaceMuted),
-                      const SizedBox(width: 2),
-                      Text(
-                        '$power',
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.onSurface,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                    ],
-                    if (accuracy != null) ...[
-                      Icon(Icons.gps_fixed_rounded, size: 11, color: AppColors.onSurfaceMuted),
-                      const SizedBox(width: 2),
-                      Text(
-                        '$accuracy%',
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.onSurface,
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-                // PP
-                if (pp != null)
+                  const SizedBox(height: 3),
+                  // Row 2: sword + power, bullseye + accuracy
                   Row(
-                    mainAxisSize: MainAxisSize.min,
                     children: [
+                      SvgPicture.string(
+                        _swordSvg,
+                        width: 8,
+                        height: 8,
+                        colorFilter: ColorFilter.mode(
+                          AppColors.onSurfaceMuted,
+                          BlendMode.srcIn,
+                        ),
+                      ),
+                      const SizedBox(width: 2),
                       Text(
-                        'PP ',
+                        power != null && power > 0 ? '$power' : '—',
                         style: TextStyle(
-                          fontSize: 9,
-                          fontWeight: FontWeight.w800,
+                          fontSize: 7.5,
+                          fontWeight: FontWeight.w600,
                           color: AppColors.onSurfaceMuted,
                         ),
                       ),
+                      const SizedBox(width: 6),
+                      SvgPicture.string(
+                        _bullseyeSvg,
+                        width: 8,
+                        height: 8,
+                        colorFilter: ColorFilter.mode(
+                          AppColors.onSurfaceMuted,
+                          BlendMode.srcIn,
+                        ),
+                      ),
+                      const SizedBox(width: 2),
                       Text(
-                        '$pp',
+                        accuracy != null ? '$accuracy' : '—',
                         style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w700,
-                          color: accentColor,
+                          fontSize: 7.5,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.onSurfaceMuted,
                         ),
                       ),
                     ],
                   ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 4),
+            // Right: type badge(s) + category label stacked
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                if (types.isNotEmpty)
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: types.take(2).map((t) => Padding(
+                      padding: const EdgeInsets.only(left: 2),
+                      child: Container(
+                        padding: const EdgeInsets.all(2.5),
+                        decoration: BoxDecoration(
+                          color: PokemonTypeIcons.getColor(t),
+                          shape: BoxShape.circle,
+                        ),
+                        child: PokemonTypeIcons.buildSvgIcon(
+                          t,
+                          size: 8,
+                          color: Colors.white,
+                        ),
+                      ),
+                    )).toList(),
+                  ),
+                const SizedBox(height: 2),
+                Text(
+                  category,
+                  style: TextStyle(
+                    fontSize: 6.5,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.onSurfaceMuted,
+                    letterSpacing: 0.2,
+                  ),
+                ),
               ],
             ),
           ],
@@ -2961,5 +2982,24 @@ const String _crossedSwordsSvg = '''
   <line x1="5" x2="9" y1="14" y2="18" />
   <line x1="7" x2="4" y1="17" y2="20" />
   <line x1="3" x2="5" y1="19" y2="21" />
+</svg>
+''';
+
+
+
+const String _swordSvg = '''
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <polyline points="14.5 17.5 3 6 3 3 6 3 17.5 14.5" />
+  <line x1="13" y1="19" x2="19" y2="13" />
+  <line x1="16" y1="16" x2="20" y2="20" />
+  <line x1="19" y1="21" x2="21" y2="19" />
+</svg>
+''';
+
+const String _bullseyeSvg = '''
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <circle cx="12" cy="12" r="10" />
+  <circle cx="12" cy="12" r="6" />
+  <circle cx="12" cy="12" r="2" fill="currentColor" />
 </svg>
 ''';
