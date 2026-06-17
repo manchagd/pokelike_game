@@ -240,7 +240,8 @@ El GenServer opera a través de las siguientes fases utilizando un diseño con �
 ```mermaid
 stateDiagram-v2
     [*] --> waiting_players : start_link
-    waiting_players --> waiting_actions : Todos los jugadores conectados
+    waiting_players --> setting_up : Todos los jugadores conectados
+    setting_up --> waiting_actions : Todos los jugadores seleccionan líder
     waiting_actions --> waiting_actions : Turno completado / Siguiente turno
     waiting_actions --> finished : Un jugador se rinde (forfeit) o agota tiempo
     finished --> [*] : GenServer se apaga (:normal)

@@ -331,7 +331,6 @@ defmodule BattleRealTime.BattleSession do
   end
 
   defp build_payload(state) do
-    players_list = MapSet.to_list(state.players)
     expected = expected_players_count(state.battle_format)
     current_count = MapSet.size(state.players)
 
@@ -342,18 +341,25 @@ defmodule BattleRealTime.BattleSession do
         state.logs
       end
 
-    masked_players =
-      if state.phase == :setting_up do
-        Enum.map(state.players_data, fn player ->
-          %{
-            "name" => player["name"],
-            "team" => player["team"],
-            "pokemon_count" => length(player["pokemons"] || [])
-          }
-        end)
-      else
-        state.players_data
-      end
+    clean_players =
+      Enum.map(state.players_data, fn player ->
+        player_id =
+          if player["id"],
+            do: to_string(player["id"]),
+            else: find_player_id_by_name(state, player["name"])
+
+        pokemons = player["pokemons"] || []
+        alive_count = Enum.count(pokemons, fn p -> (p["hp"] || 0) > 0 end)
+        active_monster = build_active_monster(player, player_id)
+
+        %{
+          "id" => player_id,
+          "name" => player["name"],
+          "team" => player["team"],
+          "alive_pokemon_count" => alive_count,
+          "active_monster" => active_monster
+        }
+      end)
 
     %{
       "battle_id" => state.battle_id,
@@ -364,28 +370,33 @@ defmodule BattleRealTime.BattleSession do
       "expected_players" => expected,
       "connected_players" => current_count,
       "log" => payload_logs,
-      "player_a_name" =>
-        Map.get(state.player_names, Enum.at(players_list, 0) || "", "Entrenador A"),
-      "player_b_name" =>
-        Map.get(state.player_names, Enum.at(players_list, 1) || "", "Entrenador B"),
-      "players" => masked_players,
-      "active_monster_a" => %{
-        "id" => "mon_1",
-        "name" => "Charizard",
-        "hp" => 78,
-        "max_hp" => 100,
-        "status" => "normal",
-        "owner_id" => Enum.at(players_list, 0) || 101
-      },
-      "active_monster_b" => %{
-        "id" => "mon_2",
-        "name" => "Gengar",
-        "hp" => 92,
-        "max_hp" => 100,
-        "status" => "normal",
-        "owner_id" => Enum.at(players_list, 1) || 102
-      }
+      "players" => clean_players
     }
+  end
+
+  # Finds the pokemon with lead: true in player_data and builds the active monster map.
+  # Returns an empty map when player_data is nil or no lead is found yet.
+  defp build_active_monster(nil, _owner_id), do: %{}
+
+  defp build_active_monster(player_data, owner_id) do
+    pokemons = player_data["pokemons"] || []
+
+    case Enum.find(pokemons, fn p -> p["lead"] == true end) do
+      nil ->
+        %{}
+
+      lead ->
+        %{
+          "id" => lead["id"],
+          "name" => lead["name"],
+          "hp" => lead["hp"],
+          "max_hp" => lead["max_hp"],
+          "level" => lead["level"],
+          "types" => lead["types"] || [],
+          "status" => get_in(lead, ["status_condition", "name"]) || "normal",
+          "owner_id" => owner_id
+        }
+    end
   end
 
   defp broadcast_state(state) do
@@ -399,14 +410,16 @@ defmodule BattleRealTime.BattleSession do
       {:battle_event, %{event: "battle_state", payload: payload}}
     )
 
-    if state.phase == :setting_up do
-      broadcast_private_setup_pokemons(state)
-    end
+    # Always broadcast private team info to ensure players have their updated stats
+    broadcast_private_setup_pokemons(state)
   end
 
   defp broadcast_private_setup_pokemons(state) do
     Enum.each(state.players_data, fn player_data ->
-      player_id = find_player_id_by_name(state, player_data["name"])
+      player_id =
+        if player_data["id"],
+          do: to_string(player_data["id"]),
+          else: find_player_id_by_name(state, player_data["name"])
 
       if player_id do
         private_topic = "battle_events:#{state.battle_id}:#{player_id}"

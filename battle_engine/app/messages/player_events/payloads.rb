@@ -21,6 +21,13 @@ module Messages
         }
       end
 
+      def battles_info(player)
+        {
+          player_id: player.id,
+          battles: battle_info(player)
+        }
+      end
+
       def battle_created(player_id, battle_id)
         {
           player_id: player_id,

@@ -59,23 +59,23 @@ defmodule BattleRealTime.BattleSessionTest do
     assert :ok = BattleSession.sync_state(battle_id, %{"turn" => 1, "status" => "in_progress"})
 
     # Register 2 players
-    assert :ok = BattleSession.register_player(battle_id, "player_1")
-    assert :ok = BattleSession.register_player(battle_id, "player_2")
+    assert :ok = BattleSession.register_player(battle_id, "1")
+    assert :ok = BattleSession.register_player(battle_id, "2")
 
     # Player 1 submits action
     action1 = %{
       "action" => "attack",
-      "move_id" => "tackle",
-      "player_id" => "player_1",
+      "move_id" => 85,
+      "player_id" => 1,
       "battle_id" => battle_id,
-      "targets" => ["player_2"]
+      "targets" => ["B1"]
     }
 
-    assert {:ok, :pending} = BattleSession.submit_action(battle_id, "player_1", action1)
+    assert {:ok, :pending} = BattleSession.submit_action(battle_id, "1", action1)
 
     assert {:ok, state} = BattleSession.get_state(battle_id)
     assert state.turn == 1
-    assert state.actions["player_1"] == action1
+    assert state.actions["1"] == action1
 
     # Subscribe to PubSub to receive the broadcasted state update
     Phoenix.PubSub.subscribe(BattleRealTime.PubSub, "battle_events:#{battle_id}")
@@ -83,12 +83,12 @@ defmodule BattleRealTime.BattleSessionTest do
     # Player 2 submits action -> resolves turn!
     action2 = %{
       "action" => "switch",
-      "monster_id" => "pikachu",
-      "player_id" => "player_2",
+      "pokemon_id" => 12,
+      "player_id" => 2,
       "battle_id" => battle_id
     }
 
-    assert {:ok, :resolved} = BattleSession.submit_action(battle_id, "player_2", action2)
+    assert {:ok, :resolved} = BattleSession.submit_action(battle_id, "2", action2)
 
     # Check state updated (turn advanced, actions cleared)
     assert {:ok, state2} = BattleSession.get_state(battle_id)

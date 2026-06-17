@@ -19,6 +19,45 @@ graph TD
     RMQ -->|Consume Events| RT
 ```
 
+### Detalle de Módulos y Flujos de Colas
+
+```mermaid
+graph TD
+    subgraph Battle Real Time [Battle Real Time - Elixir]
+        RTC[BattleChannel / BattleSession]
+        RT_Cons[Consumers]
+        RT_Pub[Publishers]
+    end
+
+    subgraph RabbitMQ [RabbitMQ Broker]
+        QA[player_actions]
+        QE[player_events]
+        QBA[battle_actions]
+        QBE[battle_events]
+    end
+
+    subgraph Battle Engine [Battle Engine - Ruby]
+        ENG_Cons[Consumers]
+        ENG_Pub[Publishers]
+        ENG_Srv[Services]
+    end
+
+    %% Flow Real Time -> Engine
+    RTC -->|Publica| RT_Pub
+    RT_Pub -->|register / create_battle / join_battle| QA
+    RT_Pub -->|select_leads / turn_actions / mutate_battle_status / battle_sync| QBA
+    QA --> ENG_Cons
+    QBA --> ENG_Cons
+
+    %% Flow Engine -> Real Time
+    ENG_Srv -->|Publica| ENG_Pub
+    ENG_Pub -->|info / battle_created / battle_joined| QE
+    ENG_Pub -->|battle_status / mutate_battle_status| QBE
+    QE --> RT_Cons
+    QBE --> RT_Cons
+```
+
+
 ### Canales de Phoenix (WebSockets)
 | Tópico | Propósito | Eventos Principales |
 | :--- | :--- | :--- |
@@ -118,6 +157,75 @@ El motor de batalla procesa la solicitud, genera un ID único y crea el perfil i
 
 *Nota: Al recibir este mensaje por primera vez en el canal temporal `player:#{name}`, el cliente realiza el **swap de canal** desconectándose de este y uniéndose al canal seguro `player:#{id}`.*
 
+### 2.3 Crear Batalla (Acción Inbound)
+El jugador solicita crear una nueva sala de batalla.
+* **Canal Phoenix**: `player:#{id}`
+* **Evento Phoenix**: `action` con action `create_battle`
+* **Cola RabbitMQ**: `player_actions`
+
+**Payload enviado por el cliente**:
+```json
+{
+  "event": "action",
+  "payload": {
+    "action": "create_battle",
+    "team_id": 1
+  }
+}
+```
+
+### 2.4 Batalla Creada (`battle_created` - Evento)
+El motor confirma la creación y envía el `battle_id` generado.
+* **Cola RabbitMQ**: `player_events`
+* **Canal Phoenix**: `player:#{id}`
+* **Evento Phoenix**: `player_event` (subtipo `battle_created`)
+
+**Payload de respuesta**:
+```json
+{
+  "event": "battle_created",
+  "payload": {
+    "player_id": 101,
+    "battle_id": "482-913"
+  }
+}
+```
+
+### 2.5 Unirse a Batalla (Acción Inbound)
+El jugador solicita unirse a una batalla existente mediante un código.
+* **Canal Phoenix**: `player:#{id}`
+* **Evento Phoenix**: `action` con action `join_battle`
+* **Cola RabbitMQ**: `player_actions`
+
+**Payload enviado por el cliente**:
+```json
+{
+  "event": "action",
+  "payload": {
+    "action": "join_battle",
+    "battle_id": "482-913",
+    "team_id": 2
+  }
+}
+```
+
+### 2.6 Batalla Unida (`battle_joined` - Evento)
+El motor confirma que el jugador se unió exitosamente a la batalla.
+* **Cola RabbitMQ**: `player_events`
+* **Canal Phoenix**: `player:#{id}`
+* **Evento Phoenix**: `player_event` (subtipo `battle_joined`)
+
+**Payload de respuesta**:
+```json
+{
+  "event": "battle_joined",
+  "payload": {
+    "player_id": 102,
+    "battle_id": "482-913"
+  }
+}
+```
+
 ---
 
 ## 3. Mensajes del Flujo de Batalla (Battle Flow)
@@ -162,6 +270,29 @@ Durante la batalla, los jugadores envían sus comandos de turno o de control inm
 }
 ```
 
+#### Opción D: Selección de Líder (Select Lead)
+En la fase de `setting_up`, el jugador elige a su primer Pokémon.
+```json
+{
+  "event": "action",
+  "payload": {
+    "action": "select_lead",
+    "lead": 1
+  }
+}
+```
+
+#### Opción E: Solicitud de Sincronización (Sync State)
+Pide al servidor forzar la retransmisión del estado del combate.
+```json
+{
+  "event": "action",
+  "payload": {
+    "action": "sync_state"
+  }
+}
+```
+
 ---
 
 ### 3.2 Publicación Consolidada y de Control a RabbitMQ
@@ -178,28 +309,55 @@ Cuando se completa el turno y ambos jugadores han ingresado sus acciones, se pub
     "actions": [
       {
         "action": "attack",
-        "player_id": "101",
-        "move_id": "thunderbolt",
-        "targets": ["enemy_pelipper"]
+        "player_id": 101,
+        "move_id": 24,
+        "targets": ["B1"]
       },
       {
         "action": "switch",
-        "player_id": "102",
-        "monster_id": "swampert"
+        "player_id": 102,
+        "pokemon_id": 15
       }
     ]
   }
 }
 ```
 
-#### Publicación B: Terminación del Combate (`terminate_battle`)
-Cuando un jugador abandona/se rinde, se notifica inmediatamente al motor de batalla para finalizar el combate.
+#### Publicación B: Selección de Líderes Consolidados (`select_leads`)
+Cuando ambos jugadores han seleccionado a su líder en `setting_up`, el servidor envía ambos líderes al motor.
 ```json
 {
-  "event": "terminate_battle",
+  "event": "select_leads",
   "payload": {
     "battle_id": "482-913",
+    "actions": [
+      { "player_id": 101, "lead": 1 },
+      { "player_id": 102, "lead": 4 }
+    ]
+  }
+}
+```
+
+#### Publicación C: Mutación de Estado de Combate (`mutate_battle_status`)
+Cuando un jugador abandona/se rinde, el servidor de tiempo real notifica al motor para finalizar el combate. (Reemplaza a la antigua acción de `terminate_battle`).
+```json
+{
+  "event": "mutate_battle_status",
+  "payload": {
+    "battle_id": "482-913",
+    "status": "finished",
     "reason": "El jugador AshKetchum se rinde."
+  }
+}
+```
+
+#### Publicación D: Sincronización Forzada (`battle_sync`)
+El servidor pide al motor que vuelva a despachar el `battle_status` a través de `battle_events`.
+```json
+{
+  "event": "battle_sync",
+  "payload": {
+    "battle_id": "482-913"
   }
 }
 ```
@@ -220,27 +378,41 @@ El servidor o el motor de batalla difunden el estado resultante a los clientes.
   "payload": {
     "battle_id": "482-913",
     "battle_format": "1v1",
-    "turn": 3,
-    "phase": "waiting_actions", // Fases: waiting_players, waiting_actions, executing, finished
+    "turn": 1,
+    "phase": "in_progress", // Fases: waiting_players, setting_up, in_progress, finished
     "expected_players": 2,
     "connected_players": 2,
     "turn_expires_at": 1781223600000,
-    "active_monster_a": {
-      "id": "mon_1",
-      "name": "Pikachu",
-      "hp": 80,
-      "max_hp": 100,
-      "status": "normal",
-      "owner_id": "101"
-    },
-    "active_monster_b": {
-      "id": "mon_2",
-      "name": "Pelipper",
-      "hp": 0,
-      "max_hp": 120,
-      "status": "defeated",
-      "owner_id": "102"
-    },
+    "players": [
+      {
+        "id": "101",
+        "name": "AshKetchum",
+        "team": "A",
+        "alive_pokemon_count": 3,
+        "active_monster": {
+          "id": 1,
+          "name": "Pikachu",
+          "hp": 80,
+          "max_hp": 100,
+          "level": 50,
+          "status": "normal"
+        }
+      },
+      {
+        "id": "102",
+        "name": "Gary",
+        "team": "B",
+        "alive_pokemon_count": 2,
+        "active_monster": {
+          "id": 4,
+          "name": "Pelipper",
+          "hp": 0,
+          "max_hp": 120,
+          "level": 50,
+          "status": "defeated"
+        }
+      }
+    ],
     "log": [
       "¡Ambos entrenadores listos! Comienza el combate.",
       "Pikachu usó Rayo.",
@@ -250,6 +422,11 @@ El servidor o el motor de batalla difunden el estado resultante a los clientes.
   }
 }
 ```
+
+#### Evento A.2: Equipo Privado (`setup_pokemons` / `sync_team`)
+Durante todas las fases de la batalla (incluyendo `setting_up`), el servidor envía a cada jugador sus estadísticas de equipo completas por un canal privado para evitar filtrar los stats al rival.
+* **Canal Phoenix Privado**: `battle_events:#{battle_id}:#{player_id}`
+* **Evento Phoenix**: `battle_event` (subtipo `setup_pokemons`)
 
 #### Evento B: Combate Finalizado (`battle_ended`)
 Enviado inmediatamente cuando ocurre una rendición o finalización forzada de la partida.

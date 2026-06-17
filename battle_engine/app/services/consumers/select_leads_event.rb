@@ -26,15 +26,16 @@ module Services
             raise 'Invalid snapshot ownership' unless snapshot.pokemon.team.player_id == entry[:player_id].to_i
 
             # Position lead pokemon on field
-            Positions.create!(
+            Position.create!(
               field: battle.field,
               group: group_name == 'A' ? 1 : 2,
               side: group_name == 'A' ? 'A' : 'B',
-              pokemon_id: snapshot.pokemon_id
+              pokemon_snapshot_id: snapshot.id
             )
           end
 
           # Mutate state to in_progress
+          battle.turn = 1
           battle.in_progress!
         end
 
