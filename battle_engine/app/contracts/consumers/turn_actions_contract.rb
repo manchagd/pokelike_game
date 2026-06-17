@@ -9,10 +9,10 @@ module Contracts
         optional(:timestamp).maybe(:string)
         required(:actions).array(:hash) do
           required(:action).filled(:string, included_in?: %w[attack switch])
-          required(:player_id).filled(:string)
-          optional(:move_id).maybe(:string)
-          optional(:monster_id).maybe(:string)
-          optional(:targets).maybe(:array)
+          required(:player_id).filled(:integer)
+          optional(:move_id).maybe(:integer)
+          optional(:pokemon_id).maybe(:integer)
+          optional(:targets).array(:string)
         end
       end
 
@@ -21,16 +21,12 @@ module Contracts
 
         values[:actions].each_with_index do |action_item, index|
           if action_item[:action] == 'attack'
-            if action_item[:move_id].nil? || action_item[:move_id].to_s.strip.empty?
-              key([:actions, index, :move_id]).failure('must be filled for attack action')
-            end
+            key([:actions, index, :move_id]).failure('must be filled for attack action') if action_item[:move_id].nil?
             if action_item[:targets].nil? || !action_item[:targets].is_a?(Array) || action_item[:targets].empty?
               key([:actions, index, :targets]).failure('must be filled for attack action')
             end
           elsif action_item[:action] == 'switch'
-            if action_item[:monster_id].nil? || action_item[:monster_id].to_s.strip.empty?
-              key([:actions, index, :monster_id]).failure('must be filled for switch action')
-            end
+            key([:actions, index, :pokemon_id]).failure('must be filled for switch action') if action_item[:pokemon_id].nil?
           end
         end
       end
