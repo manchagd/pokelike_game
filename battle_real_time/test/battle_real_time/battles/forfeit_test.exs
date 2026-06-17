@@ -12,18 +12,29 @@ defmodule BattleRealTime.Battles.ForfeitTest do
         {BattleSession, battle_id}
       )
 
+    # Sync first to transition out of :syncing
+    :ok = BattleSession.sync_state(battle_id, %{"turn" => 1, "status" => "not_started"})
     :ok = BattleSession.register_player(battle_id, "player_1", "Ash")
 
     %{battle_id: battle_id, pid: pid}
   end
 
-  test "forfeits battle and terminates session", %{battle_id: battle_id, pid: pid} do
+  test "forfeits battle but does not stop session until engine confirms", %{
+    battle_id: battle_id,
+    pid: pid
+  } do
     # Subscribe to events to avoid block/warning
     Phoenix.PubSub.subscribe(BattleRealTime.PubSub, "battle_events:#{battle_id}")
 
     assert :ok = Forfeit.call(battle_id, "player_1")
 
-    # Verify session is terminated
+    # Session is still alive because it expects engine to trigger termination
+    assert Process.alive?(pid)
+
+    # Simulate engine confirming termination via terminate_session call
+    assert :ok = BattleSession.terminate_session(battle_id, "El jugador Ash se rinde.")
+
+    # Verify session is terminated now
     refute Process.alive?(pid)
   end
 

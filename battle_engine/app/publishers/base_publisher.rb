@@ -14,6 +14,8 @@ module Publishers
     end
 
     def publish(event, payload = {})
+      payload = payload.transform_keys(&:to_sym).merge(timestamp: Time.now.iso8601)
+
       contract_class_name = "contracts/publishers/#{event}_contract".camelize
       contract_klass = contract_class_name.safe_constantize
 
@@ -31,7 +33,7 @@ module Publishers
 
       message = {
         event: event,
-        payload: payload.merge(timestamp: Time.now.iso8601)
+        payload: payload
       }.to_json
 
       @queue.publish(message, persistent: true)

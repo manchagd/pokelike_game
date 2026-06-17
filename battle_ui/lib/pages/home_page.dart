@@ -80,7 +80,7 @@ class _HomePageState extends State<HomePage> {
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                AppColors.surfaceA0,
+                AppColors.surface,
                 AppColors.surfaceHigh.withValues(alpha: 0.95),
                 AppColors.background,
               ],
@@ -111,7 +111,7 @@ class _HomePageState extends State<HomePage> {
                       color: AppColors.primary.withValues(alpha: 0.3),
                     ),
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.catching_pokemon,
                     color: AppColors.primary,
                     size: 48,

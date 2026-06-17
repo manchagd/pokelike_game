@@ -43,6 +43,8 @@ defmodule BattleRealTime.AMQP.Publisher do
       Publishes an action to the queue.
       """
       def publish(action, payload \\ %{}) do
+        payload = Map.put(payload, "timestamp", DateTime.utc_now() |> DateTime.to_iso8601())
+
         case validate(action, payload) do
           {:ok, validated_payload} ->
             GenServer.cast(__MODULE__, {:publish, action, validated_payload})
@@ -100,10 +102,7 @@ defmodule BattleRealTime.AMQP.Publisher do
         message =
           Jason.encode!(%{
             event: action,
-            payload:
-              Map.merge(payload, %{
-                "timestamp" => DateTime.utc_now() |> DateTime.to_iso8601()
-              })
+            payload: payload
           })
 
         case AMQP.Basic.publish(chan, "", @queue, message, persistent: true) do

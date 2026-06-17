@@ -5,18 +5,49 @@ defmodule BattleRealTimeWeb.BattleChannel do
   require Logger
 
   @impl true
-  def join("battle:" <> battle_id, params, socket) do
-    socket = assign(socket, :battle_id, battle_id)
+  def join("battle:" <> topic_suffix, params, socket) do
+    case String.split(topic_suffix, ":", parts: 2) do
+      [battle_id, player_id] ->
+        join_topic(battle_id, player_id, params, socket)
+
+      [battle_id] ->
+        join_topic(battle_id, params, socket)
+    end
+  end
+
+  defp join_topic(battle_id, player_id, _params, socket)
+       when is_binary(player_id) and player_id != "" do
+    socket =
+      socket
+      |> assign(:battle_id, battle_id)
+      |> assign(:player_id, player_id)
+
+    Phoenix.PubSub.subscribe(BattleRealTime.PubSub, "battle_events:#{battle_id}:#{player_id}")
+
+    Logger.info(
+      "Client joined private battle channel for battle:#{battle_id} and player:#{player_id}"
+    )
+
+    {:ok, %{battle_id: battle_id, player_id: player_id}, socket}
+  end
+
+  defp join_topic(battle_id, params, socket) do
     player_id = Map.get(params, "player_id")
-    username = Map.get(params, "username") || "Entrenador"
-    socket = assign(socket, :player_id, player_id)
+    username = Map.get(params, "username", "Entrenador")
+
+    socket =
+      socket
+      |> assign(:battle_id, battle_id)
+      |> assign(:player_id, player_id)
 
     case BattleRealTime.Battles.ConnectToBattle.call(battle_id, player_id, username) do
       {:ok, _} ->
-        # Subscribe this channel process to PubSub events for this specific battle
         Phoenix.PubSub.subscribe(BattleRealTime.PubSub, "battle_events:#{battle_id}")
 
-        Logger.info("Client joined battle:#{battle_id} as player:#{player_id} (#{username})")
+        Logger.info(
+          "Client joined public battle:#{battle_id} as player:#{player_id} (#{username})"
+        )
+
         send(self(), :after_join)
         {:ok, %{battle_id: battle_id}, socket}
 
@@ -55,6 +86,18 @@ defmodule BattleRealTimeWeb.BattleChannel do
 
       {:error, _reason} ->
         {:noreply, socket}
+    end
+  end
+
+  @impl true
+  def handle_in("select_lead", %{"lead" => lead}, socket) do
+    battle_id = socket.assigns.battle_id
+    player_id = socket.assigns.player_id
+    payload = %{"action" => "select_lead", "lead" => lead}
+
+    case BattleRealTime.Battles.SubmitAction.call(battle_id, player_id, payload) do
+      {:ok, _} -> {:noreply, socket}
+      {:error, _} -> {:noreply, socket}
     end
   end
 

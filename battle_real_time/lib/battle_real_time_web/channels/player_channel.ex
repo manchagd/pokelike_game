@@ -26,11 +26,15 @@ defmodule BattleRealTimeWeb.PlayerChannel do
   end
 
   @impl true
-  def handle_in("create_battle", _payload, socket) do
+  def handle_in("create_battle", payload, socket) do
     player_id = socket.assigns.identifier
-    Logger.info("Create battle request received for player: #{player_id}")
+    team_id = Map.get(payload, "team_id")
 
-    case BattleRealTime.Players.CreateBattle.call(player_id) do
+    Logger.info(
+      "Create battle request received for player: #{player_id}, team_id: #{inspect(team_id)}"
+    )
+
+    case BattleRealTime.Players.CreateBattle.call(player_id, team_id) do
       {:ok, _payload} -> {:noreply, socket}
       {:error, _reason} -> {:noreply, socket}
     end
@@ -40,9 +44,13 @@ defmodule BattleRealTimeWeb.PlayerChannel do
   def handle_in("join_battle", payload, socket) do
     player_id = socket.assigns.identifier
     battle_id = Map.get(payload, "battle_id")
-    Logger.info("Join battle request received for player: #{player_id}, battle: #{battle_id}")
+    team_id = Map.get(payload, "team_id")
 
-    case BattleRealTime.Players.RequestJoinBattle.call(player_id, battle_id) do
+    Logger.info(
+      "Join battle request received for player: #{player_id}, battle: #{battle_id}, team_id: #{inspect(team_id)}"
+    )
+
+    case BattleRealTime.Players.JoinBattle.call(player_id, battle_id, team_id) do
       {:ok, _payload} -> {:noreply, socket}
       {:error, _reason} -> {:noreply, socket}
     end

@@ -7,8 +7,14 @@ module Contracts
         required(:player).hash do
           required(:id).filled(:integer)
           required(:name).filled(:string)
-          required(:team).filled(:string)
-          required(:teams).value(:array)
+          required(:teams).array(:hash) do
+            required(:id).filled(:integer)
+            required(:name).filled(:string)
+            required(:pokemons).array(:hash) do
+              required(:name).filled(:string)
+              required(:types).array(:string)
+            end
+          end
           required(:battle_history).hash do
             required(:victories).filled(:integer)
             required(:defeats).filled(:integer)
@@ -17,11 +23,12 @@ module Contracts
         end
         optional(:battles).array(:hash) do
           required(:id).filled
-          required(:opponent).array(:hash) do
+          required(:players).array(:hash) do
             required(:name).filled(:string)
             required(:team).filled(:string)
           end
         end
+        optional(:timestamp).maybe(:string)
       end
     end
   end

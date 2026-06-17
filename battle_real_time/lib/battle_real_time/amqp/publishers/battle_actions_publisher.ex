@@ -6,10 +6,14 @@ defmodule BattleRealTime.AMQP.Publishers.BattleActionsPublisher do
   use BattleRealTime.AMQP.Publisher, queue: "battle_actions"
 
   alias BattleRealTime.Contracts.Publishers.BattleActions.TurnActionsContract
-  alias BattleRealTime.Contracts.Publishers.BattleActions.TerminateBattleContract
+  alias BattleRealTime.Contracts.Publishers.BattleActions.MutateBattleStatusContract
+  alias BattleRealTime.Contracts.Publishers.BattleActions.BattleSyncContract
+  alias BattleRealTime.Contracts.Publishers.BattleActions.SelectLeadsContract
 
   @impl true
   def validate("turn_actions", payload), do: TurnActionsContract.validate(payload)
-  def validate("terminate_battle", payload), do: TerminateBattleContract.validate(payload)
+  def validate("mutate_battle_status", payload), do: MutateBattleStatusContract.validate(payload)
+  def validate("battle_sync", payload), do: BattleSyncContract.validate(payload)
+  def validate("select_leads", payload), do: SelectLeadsContract.validate(payload)
   def validate(action, payload), do: super(action, payload)
 end

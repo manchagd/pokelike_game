@@ -97,6 +97,7 @@ namespace :db do
   task :seed, [:file, :force] do |_t, args|
     file_arg = args[:file]
     $seed_force_fetch = args[:force]&.downcase == 'true'
+    $seed_param = args[:force]
 
     if file_arg
       seed_file = File.expand_path("db/seed/#{file_arg}_seed.rb", __dir__)

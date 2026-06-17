@@ -1,5 +1,7 @@
 import 'dart:async';
+import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../theme.dart';
@@ -224,7 +226,8 @@ class _BattleViewState extends State<BattleView> {
 
         final logs = eventPayload['log'] as List?;
         if (logs != null) {
-          _battleFeedback = logs.map((l) => l.toString()).toList();
+          _battleFeedback.clear();
+          _battleFeedback.addAll(logs.map((l) => l.toString()));
         }
       });
       _startLocalCountdown();
@@ -294,7 +297,7 @@ class _BattleViewState extends State<BattleView> {
       barrierDismissible: false,
       builder: (BuildContext dialogContext) {
         return AlertDialog(
-          title: const Row(
+          title: Row(
             children: [
               Icon(Icons.warning_amber_rounded, color: AppColors.accent),
               SizedBox(width: 10),
@@ -325,7 +328,7 @@ class _BattleViewState extends State<BattleView> {
       barrierDismissible: false,
       builder: (BuildContext dialogContext) {
         return AlertDialog(
-          title: const Row(
+          title: Row(
             children: [
               Icon(Icons.sports_kabaddi_rounded, color: AppColors.primary),
               SizedBox(width: 10),
@@ -355,7 +358,7 @@ class _BattleViewState extends State<BattleView> {
       context: context,
       builder: (BuildContext dialogContext) {
         return AlertDialog(
-          title: const Row(
+          title: Row(
             children: [
               Icon(Icons.outlined_flag_rounded, color: AppColors.danger),
               SizedBox(width: 10),
@@ -398,6 +401,9 @@ class _BattleViewState extends State<BattleView> {
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
+    final isBattleConnected = context.watch<BattleSocketService>().isBattleConnected;
+    final showWarning = !isBattleConnected && _phase != BattlePhase.finished;
+
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -418,8 +424,8 @@ class _BattleViewState extends State<BattleView> {
               padding: const EdgeInsets.only(right: 8),
               child: TextButton.icon(
                 onPressed: _showSurrenderConfirmation,
-                icon: const Icon(Icons.flag_rounded, color: AppColors.danger, size: 18),
-                label: const Text(
+                icon: Icon(Icons.flag_rounded, color: AppColors.danger, size: 18),
+                label: Text(
                   'Rendirse',
                   style: TextStyle(
                     color: AppColors.danger,
@@ -431,112 +437,206 @@ class _BattleViewState extends State<BattleView> {
           if (widget.battleCode != null)
             Padding(
               padding: const EdgeInsets.only(right: 16, top: 10, bottom: 10),
-              child: Chip(
-                avatar: const Icon(
-                  Icons.tag,
-                  size: 16,
-                  color: AppColors.primary,
-                ),
-                label: Text(
-                  widget.battleCode!,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 1.5,
+              child: GestureDetector(
+                onTap: () {
+                  Clipboard.setData(ClipboardData(text: widget.battleCode!));
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Código ${widget.battleCode!} copiado al portapapeles'),
+                      duration: const Duration(seconds: 2),
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+                },
+                child: MouseRegion(
+                  cursor: SystemMouseCursors.click,
+                  child: Chip(
+                    avatar: Icon(
+                      Icons.tag,
+                      size: 16,
+                      color: AppColors.primary,
+                    ),
+                    label: Text(
+                      widget.battleCode!,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 1.5,
+                      ),
+                    ),
                   ),
                 ),
               ),
             ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          children: [
-            _buildTopTurnBanner(text),
-            const SizedBox(height: 16),
-            Expanded(
-              child: LayoutBuilder(
-                builder: (context, c) {
-                  final isWide = c.maxWidth > 900 && c.maxHeight > 700;
-                  final isWaitingPlayers = _phase.isWaitingPlayers;
+      body: Stack(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              children: [
+                _buildTopTurnBanner(text),
+                const SizedBox(height: 16),
+                Expanded(
+                  child: LayoutBuilder(
+                    builder: (context, c) {
+                      final isWide = c.maxWidth > 900 && c.maxHeight > 700;
+                      final isWaitingPlayers = _phase.isWaitingPlayers;
 
-                  if (isWaitingPlayers) {
-                    if (!isWide) {
-                      return SingleChildScrollView(
-                        child: Column(
+                      if (isWaitingPlayers) {
+                        if (!isWide) {
+                          return SingleChildScrollView(
+                            child: Column(
+                              children: [
+                                _buildWaitingRoomPanel(),
+                                const SizedBox(height: 16),
+                                SizedBox(height: 360, child: _buildChatPanel()),
+                              ],
+                            ),
+                          );
+                        }
+                        return Row(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            _buildWaitingRoomPanel(),
-                            const SizedBox(height: 16),
-                            SizedBox(height: 360, child: _buildChatPanel()),
+                            Expanded(
+                              flex: 6,
+                              child: _buildWaitingRoomPanel(),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              flex: 4,
+                              child: _buildChatPanel(),
+                            ),
                           ],
-                        ),
-                      );
-                    }
-                    return Row(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Expanded(
-                          flex: 6,
-                          child: _buildWaitingRoomPanel(),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          flex: 4,
-                          child: _buildChatPanel(),
-                        ),
-                      ],
-                    );
-                  }
+                        );
+                      }
 
-                  if (!isWide) {
-                    return SingleChildScrollView(
-                      child: Column(
+                      if (!isWide) {
+                        return SingleChildScrollView(
+                          child: Column(
+                            children: [
+                              _buildParticipants(),
+                              const SizedBox(height: 16),
+                              _buildAttackPanel(),
+                              const SizedBox(height: 16),
+                              _buildLogPanel(height: 250),
+                              const SizedBox(height: 16),
+                              _buildMonstersPanel(),
+                              const SizedBox(height: 16),
+                              SizedBox(height: 360, child: _buildChatPanel()),
+                            ],
+                          ),
+                        );
+                      }
+                      return Row(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          _buildParticipants(),
-                          const SizedBox(height: 16),
-                          _buildAttackPanel(),
-                          const SizedBox(height: 16),
-                          _buildLogPanel(height: 250),
-                          const SizedBox(height: 16),
-                          _buildMonstersPanel(),
-                          const SizedBox(height: 16),
-                          SizedBox(height: 360, child: _buildChatPanel()),
+                          Expanded(
+                            flex: 6,
+                            child: Column(
+                              children: [
+                                _buildParticipants(),
+                                const SizedBox(height: 16),
+                                _buildAttackPanel(),
+                                const SizedBox(height: 16),
+                                Expanded(child: _buildLogPanel()),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            flex: 4,
+                            child: Column(
+                              children: [
+                                _buildMonstersPanel(),
+                                const SizedBox(height: 16),
+                                Expanded(child: _buildChatPanel()),
+                              ],
+                            ),
+                          ),
                         ],
-                      ),
-                    );
-                  }
-                  return Row(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Expanded(
-                        flex: 6,
-                        child: Column(
-                          children: [
-                            _buildParticipants(),
-                            const SizedBox(height: 16),
-                            _buildAttackPanel(),
-                            const SizedBox(height: 16),
-                            Expanded(child: _buildLogPanel()),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        flex: 4,
-                        child: Column(
-                          children: [
-                            _buildMonstersPanel(),
-                            const SizedBox(height: 16),
-                            Expanded(child: _buildChatPanel()),
-                          ],
-                        ),
-                      ),
-                    ],
-                  );
-                },
-              ),
+                      );
+                    },
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
+          if (showWarning)
+            Positioned(
+              top: 12,
+              left: 24,
+              right: 24,
+              child: _buildNoConnectionBanner(text),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNoConnectionBanner(TextTheme text) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(AppRadius.md),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          decoration: BoxDecoration(
+            color: AppColors.danger.withValues(alpha: 0.15),
+            borderRadius: BorderRadius.circular(AppRadius.md),
+            border: Border.all(
+              color: AppColors.danger.withValues(alpha: 0.6),
+              width: 1.5,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.danger.withValues(alpha: 0.2),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              _PulsingIcon(
+                icon: Icons.wifi_off_rounded,
+                color: AppColors.danger,
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'Conexión perdida',
+                      style: text.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w900,
+                        color: AppColors.onSurface,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Intentando reconectar al combate...',
+                      style: text.bodySmall?.copyWith(
+                        color: AppColors.onSurfaceMuted,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 16),
+              SizedBox(
+                width: 18,
+                height: 18,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(AppColors.danger),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -567,7 +667,7 @@ class _BattleViewState extends State<BattleView> {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              AppColors.surfaceA20.withValues(alpha: 0.95),
+              AppColors.surfaceHigh.withValues(alpha: 0.95),
               AppColors.surface.withValues(alpha: 0.98),
             ],
           ),
@@ -592,7 +692,7 @@ class _BattleViewState extends State<BattleView> {
                   width: 2,
                 ),
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.people_alt_rounded,
                 color: AppColors.accent,
                 size: 36,
@@ -623,7 +723,7 @@ class _BattleViewState extends State<BattleView> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               decoration: BoxDecoration(
-                color: AppColors.primaryA0.withValues(alpha: 0.05),
+                color: AppColors.primary.withValues(alpha: 0.05),
                 borderRadius: BorderRadius.circular(100),
                 border: Border.all(
                   color: AppColors.primary.withValues(alpha: 0.15),
@@ -664,7 +764,7 @@ class _BattleViewState extends State<BattleView> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: AppColors.surfaceA0.withValues(alpha: 0.3),
+                color: AppColors.background.withValues(alpha: 0.3),
                 borderRadius: BorderRadius.circular(AppRadius.md),
                 border: Border.all(
                   color: AppColors.outlineVariant.withValues(alpha: 0.3),
@@ -672,7 +772,7 @@ class _BattleViewState extends State<BattleView> {
               ),
               child: Row(
                 children: [
-                  const Icon(
+                  Icon(
                     Icons.info_outline_rounded,
                     color: AppColors.onSurfaceMuted,
                     size: 16,
@@ -710,8 +810,8 @@ class _BattleViewState extends State<BattleView> {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
         color: isConnected
-            ? AppColors.surfaceA10.withValues(alpha: 0.4)
-            : AppColors.surfaceA0.withValues(alpha: 0.1),
+            ? AppColors.surface.withValues(alpha: 0.4)
+            : AppColors.background.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(AppRadius.md),
         border: Border.all(
           color: isConnected
@@ -724,7 +824,7 @@ class _BattleViewState extends State<BattleView> {
         children: [
           // Connection status dot/indicator
           if (isConnected)
-            const _PulsingIndicator(color: AppColors.success)
+            _PulsingIndicator(color: AppColors.success)
           else
             Container(
               width: 10,
@@ -767,7 +867,7 @@ class _BattleViewState extends State<BattleView> {
             decoration: BoxDecoration(
               color: isConnected
                   ? AppColors.success.withValues(alpha: 0.15)
-                  : AppColors.surfaceA0.withValues(alpha: 0.2),
+                  : AppColors.background.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(AppRadius.sm),
             ),
             child: Text(
@@ -800,7 +900,7 @@ class _BattleViewState extends State<BattleView> {
               ),
             ),
             const SizedBox(width: 8),
-            const Icon(
+            Icon(
               Icons.offline_bolt_outlined,
               color: AppColors.accent,
               size: 20,
@@ -832,7 +932,7 @@ class _BattleViewState extends State<BattleView> {
               mainAxisAlignment: MainAxisAlignment.center,
               mainAxisSize: MainAxisSize.max,
               children: [
-                const Icon(Icons.flash_on, color: AppColors.accent, size: 25),
+                Icon(Icons.flash_on, color: AppColors.accent, size: 25),
                 const SizedBox(width: 8),
                 Text(
                   'Selecciona tu ataque',
@@ -863,14 +963,14 @@ class _BattleViewState extends State<BattleView> {
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                       colors: [
-                        Color.lerp(c, AppColors.primaryA0, 0.35)!.withValues(alpha: 0.95),
+                        Color.lerp(c, AppColors.primary, 0.35)!.withValues(alpha: 0.95),
                         c.withValues(alpha: 0.55),
-                        AppColors.surfaceA0.withValues(alpha: 0.92),
+                        AppColors.background.withValues(alpha: 0.92),
                       ],
                       stops: const [0.0, 0.45, 1.0],
                     ),
                     border: Border.all(
-                      color: Color.lerp(c, AppColors.primaryA20, 0.3)!
+                      color: Color.lerp(c, AppColors.secondary, 0.3)!
                           .withValues(alpha: 0.75),
                       width: 1.2,
                     ),
@@ -882,7 +982,7 @@ class _BattleViewState extends State<BattleView> {
                         offset: const Offset(0, 6),
                       ),
                       BoxShadow(
-                        color: AppColors.primaryA0.withValues(alpha: 0.18),
+                        color: AppColors.primary.withValues(alpha: 0.18),
                         blurRadius: 20,
                         spreadRadius: -4,
                         offset: const Offset(0, 2),
@@ -1001,7 +1101,7 @@ class _BattleViewState extends State<BattleView> {
         children: [
           Row(
             children: [
-              const Icon(
+              Icon(
                 Icons.receipt_long,
                 color: AppColors.secondary,
                 size: 18,
@@ -1076,7 +1176,7 @@ class _BattleViewState extends State<BattleView> {
           children: [
             Row(
               children: [
-                const Icon(
+                Icon(
                   Icons.catching_pokemon,
                   color: AppColors.primary,
                   size: 18,
@@ -1114,15 +1214,15 @@ class _BattleViewState extends State<BattleView> {
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                       colors: [
-                        Color.lerp(hpColor, AppColors.primaryA0, 0.4)!
+                        Color.lerp(hpColor, AppColors.primary, 0.4)!
                             .withValues(alpha: 0.85),
                         hpColor.withValues(alpha: 0.4),
-                        AppColors.surfaceA0.withValues(alpha: 0.9),
+                        AppColors.background.withValues(alpha: 0.9),
                       ],
                       stops: const [0.0, 0.45, 1.0],
                     ),
                     border: Border.all(
-                      color: Color.lerp(hpColor, AppColors.primaryA20, 0.35)!
+                      color: Color.lerp(hpColor, AppColors.secondary, 0.35)!
                           .withValues(alpha: 0.7),
                       width: 1.2,
                     ),
@@ -1134,7 +1234,7 @@ class _BattleViewState extends State<BattleView> {
                         offset: const Offset(0, 5),
                       ),
                       BoxShadow(
-                        color: AppColors.primaryA0.withValues(alpha: 0.15),
+                        color: AppColors.primary.withValues(alpha: 0.15),
                         blurRadius: 18,
                         spreadRadius: -4,
                         offset: const Offset(0, 2),
@@ -1180,7 +1280,7 @@ class _BattleViewState extends State<BattleView> {
                                   ),
                                   Text(
                                     'Nv.${m['level']} • HP ${m['hp']}/${m['maxHp']}',
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       color: AppColors.onSurfaceMuted,
                                       fontSize: 10,
                                     ),
@@ -1224,7 +1324,7 @@ class _BattleViewState extends State<BattleView> {
           children: [
             Row(
               children: [
-                const Icon(
+                Icon(
                   Icons.chat_bubble_outline,
                   color: AppColors.secondary,
                   size: 18,
@@ -1359,7 +1459,7 @@ class _BattleViewState extends State<BattleView> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       decoration: BoxDecoration(
-        color: AppColors.surfaceA0.withValues(alpha: 0.8),
+        color: AppColors.background.withValues(alpha: 0.8),
         borderRadius: BorderRadius.circular(AppRadius.md),
         border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.5)),
       ),
@@ -1386,11 +1486,11 @@ class _BattleViewState extends State<BattleView> {
           ),
           const SizedBox(width: 12),
           if (isWaitingPlayers)
-            const _PulsingIndicator(color: AppColors.warning)
+            _PulsingIndicator(color: AppColors.warning)
           else if (isWaiting)
-            const _PulsingIndicator(color: AppColors.accent)
+            _PulsingIndicator(color: AppColors.accent)
           else
-            const SizedBox(
+            SizedBox(
               width: 10,
               height: 10,
               child: CircularProgressIndicator(
@@ -1410,7 +1510,7 @@ class _BattleViewState extends State<BattleView> {
             ),
           ),
           if (!isWaitingPlayers && isWaiting && _remainingSeconds > 0) ...[
-            const Icon(
+            Icon(
               Icons.timer_outlined,
               color: AppColors.onSurfaceMuted,
               size: 14,
@@ -1418,7 +1518,7 @@ class _BattleViewState extends State<BattleView> {
             const SizedBox(width: 4),
             Text(
               _formatDuration(_remainingSeconds),
-              style: const TextStyle(
+              style: TextStyle(
                 fontFamily: 'monospace',
                 fontSize: 12,
                 fontWeight: FontWeight.w800,
@@ -1512,7 +1612,7 @@ class _ParticipantTile extends StatelessWidget {
               const SizedBox(width: 10),
               Text(
                 '${mon['hp'] ?? 0}/${mon['maxHp'] ?? 100}',
-                style: const TextStyle(
+                style: TextStyle(
                   fontFamily: 'monospace',
                   fontSize: 11,
                   fontWeight: FontWeight.w700,
@@ -1572,6 +1672,50 @@ class _PulsingIndicatorState extends State<_PulsingIndicator>
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _PulsingIcon extends StatefulWidget {
+  final IconData icon;
+  final Color color;
+  const _PulsingIcon({required this.icon, required this.color});
+
+  @override
+  State<_PulsingIcon> createState() => _PulsingIconState();
+}
+
+class _PulsingIconState extends State<_PulsingIcon> with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _scaleAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1000),
+    )..repeat(reverse: true);
+    _scaleAnimation = Tween<double>(begin: 0.9, end: 1.15).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ScaleTransition(
+      scale: _scaleAnimation,
+      child: Icon(
+        widget.icon,
+        color: widget.color,
+        size: 24,
       ),
     );
   }

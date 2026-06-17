@@ -5,6 +5,7 @@ class PokemonTemplate < ApplicationRecord
 
   validates :name, presence: true, uniqueness: true
   validates :pokeapi_id, uniqueness: { allow_nil: true }
+  validates :weight, numericality: { greater_than: 0 }, allow_nil: true
   validate :types_exists?
 
   private

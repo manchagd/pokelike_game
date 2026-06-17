@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
 class Team < ApplicationRecord
-  has_and_belongs_to_many :pokemons, join_table: :team_pokemons
+  has_many :pokemons, dependent: :destroy
   belongs_to :player
 
-  validates :name, presence: true, uniqueness: true
+  validates :name, presence: true, uniqueness: { scope: :player_id }
 end

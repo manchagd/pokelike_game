@@ -10,35 +10,59 @@ module Messages
           player: {
             id: player.id,
             name: player.name,
-            team: 'A',
-            teams: [],
+            teams: teams_info(player),
             battle_history: {
-              victories: player.battles.count { |b| b.winner?(player) },
-              defeats: player.battles.count { |b| !b.winner?(player) },
-              history: player.battles.last(10).map { |b| b.winner?(player) ? 'V' : 'D' }
+              victories: player.battles.count { it.winner?(player) && it.finished? },
+              defeats: player.battles.count { !it.winner?(player) && it.finished? },
+              history: player.battles.filter(&:finished?).last(10).map { it.winner?(player) ? 'V' : 'D' }
             }
           },
           battles: battle_info(player)
         }
       end
 
-      def battle_info(player)
-        player.battles.running.map do |battle|
+      def battle_created(player_id, battle_id)
+        {
+          player_id: player_id,
+          battle_id: battle_id
+        }
+      end
+
+      def battle_joined(player_id, battle_id)
+        {
+          player_id: player_id,
+          battle_id: battle_id
+        }
+      end
+
+      private_class_method def teams_info(player)
+        player.teams.map do |team|
           {
-            id: battle.id,
-            opponent: battle_player_names(player, battle.players)
+            id: team.id,
+            name: team.name,
+            pokemons: team.pokemons.map do |pokemon|
+              {
+                name: pokemon.pokemon_template.name,
+                types: pokemon.pokemon_template.types
+              }
+            end
           }
         end
       end
 
-      # Private helper methods
-
-      def battle_player_names(player, players)
-        # Ajustado a equipos (por ahora fijo en "A")
-        # [{name: "player_x", team: "A"}] -> nombre del jugador y su equipo
-        players.filter { |p| p.id != player.id }.map { |p| { name: p.name, team: 'A' } }
+      private_class_method def battle_info(player)
+        player.battles.reject(&:finished?).map do |battle|
+          {
+            id: battle.external_id,
+            players: battle.battle_players.map do |bp|
+              {
+                name: bp.player.name,
+                team: bp.group
+              }
+            end
+          }
+        end
       end
-      private_class_method :battle_player_names
     end
   end
 end
