@@ -46,7 +46,6 @@ class _BattleViewState extends State<BattleView> {
     'bw2-homika-dogars.mp3',
     'bw2-kanto-gym-leader.mp3',
     'bw2-rival.mp3',
-    'colosseum-miror-b.mp3',
     'dpp-rival.mp3',
     'dpp-trainer.mp3',
     'hgss-johto-trainer.mp3',
@@ -56,7 +55,6 @@ class _BattleViewState extends State<BattleView> {
     'sm-rival.mp3',
     'sm-trainer.mp3',
     'spl-elite4.mp3',
-    'xd-miror-b.mp3',
     'xy-rival.mp3',
     'xy-trainer.mp3',
   ];
@@ -222,6 +220,21 @@ class _BattleViewState extends State<BattleView> {
       if (mounted) setState(() {});
     } catch (e) {
       debugPrint("Error stopping battle music: $e");
+    }
+  }
+
+  Future<void> _changeBattleMusic(String track) async {
+    _currentTrack = track;
+    _isMusicPlaying = true;
+    try {
+      await _audioPlayer.stop();
+      await _audioPlayer.setReleaseMode(ReleaseMode.loop);
+      await _audioPlayer.setVolume(_isMuted ? 0.0 : (_volume * _bgmVolumeScale));
+      await _audioPlayer.play(UrlSource('https://play.pokemonshowdown.com/audio/$track'));
+      if (mounted) setState(() {});
+    } catch (e) {
+      debugPrint("Error playing battle music ($track): $e");
+      _isMusicPlaying = false;
     }
   }
 
@@ -612,44 +625,56 @@ class _BattleViewState extends State<BattleView> {
         ),
         title: Row(
           children: [
-            Text(
-              'Combate en vivo',
-              style: text.titleLarge?.copyWith(fontWeight: FontWeight.w800),
-            ),
+            _buildCompactTopTurnBanner(text),
             if (!_phase.isWaitingPlayers) ...[
               Expanded(
                 child: Center(
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        _myName.replaceAll(' (Tú)', ''),
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.onSurface,
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 8),
-                        child: Text(
-                          'VS',
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: AppColors.surfaceHigh.withValues(alpha: 0.5),
+                      borderRadius: BorderRadius.circular(AppRadius.md),
+                      border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.3)),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          _myName.replaceAll(' (Tú)', ''),
                           style: TextStyle(
-                            fontSize: 12,
+                            fontSize: 15,
                             fontWeight: FontWeight.w900,
-                            color: AppColors.accent,
+                            color: AppColors.onSurface,
                           ),
                         ),
-                      ),
-                      Text(
-                        _oppName,
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.onSurface,
+                        Container(
+                          margin: const EdgeInsets.symmetric(horizontal: 12),
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [AppColors.primary, AppColors.secondary],
+                            ),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: const Text(
+                            'VS',
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w900,
+                              color: Colors.white,
+                            ),
+                          ),
                         ),
-                      ),
-                    ],
+                        Text(
+                          _oppName,
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w900,
+                            color: AppColors.onSurface,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -746,38 +771,67 @@ class _BattleViewState extends State<BattleView> {
                                 const Icon(Icons.volume_up_rounded, size: 16),
                               ],
                             ),
-                            if (_currentTrack != null) ...[
-                              const Divider(),
-                              Text(
-                                'Reproduciendo:',
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  color: AppColors.onSurfaceMuted,
-                                  fontWeight: FontWeight.w500,
+                            const Divider(),
+                            Text(
+                              'Cambiar Música BGM:',
+                              style: TextStyle(
+                                fontSize: 10,
+                                color: AppColors.onSurfaceMuted,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                             SizedBox(
+                              height: 32,
+                              child: DropdownButtonHideUnderline(
+                                child: DropdownButton<String>(
+                                  value: _battleMusicTracks.contains(_currentTrack) ? _currentTrack : null,
+                                  hint: Text(
+                                    'Seleccionar pista...',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: AppColors.onSurfaceMuted,
+                                    ),
+                                  ),
+                                  isExpanded: true,
+                                  isDense: true,
+                                  itemHeight: null,
+                                  dropdownColor: AppColors.surface,
+                                  icon: Icon(Icons.music_note_rounded, color: AppColors.primary, size: 16),
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: AppColors.onSurface,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                  items: _battleMusicTracks.map((String track) {
+                                    return DropdownMenuItem<String>(
+                                      value: track,
+                                      child: SizedBox(
+                                        height: 32,
+                                        child: Align(
+                                          alignment: Alignment.centerLeft,
+                                          child: Text(
+                                            track.replaceAll('.mp3', '').toUpperCase(),
+                                            style: TextStyle(
+                                              fontSize: 10,
+                                              color: AppColors.onSurface,
+                                              fontWeight: FontWeight.w800,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                  }).toList(),
+                                  onChanged: (track) {
+                                    if (track != null) {
+                                      _changeBattleMusic(track);
+                                      setPopupState(() {});
+                                      setState(() {});
+                                    }
+                                  },
                                 ),
                               ),
-                              const SizedBox(height: 2),
-                              Text(
-                                _currentTrack!.replaceAll('.mp3', '').toUpperCase(),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  color: AppColors.primary,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ] else ...[
-                              const Divider(),
-                              Text(
-                                'Música silenciada o detenida',
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  color: AppColors.onSurfaceMuted,
-                                  fontStyle: FontStyle.italic,
-                                ),
-                              ),
-                            ],
+                            ),
                           ],
                         ),
                       );
@@ -828,8 +882,6 @@ class _BattleViewState extends State<BattleView> {
             padding: const EdgeInsets.all(24),
             child: Column(
               children: [
-                _buildTopTurnBanner(text),
-                const SizedBox(height: 16),
                 Expanded(
                   child: LayoutBuilder(
                     builder: (context, c) {
@@ -2468,36 +2520,21 @@ class _BattleViewState extends State<BattleView> {
     );
   }
 
-  Widget _buildTopTurnBanner(TextTheme text) {
+  Widget _buildCompactTopTurnBanner(TextTheme text) {
     final isSyncing = _phase.isSyncing;
     final isError = _phase.isError;
     final isWaitingPlayers = _phase.isWaitingPlayers;
     final isWaiting = _phase.isWaitingActions;
 
-    final statusColor = isSyncing
-        ? AppColors.primary
-        : (isError
-            ? AppColors.danger
-            : (isWaitingPlayers
-                ? AppColors.warning
-                : (isWaiting ? AppColors.accent : AppColors.success)));
-
-    final statusText = isSyncing
-        ? 'Sincronizando combate...'
-        : (isError
-            ? 'Error en el combate'
-            : (isWaitingPlayers
-                ? 'Esperando jugadores...'
-                : (isWaiting ? 'Esperando acciones...' : 'Procesando turno...')));
-
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: AppColors.background.withValues(alpha: 0.8),
-        borderRadius: BorderRadius.circular(AppRadius.md),
-        border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.5)),
+        color: AppColors.background.withValues(alpha: 0.6),
+        borderRadius: BorderRadius.circular(AppRadius.sm),
+        border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.3)),
       ),
       child: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
           Icon(
             isSyncing
@@ -2508,27 +2545,27 @@ class _BattleViewState extends State<BattleView> {
                         ? Icons.group_add_rounded
                         : Icons.hourglass_empty_rounded)),
             color: AppColors.primary,
-            size: 18,
+            size: 14,
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 6),
           Text(
             isSyncing
                 ? 'Conectando'
                 : (isError
                     ? 'Error'
                     : (isWaitingPlayers ? 'Lobby' : 'Turno $_turn')),
-            style: text.bodyMedium?.copyWith(
+            style: text.bodySmall?.copyWith(
               fontWeight: FontWeight.w900,
               color: AppColors.onSurface,
             ),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 8),
           Container(
-            height: 14,
+            height: 10,
             width: 1,
             color: AppColors.outlineVariant,
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 8),
           if (isSyncing)
             _PulsingIndicator(color: AppColors.primary)
           else if (isError)
@@ -2536,41 +2573,34 @@ class _BattleViewState extends State<BattleView> {
           else if (isWaitingPlayers)
             _PulsingIndicator(color: AppColors.warning)
           else if (isWaiting)
-            _PulsingIndicator(color: AppColors.accent)
+            _PulsingIndicator(color: AppColors.warning)
           else
-            SizedBox(
-              width: 10,
-              height: 10,
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                valueColor: AlwaysStoppedAnimation<Color>(AppColors.success),
-              ),
-            ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              statusText,
-              style: text.bodySmall?.copyWith(
-                color: statusColor,
-                fontWeight: FontWeight.w700,
-                letterSpacing: 0.5,
-              ),
-            ),
-          ),
+            _PulsingIndicator(color: AppColors.primary),
           if (!isSyncing && !isError && !isWaitingPlayers && isWaiting && _remainingSeconds > 0) ...[
+            const SizedBox(width: 8),
+            Container(
+              height: 10,
+              width: 1,
+              color: AppColors.outlineVariant,
+            ),
+            const SizedBox(width: 8),
             Icon(
               Icons.timer_outlined,
               color: AppColors.onSurfaceMuted,
-              size: 14,
+              size: 12,
             ),
             const SizedBox(width: 4),
-            Text(
-              _formatDuration(_remainingSeconds),
-              style: TextStyle(
-                fontFamily: 'monospace',
-                fontSize: 12,
-                fontWeight: FontWeight.w800,
-                color: AppColors.onSurfaceMuted,
+            SizedBox(
+              width: 38,
+              child: Text(
+                _formatDuration(_remainingSeconds),
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontFamily: 'monospace',
+                  fontSize: 11,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.onSurfaceMuted,
+                ),
               ),
             ),
           ],
