@@ -223,20 +223,6 @@ class _BattleViewState extends State<BattleView> {
     }
   }
 
-  Future<void> _changeBattleMusic(String track) async {
-    _currentTrack = track;
-    _isMusicPlaying = true;
-    try {
-      await _audioPlayer.stop();
-      await _audioPlayer.setReleaseMode(ReleaseMode.loop);
-      await _audioPlayer.setVolume(_isMuted ? 0.0 : (_volume * _bgmVolumeScale));
-      await _audioPlayer.play(UrlSource('https://play.pokemonshowdown.com/audio/$track'));
-      if (mounted) setState(() {});
-    } catch (e) {
-      debugPrint("Error playing battle music ($track): $e");
-      _isMusicPlaying = false;
-    }
-  }
 
   Future<void> _updateVolume(double val) async {
     setState(() {
@@ -771,67 +757,38 @@ class _BattleViewState extends State<BattleView> {
                                 const Icon(Icons.volume_up_rounded, size: 16),
                               ],
                             ),
-                            const Divider(),
-                            Text(
-                              'Cambiar Música BGM:',
-                              style: TextStyle(
-                                fontSize: 10,
-                                color: AppColors.onSurfaceMuted,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            const SizedBox(height: 2),
-                             SizedBox(
-                              height: 32,
-                              child: DropdownButtonHideUnderline(
-                                child: DropdownButton<String>(
-                                  value: _battleMusicTracks.contains(_currentTrack) ? _currentTrack : null,
-                                  hint: Text(
-                                    'Seleccionar pista...',
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      color: AppColors.onSurfaceMuted,
-                                    ),
-                                  ),
-                                  isExpanded: true,
-                                  isDense: true,
-                                  itemHeight: null,
-                                  dropdownColor: AppColors.surface,
-                                  icon: Icon(Icons.music_note_rounded, color: AppColors.primary, size: 16),
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    color: AppColors.onSurface,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                  items: _battleMusicTracks.map((String track) {
-                                    return DropdownMenuItem<String>(
-                                      value: track,
-                                      child: SizedBox(
-                                        height: 32,
-                                        child: Align(
-                                          alignment: Alignment.centerLeft,
-                                          child: Text(
-                                            track.replaceAll('.mp3', '').toUpperCase(),
-                                            style: TextStyle(
-                                              fontSize: 10,
-                                              color: AppColors.onSurface,
-                                              fontWeight: FontWeight.w800,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    );
-                                  }).toList(),
-                                  onChanged: (track) {
-                                    if (track != null) {
-                                      _changeBattleMusic(track);
-                                      setPopupState(() {});
-                                      setState(() {});
-                                    }
-                                  },
+                            if (_currentTrack != null) ...[
+                              const Divider(),
+                              Text(
+                                'Reproduciendo:',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  color: AppColors.onSurfaceMuted,
+                                  fontWeight: FontWeight.w500,
                                 ),
                               ),
-                            ),
+                              const SizedBox(height: 2),
+                              Text(
+                                _currentTrack!.replaceAll('.mp3', '').toUpperCase(),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  color: AppColors.primary,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ] else ...[
+                              const Divider(),
+                              Text(
+                                'Música silenciada o detenida',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  color: AppColors.onSurfaceMuted,
+                                  fontStyle: FontStyle.italic,
+                                ),
+                              ),
+                            ],
                           ],
                         ),
                       );
