@@ -17,8 +17,9 @@ module Services
         ActiveRecord::Base.transaction do
           team = player.teams.find(team_id)
           team.update!(name: final_name)
-          team.pokemons.destroy_all
-          create_pokemons(team, pokemons)
+
+          existing = team.pokemons.to_a
+          process_pokemons(player, team, existing, pokemons)
         end
       end
 
@@ -29,15 +30,36 @@ module Services
         duplicate_exists ? "#{name} (#{Time.now.to_i})" : name
       end
 
-      def create_pokemons(team, pokemons)
-        pokemons.each do |pkmn_data|
+      def process_pokemons(player, team, existing, pokemons)
+        pokemons.each_with_index do |pkmn_data, idx|
           template = ::PokemonTemplate.find(pkmn_data[:pokemon_template_id])
-          pokemon = build_and_create_pokemon(team, template, pkmn_data)
 
-          (pkmn_data[:moves] || []).each do |move_id|
-            pokemon.attacks.create!(move_id: move_id)
+          if idx < existing.size
+            pokemon = existing[idx]
+            update_pokemon(pokemon, template, pkmn_data)
+          else
+            pokemon = build_and_create_pokemon(team, template, pkmn_data)
           end
+
+          update_attacks(pokemon, pkmn_data[:moves] || [])
         end
+
+        cleanup_extra_pokemons(player, existing, pokemons.size) if existing.size > pokemons.size
+      end
+
+      def update_pokemon(pokemon, template, pkmn_data)
+        nickname = (pkmn_data[:nickname].presence || template.name)[0...10]
+        ivs = DEFAULT_IVS.merge((pkmn_data[:ivs] || {}).transform_keys(&:to_s))
+        evs = DEFAULT_EVS.merge((pkmn_data[:evs] || {}).transform_keys(&:to_s))
+
+        pokemon.update!(
+          pokemon_template: template,
+          nickname: nickname,
+          ivs: ivs,
+          evs: evs,
+          weight: template.weight || rand(10.0..150.0).round(2),
+          teratype: template.types.first || Types::LIST.sample
+        )
       end
 
       def build_and_create_pokemon(team, template, pkmn_data)
@@ -57,6 +79,23 @@ module Services
           lvl: 50,
           teratype: template.types.first || Types::LIST.sample
         )
+      end
+
+      def update_attacks(pokemon, move_ids)
+        pokemon.attacks.destroy_all
+        move_ids.each do |move_id|
+          pokemon.attacks.create!(move_id: move_id)
+        end
+      end
+
+      def cleanup_extra_pokemons(player, existing, active_count)
+        archived_team = nil
+        existing[active_count..].each do |extra_pkmn|
+          extra_pkmn.destroy!
+        rescue ActiveRecord::InvalidForeignKey
+          archived_team ||= player.teams.find_or_create_by!(name: "__archived_#{player.id}__")
+          extra_pkmn.update!(team: archived_team)
+        end
       end
     end
   end
