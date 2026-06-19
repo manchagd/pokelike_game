@@ -16,6 +16,7 @@ defmodule BattleRealTime.Contracts.Consumers.PlayerEvents.TeamDetailsContract do
       field(:pokemon_template_id, :integer)
       field(:name, :string)
       field(:types, {:array, :string})
+      field(:stats, :map)
       field(:nickname, :string)
       field(:gender, :string)
       field(:nature, :string)
@@ -43,6 +44,7 @@ defmodule BattleRealTime.Contracts.Consumers.PlayerEvents.TeamDetailsContract do
       :pokemon_template_id,
       :name,
       :types,
+      :stats,
       :nickname,
       :gender,
       :nature,
