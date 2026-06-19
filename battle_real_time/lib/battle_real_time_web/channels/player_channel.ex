@@ -83,17 +83,17 @@ defmodule BattleRealTimeWeb.PlayerChannel do
   end
 
   @impl true
-  def handle_in("create_team", payload, socket) do
+  def handle_in("mutate_team", payload, socket) do
     player_id = socket.assigns.identifier
     name = Map.get(payload, "name")
     pokemons = Map.get(payload, "pokemons")
     team_id = Map.get(payload, "team_id")
 
     Logger.info(
-      "Create team request received for player: #{player_id}, name: #{name}, team_id: #{team_id}"
+      "Mutate team request received for player: #{player_id}, name: #{name}, team_id: #{team_id}"
     )
 
-    case BattleRealTime.Players.CreateTeam.call(player_id, name, pokemons, team_id) do
+    case BattleRealTime.Players.MutateTeam.call(player_id, name, pokemons, team_id) do
       {:ok, _payload} -> {:noreply, socket}
       {:error, _reason} -> {:noreply, socket}
     end

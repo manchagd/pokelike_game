@@ -2,7 +2,7 @@
 
 module Contracts
   module Consumers
-    class CreateTeamContract < Dry::Validation::Contract
+    class MutateTeamContract < Dry::Validation::Contract
       params do
         required(:player_id).filled(:integer)
         required(:name).filled(:string)

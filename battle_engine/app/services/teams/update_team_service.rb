@@ -2,7 +2,7 @@
 
 module Services
   module Teams
-    class CreateTeamService
+    class UpdateTeamService
       DEFAULT_IVS = {
         'hp' => 31, 'atk' => 31, 'def' => 31, 'sp_atk' => 31, 'sp_def' => 31, 'spd' => 31
       }.freeze
@@ -11,19 +11,21 @@ module Services
         'hp' => 0, 'atk' => 0, 'def' => 0, 'sp_atk' => 0, 'sp_def' => 0, 'spd' => 0
       }.freeze
 
-      def call(player:, name:, pokemons:)
-        final_name = resolve_name(player, name)
+      def call(player:, team_id:, name:, pokemons:)
+        final_name = resolve_name(player, team_id, name)
 
         ActiveRecord::Base.transaction do
-          team = player.teams.create!(name: final_name)
+          team = player.teams.find(team_id)
+          team.update!(name: final_name)
+          team.pokemons.destroy_all
           create_pokemons(team, pokemons)
         end
       end
 
       private
 
-      def resolve_name(player, name)
-        duplicate_exists = player.teams.exists?(name: name)
+      def resolve_name(player, team_id, name)
+        duplicate_exists = player.teams.where.not(id: team_id).exists?(name: name)
         duplicate_exists ? "#{name} (#{Time.now.to_i})" : name
       end
 

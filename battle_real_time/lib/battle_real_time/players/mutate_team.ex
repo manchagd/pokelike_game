@@ -1,4 +1,4 @@
-defmodule BattleRealTime.Players.CreateTeam do
+defmodule BattleRealTime.Players.MutateTeam do
   alias BattleRealTime.AMQP.Publishers.PlayerActionsPublisher
 
   def call(player_id, _name, _pokemons) when player_id in [nil, ""] do
@@ -21,7 +21,7 @@ defmodule BattleRealTime.Players.CreateTeam do
       "team_id" => team_id
     }
 
-    case PlayerActionsPublisher.publish("create_team", payload) do
+    case PlayerActionsPublisher.publish("mutate_team", payload) do
       :ok -> {:ok, payload}
       error -> error
     end

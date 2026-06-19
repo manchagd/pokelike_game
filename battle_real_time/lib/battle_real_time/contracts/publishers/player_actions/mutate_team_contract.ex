@@ -1,6 +1,6 @@
-defmodule BattleRealTime.Contracts.Publishers.PlayerActions.CreateTeamContract do
+defmodule BattleRealTime.Contracts.Publishers.PlayerActions.MutateTeamContract do
   @moduledoc """
-  Validates the payload for the create_team player action, under the player_actions queue.
+  Validates the payload for the mutate_team player action, under the player_actions queue.
   """
   use BattleRealTime.Contracts.Contract
 

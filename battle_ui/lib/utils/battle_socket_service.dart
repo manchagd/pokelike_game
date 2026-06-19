@@ -505,16 +505,16 @@ class BattleSocketService with ChangeNotifier {
   }
 
   /// Save/create a new team (or update if teamId is provided)
-  void createTeam(String name, List<Map<String, dynamic>> pokemons, {int? teamId}) {
+  void mutateTeam(String name, List<Map<String, dynamic>> pokemons, {int? teamId}) {
     if (_playerChannel != null && _playerChannel!.state == PhoenixChannelState.joined) {
-      print("Enviando acción create_team al canal de player...");
-      _playerChannel!.push('create_team', {
+      print("Enviando acción mutate_team al canal de player...");
+      _playerChannel!.push('mutate_team', {
         'name': name,
         'pokemons': pokemons,
         'team_id': teamId,
       });
     } else {
-      print("Advertencia: No se pudo enviar create_team porque el canal del jugador no está listo.");
+      print("Advertencia: No se pudo enviar mutate_team porque el canal del jugador no está listo.");
     }
   }
 

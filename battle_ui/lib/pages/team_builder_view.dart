@@ -173,7 +173,7 @@ class _TeamBuilderViewState extends State<TeamBuilderView> {
       _isSaving = true;
     });
 
-    socketService.createTeam(name, payloadPokemons, teamId: _selectedTeamId);
+    socketService.mutateTeam(name, payloadPokemons, teamId: _selectedTeamId);
   }
 
   @override
