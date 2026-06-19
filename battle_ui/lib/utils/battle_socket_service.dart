@@ -24,8 +24,8 @@ class BattleSocketService with ChangeNotifier {
   Map<String, dynamic>? get currentPlayer => _currentPlayer;
 
   // Team builder template loading state
-  final List<Map<String, dynamic>> _pokemonTemplates = [];
-  List<Map<String, dynamic>> get pokemonTemplates => _pokemonTemplates;
+  final Map<int, Map<String, dynamic>> _pokemonTemplates = {};
+  List<Map<String, dynamic>> get pokemonTemplates => _pokemonTemplates.values.toList();
   bool _isLoadingTemplates = false;
   bool get isLoadingTemplates => _isLoadingTemplates;
 
@@ -266,8 +266,11 @@ class BattleSocketService with ChangeNotifier {
           final list = innerPayload['pokemon_templates'] as List?;
           if (list != null) {
             final templates = list.map((item) => Map<String, dynamic>.from(item as Map)).toList();
-            _pokemonTemplates.addAll(templates);
-            print("Recibido lote de ${templates.length} plantillas de Pokémon. Total: ${_pokemonTemplates.length}");
+            for (final t in templates) {
+              final id = t['id'] as int?;
+              if (id != null) _pokemonTemplates[id] = t;
+            }
+            print("Recibido lote de ${templates.length} plantillas de Pokémon. Total único: ${_pokemonTemplates.length}");
 
             // Standard total count in generation 9 is 1025. If we have at least 1025, or if we stop receiving:
             if (_pokemonTemplates.length >= 1025 || templates.length < 200) {
@@ -473,7 +476,7 @@ class BattleSocketService with ChangeNotifier {
 
   /// Request pokemon templates for the team builder
   void loadPokemonTemplates({bool force = false}) {
-    if (!force && _pokemonTemplates.isNotEmpty) return;
+    if (!force && (_pokemonTemplates.isNotEmpty || _isLoadingTemplates)) return;
 
     if (_playerChannel != null && _playerChannel!.state == PhoenixChannelState.joined) {
       print("Cargando plantillas de Pokémon...");
