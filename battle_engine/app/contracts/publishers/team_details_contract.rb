@@ -12,6 +12,7 @@ module Contracts
           required(:pokemon_template_id).filled(:integer)
           required(:name).filled(:string)
           required(:types).array(:string)
+          required(:stats).filled(:hash)
           optional(:nickname).maybe(:string)
           required(:gender).maybe(:string)
           required(:nature).filled(:string)

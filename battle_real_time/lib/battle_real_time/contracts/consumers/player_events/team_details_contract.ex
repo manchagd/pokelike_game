@@ -61,6 +61,7 @@ defmodule BattleRealTime.Contracts.Consumers.PlayerEvents.TeamDetailsContract do
       :pokemon_template_id,
       :name,
       :types,
+      :stats,
       :nature,
       :weight,
       :lvl,
