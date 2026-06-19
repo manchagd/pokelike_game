@@ -88,13 +88,11 @@ module Services
         end
       end
 
-      def cleanup_extra_pokemons(player, existing, active_count)
-        archived_team = nil
+      def cleanup_extra_pokemons(_player, existing, active_count)
         existing[active_count..].each do |extra_pkmn|
           extra_pkmn.destroy!
         rescue ActiveRecord::InvalidForeignKey
-          archived_team ||= player.teams.find_or_create_by!(name: "__archived_#{player.id}__")
-          extra_pkmn.update!(team: archived_team)
+          extra_pkmn.update!(team: nil)
         end
       end
     end

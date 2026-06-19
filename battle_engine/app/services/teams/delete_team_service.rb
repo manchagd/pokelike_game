@@ -8,12 +8,10 @@ module Services
         team = player.teams.find(team_id)
 
         ActiveRecord::Base.transaction do
-          archived_team = nil
           team.pokemons.each do |pokemon|
             pokemon.destroy!
           rescue ActiveRecord::InvalidForeignKey
-            archived_team ||= player.teams.find_or_create_by!(name: "__archived_#{player.id}__")
-            pokemon.update!(team: archived_team)
+            pokemon.update!(team: nil)
           end
           team.destroy!
         end

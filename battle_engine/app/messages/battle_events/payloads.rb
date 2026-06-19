@@ -30,7 +30,7 @@ module Messages
         lead_ids = battle.field.positions.pluck(:pokemon_snapshot_id).to_set
 
         battle.battle_players.includes(:player).map do |bp|
-          player_snapshots = snapshots.select { |snap| snap.pokemon.team.player_id == bp.player_id }
+          player_snapshots = snapshots.select { |snap| snap.player_id == bp.player_id }
 
           {
             id: bp.player_id,

@@ -115,7 +115,7 @@ module Messages
       end
 
       private_class_method def teams_list(player)
-        player.teams.reject { |t| t.name.start_with?('__archived_') }.map do |team|
+        player.teams.map do |team|
           {
             id: team.id,
             name: team.name,

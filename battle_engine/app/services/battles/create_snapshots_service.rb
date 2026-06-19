@@ -15,6 +15,7 @@ module Services
           PokemonBattleSnapshot.create!(
             battle: battle,
             pokemon: pokemon,
+            player: player,
             hp: pokemon.hp_stat,
             status_condition: {},
             stat_stages: {},

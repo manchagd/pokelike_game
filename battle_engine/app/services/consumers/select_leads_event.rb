@@ -23,7 +23,7 @@ module Services
 
             # Retrieve snapshot and verify ownership
             snapshot = battle.pokemon_battle_snapshots.find(pokemon_snap_id)
-            raise 'Invalid snapshot ownership' unless snapshot.pokemon.team.player_id == entry[:player_id].to_i
+            raise 'Invalid snapshot ownership' unless snapshot.player_id == entry[:player_id].to_i
 
             # Position lead pokemon on field
             Position.create!(
