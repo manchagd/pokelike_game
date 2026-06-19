@@ -66,6 +66,7 @@ module Messages
               pokemon_template_id: pokemon.pokemon_template_id,
               name: pokemon.pokemon_template.name,
               types: pokemon.pokemon_template.types,
+              stats: pokemon.pokemon_template.stats,
               nickname: pokemon.nickname,
               gender: pokemon.gender,
               nature: pokemon.nature,
