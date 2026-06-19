@@ -54,6 +54,10 @@ defmodule BattleRealTimeWeb.BattleChannel do
         {:ok, %{battle_id: battle_id}, socket}
 
       {:error, reason} ->
+        Logger.error(
+          "Failed to connect player '#{player_id}' (#{username}) to public battle '#{battle_id}': #{inspect(reason)}"
+        )
+
         {:error, %{reason: reason}}
     end
   end
@@ -70,7 +74,11 @@ defmodule BattleRealTimeWeb.BattleChannel do
       :ok ->
         {:noreply, socket}
 
-      {:error, _reason} ->
+      {:error, reason} ->
+        Logger.error(
+          "Failed forfeit action for player '#{player_id}' in battle '#{battle_id}': #{inspect(reason)}"
+        )
+
         {:noreply, socket}
     end
   end
@@ -86,7 +94,11 @@ defmodule BattleRealTimeWeb.BattleChannel do
       {:ok, _enriched} ->
         {:noreply, socket}
 
-      {:error, _reason} ->
+      {:error, reason} ->
+        Logger.error(
+          "Failed to submit action '#{action}' for player '#{player_id}' in battle '#{battle_id}': #{inspect(reason)}"
+        )
+
         {:noreply, socket}
     end
   end
@@ -98,8 +110,15 @@ defmodule BattleRealTimeWeb.BattleChannel do
     payload = %{"action" => "select_lead", "lead" => lead}
 
     case BattleRealTime.Battles.SubmitAction.call(battle_id, player_id, payload) do
-      {:ok, _} -> {:noreply, socket}
-      {:error, _} -> {:noreply, socket}
+      {:ok, _} ->
+        {:noreply, socket}
+
+      {:error, reason} ->
+        Logger.error(
+          "Failed to select lead for player '#{player_id}' in battle '#{battle_id}': #{inspect(reason)}"
+        )
+
+        {:noreply, socket}
     end
   end
 
