@@ -56,6 +56,73 @@ defmodule BattleRealTimeWeb.PlayerChannel do
     end
   end
 
+  @impl true
+  def handle_in("get_pokemon_templates", _payload, socket) do
+    player_id = socket.assigns.identifier
+    Logger.info("Get pokemon templates request received for player: #{player_id}")
+
+    case BattleRealTime.Players.GetPokemonTemplates.call(player_id) do
+      {:ok, _payload} -> {:noreply, socket}
+      {:error, _reason} -> {:noreply, socket}
+    end
+  end
+
+  @impl true
+  def handle_in("get_pokemon_template_moves", payload, socket) do
+    player_id = socket.assigns.identifier
+    pokemon_template_id = Map.get(payload, "pokemon_template_id")
+
+    Logger.info(
+      "Get pokemon template moves request received for player: #{player_id}, template: #{pokemon_template_id}"
+    )
+
+    case BattleRealTime.Players.GetPokemonTemplateMoves.call(player_id, pokemon_template_id) do
+      {:ok, _payload} -> {:noreply, socket}
+      {:error, _reason} -> {:noreply, socket}
+    end
+  end
+
+  @impl true
+  def handle_in("create_team", payload, socket) do
+    player_id = socket.assigns.identifier
+    name = Map.get(payload, "name")
+    pokemons = Map.get(payload, "pokemons")
+    team_id = Map.get(payload, "team_id")
+
+    Logger.info(
+      "Create team request received for player: #{player_id}, name: #{name}, team_id: #{team_id}"
+    )
+
+    case BattleRealTime.Players.CreateTeam.call(player_id, name, pokemons, team_id) do
+      {:ok, _payload} -> {:noreply, socket}
+      {:error, _reason} -> {:noreply, socket}
+    end
+  end
+
+  @impl true
+  def handle_in("get_team_details", payload, socket) do
+    player_id = socket.assigns.identifier
+    team_id = Map.get(payload, "team_id")
+    Logger.info("Get team details request received for player: #{player_id}, team_id: #{team_id}")
+
+    case BattleRealTime.Players.GetTeamDetails.call(player_id, team_id) do
+      {:ok, _payload} -> {:noreply, socket}
+      {:error, _reason} -> {:noreply, socket}
+    end
+  end
+
+  @impl true
+  def handle_in("delete_team", payload, socket) do
+    player_id = socket.assigns.identifier
+    team_id = Map.get(payload, "team_id")
+    Logger.info("Delete team request received for player: #{player_id}, team_id: #{team_id}")
+
+    case BattleRealTime.Players.DeleteTeam.call(player_id, team_id) do
+      {:ok, _payload} -> {:noreply, socket}
+      {:error, _reason} -> {:noreply, socket}
+    end
+  end
+
   # Receive player events from PubSub and push them to the client
   @impl true
   def handle_info({:player_event, %{event: event, payload: payload}}, socket) do
