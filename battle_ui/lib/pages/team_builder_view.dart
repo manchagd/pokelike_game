@@ -475,7 +475,11 @@ class _TeamBuilderViewState extends State<TeamBuilderView> {
                                                   overflow: TextOverflow.ellipsis,
                                                 ),
                                                 const SizedBox(height: 4),
-                                                _buildCombinedTypeBadge(pkmn.types),
+                                                FittedBox(
+                                                  fit: BoxFit.scaleDown,
+                                                  alignment: Alignment.centerLeft,
+                                                  child: _buildCombinedTypeBadge(pkmn.types),
+                                                ),
                                               ],
                                             ),
                                           ),
@@ -691,10 +695,17 @@ class _TeamBuilderViewState extends State<TeamBuilderView> {
                 child: Text(
                   name,
                   style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
               const SizedBox(width: 8),
-              _buildCombinedTypeBadge(types),
+              Flexible(
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerRight,
+                  child: _buildCombinedTypeBadge(types),
+                ),
+              ),
             ],
           ),
           subtitle: Padding(
