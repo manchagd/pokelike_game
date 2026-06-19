@@ -6,7 +6,7 @@ class Pokemon < ApplicationRecord
     FEMALE = 'Female'
   ].freeze
 
-  belongs_to :team
+  belongs_to :team, optional: true
   belongs_to :pokemon_template
   has_many :attacks, dependent: :destroy
   has_many :moves, through: :attacks
