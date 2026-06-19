@@ -184,12 +184,23 @@ class _TeamBuilderViewState extends State<TeamBuilderView> {
 
     final loadedDetails = socketService.loadedTeamDetails;
     if (loadedDetails != null) {
+      final pokemons = loadedDetails['pokemons'] as List? ?? [];
       WidgetsBinding.instance.addPostFrameCallback((_) {
+        // Load moves for all loaded pokemons
+        for (final p in pokemons) {
+          final templateId = p['pokemon_template_id'] as int;
+          if (!socketService.templateMoves.containsKey(templateId)) {
+            socketService.loadPokemonTemplateMoves(templateId);
+          }
+        }
+        // Load all templates (available pokemons for selection on the right side)
+        socketService.loadPokemonTemplates();
+
         socketService.clearLoadedTeamDetails();
       });
+
       _selectedTeamId = loadedDetails['team_id'] as int?;
       _nameController.text = loadedDetails['name'] ?? '';
-      final pokemons = loadedDetails['pokemons'] as List? ?? [];
       for (int i = 0; i < 6; i++) {
         if (i < pokemons.length) {
           final p = Map<String, dynamic>.from(pokemons[i] as Map);
@@ -204,9 +215,6 @@ class _TeamBuilderViewState extends State<TeamBuilderView> {
             evs: Map<String, int>.from(p['evs'] ?? {}),
             selectedMoves: List<int>.from(p['selected_moves'] ?? []),
           );
-          if (!socketService.templateMoves.containsKey(p['pokemon_template_id'])) {
-            socketService.loadPokemonTemplateMoves(p['pokemon_template_id'] as int);
-          }
         } else {
           _editingPokemons[i] = null;
         }
