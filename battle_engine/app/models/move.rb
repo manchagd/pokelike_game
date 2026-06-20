@@ -51,3 +51,5 @@ class Move < ApplicationRecord
     errors.add(:type, "#{unkonwn_types} must exist")
   end
 end
+
+# Agregar nuevo handler para damage_recoil (ej: double edge, high jump kick, rock smash, etc)
