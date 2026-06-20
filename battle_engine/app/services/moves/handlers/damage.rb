@@ -4,8 +4,13 @@ module Services
   module Moves
     module Handlers
       class Damage
-        def call
-          # TODO: Implement Damage handler logic
+        def self.call(attack, defense, pokemon, move)
+          Formulas.damage_formula(
+            attack: attack,
+            defense: defense,
+            lvl: pokemon.lvl,
+            power: move.power
+          )
         end
       end
     end

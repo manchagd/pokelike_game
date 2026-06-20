@@ -5,6 +5,38 @@ class PokemonBattleSnapshot < ApplicationRecord
   belongs_to :battle
   belongs_to :player
 
+  def lvl
+    pokemon.lvl
+  end
+
+  def atk_stat
+    pokemon.atk_stat * stage_multiplier(stat_stages[:atk_stage])
+  end
+
+  def def_stat
+    pokemon.def_stat * stage_multiplier(stat_stages[:def_stage])
+  end
+
+  def sp_atk_stat
+    pokemon.sp_atk_stat * stage_multiplier(stat_stages[:atk_stage])
+  end
+
+  def sp_def_stat
+    pokemon.sp_def_stat * stage_multiplier(stat_stages[:atk_stage])
+  end
+
+  def spd_stat
+    pokemon.spd_stat * stage_multiplier(stat_stages[:atk_stage])
+  end
+
+  private
+
+  def stage_multiplier(stage, step = 2)
+    return 1.0 if stage.nil?
+
+    stage.negative? ? step / (step + stage) : (step + stage) / step
+  end
+
   # =========================================================================
   # DOCUMENTACIÓN DE CAMPOS JSONB (Estructura y posibles valores)
   # =========================================================================
