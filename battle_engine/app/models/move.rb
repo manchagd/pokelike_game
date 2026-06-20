@@ -41,6 +41,10 @@ class Move < ApplicationRecord
     self.class.handlers[super] || super
   end
 
+  def handler_service
+    "Services::Moves::Handlers::#{handler}".safe_constantize
+  end
+
   private
 
   def types_exists?
