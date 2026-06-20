@@ -37,6 +37,10 @@ class Move < ApplicationRecord
 
   validate :types_exists?
 
+  def handler
+    self.class.handlers[super] || super
+  end
+
   private
 
   def types_exists?
