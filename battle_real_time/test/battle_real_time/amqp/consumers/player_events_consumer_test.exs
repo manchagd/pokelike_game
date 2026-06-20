@@ -62,5 +62,50 @@ defmodule BattleRealTime.AMQP.Consumers.PlayerEventsConsumerTest do
 
       refute_receive {:player_event, _}
     end
+
+    test "with valid battles_info event, validates and broadcasts to the player's PubSub topic" do
+      player_id = 101
+      topic = "player:#{player_id}"
+
+      # Subscribe test process to the player topic
+      Phoenix.PubSub.subscribe(BattleRealTime.PubSub, topic)
+
+      data = %{
+        "player_id" => player_id,
+        "battle_history" => %{
+          "victories" => 5,
+          "defeats" => 2,
+          "history" => ["V", "D", "V"]
+        },
+        "battles" => [
+          %{
+            "id" => "battle-uuid-1",
+            "players" => [
+              %{"name" => "Mancha", "team" => "A"},
+              %{"name" => "Enemy", "team" => "B"}
+            ]
+          }
+        ]
+      }
+
+      # Run processing
+      assert :ok = PlayerEventsConsumer.process_message("battles_info", data)
+
+      # Assert PubSub broadcast occurred and payload has atom keys/nested structure
+      assert_receive {:player_event, %{event: "battles_info", payload: payload}}
+      assert payload.player_id == player_id
+      assert payload.battle_history.victories == 5
+      assert payload.battle_history.defeats == 2
+      assert payload.battle_history.history == ["V", "D", "V"]
+      assert length(payload.battles) == 1
+      [battle] = payload.battles
+      assert battle.id == "battle-uuid-1"
+      assert length(battle.players) == 2
+      [p1, p2] = battle.players
+      assert p1.name == "Mancha"
+      assert p1.team == "A"
+      assert p2.name == "Enemy"
+      assert p2.team == "B"
+    end
   end
 end

@@ -3,12 +3,7 @@
 module Contracts
   module Consumers
     class MutateBattleStatusContract < Dry::Validation::Contract
-      params do
-        required(:battle_id).filled(:string)
-        required(:status).filled(:string, included_in?: %w[not_started setting_up in_progress finished])
-        optional(:reason).maybe(:string)
-        optional(:timestamp).maybe(:string)
-      end
+      params Contracts::Common::MutateBattleStatusContract.schema
     end
   end
 end

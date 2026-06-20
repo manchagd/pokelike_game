@@ -19,13 +19,53 @@ graph TD
     RMQ -->|Consume Events| RT
 ```
 
+### Detalle de Módulos y Flujos de Colas
+
+```mermaid
+graph TD
+    subgraph Battle Real Time [Battle Real Time - Elixir]
+        RTC[BattleChannel / BattleSession]
+        RT_Cons[Consumers]
+        RT_Pub[Publishers]
+    end
+
+    subgraph RabbitMQ [RabbitMQ Broker]
+        QA[player_actions]
+        QE[player_events]
+        QBA[battle_actions]
+        QBE[battle_events]
+    end
+
+    subgraph Battle Engine [Battle Engine - Ruby]
+        ENG_Cons[Consumers]
+        ENG_Pub[Publishers]
+        ENG_Srv[Services]
+    end
+
+    %% Flow Real Time -> Engine
+    RTC -->|Publica| RT_Pub
+    RT_Pub -->|register / create_battle / join_battle| QA
+    RT_Pub -->|select_leads / turn_actions / mutate_battle_status / battle_sync| QBA
+    QA --> ENG_Cons
+    QBA --> ENG_Cons
+
+    %% Flow Engine -> Real Time
+    ENG_Srv -->|Publica| ENG_Pub
+    ENG_Pub -->|info / battle_created / battle_joined| QE
+    ENG_Pub -->|battle_status / mutate_battle_status| QBE
+    QE --> RT_Cons
+    QBE --> RT_Cons
+```
+
+
 ### Canales de Phoenix (WebSockets)
 | Tópico | Propósito | Eventos Principales |
 | :--- | :--- | :--- |
 | `application` | Lobby global y presencia. | `presence_state`, `presence_diff` |
 | `player:#{name}` | Canal temporal para el registro del entrenador. | `register` (inbound), `player_event` (outbound) |
 | `player:#{id}` | Canal permanente del perfil del entrenador registrado. | `player_event` (outbound) |
-| `battle:#{battle_id}` | Combate activo en tiempo real. | `action` (inbound), `battle_event` (outbound) |
+| `battle:#{battle_id}` | Combate activo en tiempo real (público / compartido). | `action` (inbound), `battle_event` (outbound) |
+| `battle:#{battle_id}:#{player_id}` | Canal privado de combate en tiempo real para cada jugador (evita filtrar estadísticas). | `action` (inbound), `battle_event` (outbound) |
 | `battle_chat:#{battle_id}` | Chat volátil de la batalla en tiempo real. | `send_message` (inbound), `new_message` (outbound) |
 
 ### Colas de RabbitMQ (AMQP)
@@ -72,43 +112,37 @@ El motor de batalla procesa la solicitud, genera un ID único y crea el perfil i
     "player": {
       "id": 101,
       "name": "AshKetchum",
-      "team": "A",
       "teams": [
         {
+          "id": 1,
           "name": "Equipo Lluvia",
-          "description": "Estrategia basada en clima de lluvia",
-          "monsters": [
-            { "name": "Pelipper", "color": "blue" },
-            { "name": "Swampert", "color": "blueAccent" },
-            { "name": "Kingdra", "color": "cyan" }
+          "pokemons": [
+            { "name": "Pelipper", "types": ["water", "flying"] },
+            { "name": "Swampert", "types": ["water", "ground"] },
+            { "name": "Kingdra", "types": ["water", "dragon"] }
           ]
         },
         {
+          "id": 2,
           "name": "Trick Room Core",
-          "description": "Control de velocidad",
-          "monsters": [
-            { "name": "Cresselia", "color": "pinkAccent" },
-            { "name": "Ursaluna", "color": "brown" }
+          "pokemons": [
+            { "name": "Cresselia", "types": ["psychic"] },
+            { "name": "Ursaluna", "types": ["ground", "normal"] }
           ]
         }
       ],
       "battle_history": {
         "victories": 12,
         "defeats": 5,
-        "history": ["win", "defeat", "win", "win", "defeat"]
+        "history": ["V", "D", "V", "V", "D"]
       }
     },
     "battles": [
       {
-        "id": 123,
-        "opponent": [
-          { "name": "Tuto", "team": "A" }
-        ]
-      },
-      {
-        "id": 345,
-        "opponent": [
-          { "name": "Syth", "team": "A" }
+        "id": "dp5-Tmr",
+        "players": [
+          { "name": "AshKetchum", "team": "A" },
+          { "name": "Gary", "team": "B" }
         ]
       }
     ]
@@ -117,6 +151,106 @@ El motor de batalla procesa la solicitud, genera un ID único y crea el perfil i
 ```
 
 *Nota: Al recibir este mensaje por primera vez en el canal temporal `player:#{name}`, el cliente realiza el **swap de canal** desconectándose de este y uniéndose al canal seguro `player:#{id}`.*
+
+### 2.3 Crear Batalla (Acción Inbound)
+El jugador solicita crear una nueva sala de batalla.
+* **Canal Phoenix**: `player:#{id}`
+* **Evento Phoenix**: `action` con action `create_battle`
+* **Cola RabbitMQ**: `player_actions`
+
+**Payload enviado por el cliente**:
+```json
+{
+  "event": "action",
+  "payload": {
+    "action": "create_battle",
+    "team_id": 1
+  }
+}
+```
+
+### 2.4 Batalla Creada (`battle_created` - Evento)
+El motor confirma la creación y envía el `battle_id` generado.
+* **Cola RabbitMQ**: `player_events`
+* **Canal Phoenix**: `player:#{id}`
+* **Evento Phoenix**: `player_event` (subtipo `battle_created`)
+
+**Payload de respuesta**:
+```json
+{
+  "event": "battle_created",
+  "payload": {
+    "player_id": 101,
+    "battle_id": "482-913"
+  }
+}
+```
+
+### 2.5 Unirse a Batalla (Acción Inbound)
+El jugador solicita unirse a una batalla existente mediante un código.
+* **Canal Phoenix**: `player:#{id}`
+* **Evento Phoenix**: `action` con action `join_battle`
+* **Cola RabbitMQ**: `player_actions`
+
+**Payload enviado por el cliente**:
+```json
+{
+  "event": "action",
+  "payload": {
+    "action": "join_battle",
+    "battle_id": "482-913",
+    "team_id": 2
+  }
+}
+```
+
+### 2.6 Batalla Unida (`battle_joined` - Evento)
+El motor confirma que el jugador se unió exitosamente a la batalla.
+* **Cola RabbitMQ**: `player_events`
+* **Canal Phoenix**: `player:#{id}`
+* **Evento Phoenix**: `player_event` (subtipo `battle_joined`)
+
+**Payload de respuesta**:
+```json
+{
+  "event": "battle_joined",
+  "payload": {
+    "player_id": 102,
+    "battle_id": "482-913"
+  }
+}
+```
+
+### 2.7 Sincronización de Historial y Batallas Activas (`battles_info` - Evento)
+Cuando el motor de batalla detecta cambios en el estado general del jugador (por ejemplo, victorias, derrotas o partidas activas), envía esta información actualizada.
+* **Cola RabbitMQ**: `player_events` (consumido por `PlayerEventsConsumer`)
+* **Canal Phoenix**: `player:#{id}`
+* **Evento Phoenix**: `player_event` (subtipo `battles_info`)
+
+**Payload de respuesta (`battles_info`)**:
+```json
+{
+  "event": "battles_info",
+  "payload": {
+    "player_id": 101,
+    "timestamp": "2026-06-17T17:31:07Z",
+    "battle_history": {
+      "victories": 12,
+      "defeats": 5,
+      "history": ["V", "D", "V", "V", "D"]
+    },
+    "battles": [
+      {
+        "id": "dp5-Tmr",
+        "players": [
+          { "name": "AshKetchum", "team": "A" },
+          { "name": "Gary", "team": "B" }
+        ]
+      }
+    ]
+  }
+}
+```
 
 ---
 
@@ -135,19 +269,19 @@ Durante la batalla, los jugadores envían sus comandos de turno o de control inm
   "event": "action",
   "payload": {
     "action": "attack",
-    "move_id": "thunderbolt",
-    "targets": ["enemy_pelipper"]
+    "move_id": 24,
+    "targets": ["B1"]
   }
 }
 ```
 
-#### Opción B: Acción de Cambio de Monstruo
+#### Opción B: Acción de Cambio de Pokémon
 ```json
 {
   "event": "action",
   "payload": {
     "action": "switch",
-    "monster_id": "swampert"
+    "pokemon_id": 244
   }
 }
 ```
@@ -158,6 +292,29 @@ Durante la batalla, los jugadores envían sus comandos de turno o de control inm
   "event": "action",
   "payload": {
     "action": "forfeit"
+  }
+}
+```
+
+#### Opción D: Selección de Líder (Select Lead)
+En la fase de `setting_up`, el jugador elige a su primer Pokémon.
+```json
+{
+  "event": "action",
+  "payload": {
+    "action": "select_lead",
+    "lead": 1
+  }
+}
+```
+
+#### Opción E: Solicitud de Sincronización (Sync State)
+Pide al servidor forzar la retransmisión del estado del combate.
+```json
+{
+  "event": "action",
+  "payload": {
+    "action": "sync_state"
   }
 }
 ```
@@ -178,28 +335,55 @@ Cuando se completa el turno y ambos jugadores han ingresado sus acciones, se pub
     "actions": [
       {
         "action": "attack",
-        "player_id": "101",
-        "move_id": "thunderbolt",
-        "targets": ["enemy_pelipper"]
+        "player_id": 101,
+        "move_id": 24,
+        "targets": ["B1"]
       },
       {
         "action": "switch",
-        "player_id": "102",
-        "monster_id": "swampert"
+        "player_id": 102,
+        "pokemon_id": 15
       }
     ]
   }
 }
 ```
 
-#### Publicación B: Terminación del Combate (`terminate_battle`)
-Cuando un jugador abandona/se rinde, se notifica inmediatamente al motor de batalla para finalizar el combate.
+#### Publicación B: Selección de Líderes Consolidados (`select_leads`)
+Cuando ambos jugadores han seleccionado a su líder en `setting_up`, el servidor envía ambos líderes al motor.
 ```json
 {
-  "event": "terminate_battle",
+  "event": "select_leads",
   "payload": {
     "battle_id": "482-913",
+    "actions": [
+      { "player_id": 101, "lead": 1 },
+      { "player_id": 102, "lead": 4 }
+    ]
+  }
+}
+```
+
+#### Publicación C: Mutación de Estado de Combate (`mutate_battle_status`)
+Cuando un jugador abandona/se rinde, el servidor de tiempo real notifica al motor para finalizar el combate. (Reemplaza a la antigua acción de `terminate_battle`).
+```json
+{
+  "event": "mutate_battle_status",
+  "payload": {
+    "battle_id": "482-913",
+    "status": "finished",
     "reason": "El jugador AshKetchum se rinde."
+  }
+}
+```
+
+#### Publicación D: Sincronización Forzada (`battle_sync`)
+El servidor pide al motor que vuelva a despachar el `battle_status` a través de `battle_events`.
+```json
+{
+  "event": "battle_sync",
+  "payload": {
+    "battle_id": "482-913"
   }
 }
 ```
@@ -220,32 +404,94 @@ El servidor o el motor de batalla difunden el estado resultante a los clientes.
   "payload": {
     "battle_id": "482-913",
     "battle_format": "1v1",
-    "turn": 3,
-    "phase": "waiting_actions", // Fases: waiting_players, waiting_actions, executing, finished
+    "turn": 1,
+    "phase": "in_progress", // Fases: waiting_players, setting_up, in_progress, finished
     "expected_players": 2,
     "connected_players": 2,
     "turn_expires_at": 1781223600000,
-    "active_monster_a": {
-      "id": "mon_1",
-      "name": "Pikachu",
-      "hp": 80,
-      "max_hp": 100,
-      "status": "normal",
-      "owner_id": "101"
-    },
-    "active_monster_b": {
-      "id": "mon_2",
-      "name": "Pelipper",
-      "hp": 0,
-      "max_hp": 120,
-      "status": "defeated",
-      "owner_id": "102"
-    },
+    "players": [
+      {
+        "id": "101",
+        "name": "AshKetchum",
+        "team": "A",
+        "alive_pokemon_count": 3,
+        "active_monster": {
+          "id": 1,
+          "name": "Pikachu",
+          "hp": 80,
+          "max_hp": 100,
+          "level": 50,
+          "status": "normal"
+        }
+      },
+      {
+        "id": "102",
+        "name": "Gary",
+        "team": "B",
+        "alive_pokemon_count": 2,
+        "active_monster": {
+          "id": 4,
+          "name": "Pelipper",
+          "hp": 0,
+          "max_hp": 120,
+          "level": 50,
+          "status": "defeated"
+        }
+      }
+    ],
     "log": [
       "¡Ambos entrenadores listos! Comienza el combate.",
       "Pikachu usó Rayo.",
       "¡Es súper eficaz contra Pelipper enemigo!",
       "Pelipper enemigo ha sido derrotado."
+    ]
+  }
+}
+```
+
+#### Evento A.2: Equipo Privado (`setup_pokemons`)
+Durante todas las fases de la batalla (incluyendo `setting_up`), el servidor envía a cada jugador sus estadísticas de equipo completas por su canal privado para evitar filtrar los stats al rival.
+* **Canal Phoenix Privado**: `battle:#{battle_id}:#{player_id}`
+* **Evento Phoenix**: `battle_event` (subtipo `setup_pokemons`)
+
+**Payload de respuesta (`setup_pokemons`)**:
+```json
+{
+  "event": "setup_pokemons",
+  "payload": {
+    "battle_id": "482-913",
+    "pokemons": [
+      {
+        "id": 1,
+        "hp": 100,
+        "max_hp": 100,
+        "level": 50,
+        "lead": true,
+        "name": "Pikachu",
+        "pokemon_name": "Pikachu",
+        "types": ["electric"],
+        "status_condition": null,
+        "stat_stages": {
+          "atk": 0,
+          "def": 0,
+          "sp_atk": 0,
+          "sp_def": 0,
+          "spd": 0
+        },
+        "turn_afflictions": {},
+        "locked_condition": null,
+        "attack_log": [],
+        "attacks": [
+          {
+            "id": 24,
+            "name": "Thunderbolt",
+            "power": 90,
+            "accuracy": 100,
+            "pp": 15,
+            "types": ["electric"]
+          }
+        ]
+      }
     ]
   }
 }

@@ -11,11 +11,14 @@ class Battle < ApplicationRecord
 
   before_create :set_external_id
 
-  enum :status, { not_started: 'not_started', setting_up: 'setting_up', in_progress: 'in_progress', finished: 'finished' }
+  enum :status, {
+    not_started: 'not_started',
+    setting_up: 'setting_up',
+    in_progress: 'in_progress',
+    finished: 'finished'
+  }
 
   scope :running, -> { where.not(status: :finished) }
-
-  # Logica de equipos, y jugadores
 
   def winner?(player)
     winner_id == player.id

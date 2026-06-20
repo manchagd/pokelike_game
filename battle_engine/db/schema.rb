@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_06_17_030551) do
+ActiveRecord::Schema[7.2].define(version: 2026_06_19_201702) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -101,7 +101,9 @@ ActiveRecord::Schema[7.2].define(version: 2026_06_17_030551) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.bigint "battle_id", null: false
+    t.bigint "player_id", null: false
     t.index ["battle_id"], name: "index_pokemon_battle_snapshots_on_battle_id"
+    t.index ["player_id"], name: "index_pokemon_battle_snapshots_on_player_id"
     t.index ["pokemon_id"], name: "index_pokemon_battle_snapshots_on_pokemon_id"
   end
 
@@ -141,7 +143,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_06_17_030551) do
     t.string "teratype"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.bigint "team_id", null: false
+    t.bigint "team_id"
     t.jsonb "stats", default: {}, null: false
     t.index ["pokemon_template_id"], name: "index_pokemons_on_pokemon_template_id"
     t.index ["team_id"], name: "index_pokemons_on_team_id"
@@ -150,12 +152,12 @@ ActiveRecord::Schema[7.2].define(version: 2026_06_17_030551) do
   create_table "positions", force: :cascade do |t|
     t.integer "group", null: false
     t.string "side"
-    t.bigint "pokemon_id"
     t.bigint "field_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "pokemon_snapshot_id", null: false
     t.index ["field_id"], name: "index_positions_on_field_id"
-    t.index ["pokemon_id"], name: "index_positions_on_pokemon_id"
+    t.index ["pokemon_snapshot_id"], name: "index_positions_on_pokemon_snapshot_id"
   end
 
   create_table "teams", force: :cascade do |t|
@@ -185,12 +187,13 @@ ActiveRecord::Schema[7.2].define(version: 2026_06_17_030551) do
   add_foreign_key "fields", "hazards"
   add_foreign_key "fields", "weathers"
   add_foreign_key "pokemon_battle_snapshots", "battles"
+  add_foreign_key "pokemon_battle_snapshots", "players"
   add_foreign_key "pokemon_battle_snapshots", "pokemons"
   add_foreign_key "pokemon_template_moves", "moves"
   add_foreign_key "pokemon_template_moves", "pokemon_templates"
   add_foreign_key "pokemons", "pokemon_templates"
   add_foreign_key "pokemons", "teams"
   add_foreign_key "positions", "fields"
-  add_foreign_key "positions", "pokemons"
+  add_foreign_key "positions", "pokemon_battle_snapshots", column: "pokemon_snapshot_id"
   add_foreign_key "teams", "players"
 end

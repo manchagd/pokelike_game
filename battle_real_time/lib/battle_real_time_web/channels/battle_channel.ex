@@ -1,7 +1,8 @@
 defmodule BattleRealTimeWeb.BattleChannel do
   use Phoenix.Channel
 
-  alias BattleRealTime.BattleSession
+  alias BattleRealTime.Battles.GetBattleState
+  alias BattleRealTime.Battles.GetSetupPokemons
   require Logger
 
   @impl true
@@ -28,6 +29,7 @@ defmodule BattleRealTimeWeb.BattleChannel do
       "Client joined private battle channel for battle:#{battle_id} and player:#{player_id}"
     )
 
+    send(self(), :after_join_private)
     {:ok, %{battle_id: battle_id, player_id: player_id}, socket}
   end
 
@@ -52,6 +54,10 @@ defmodule BattleRealTimeWeb.BattleChannel do
         {:ok, %{battle_id: battle_id}, socket}
 
       {:error, reason} ->
+        Logger.error(
+          "Failed to connect player '#{player_id}' (#{username}) to public battle '#{battle_id}': #{inspect(reason)}"
+        )
+
         {:error, %{reason: reason}}
     end
   end
@@ -68,7 +74,11 @@ defmodule BattleRealTimeWeb.BattleChannel do
       :ok ->
         {:noreply, socket}
 
-      {:error, _reason} ->
+      {:error, reason} ->
+        Logger.error(
+          "Failed forfeit action for player '#{player_id}' in battle '#{battle_id}': #{inspect(reason)}"
+        )
+
         {:noreply, socket}
     end
   end
@@ -84,7 +94,11 @@ defmodule BattleRealTimeWeb.BattleChannel do
       {:ok, _enriched} ->
         {:noreply, socket}
 
-      {:error, _reason} ->
+      {:error, reason} ->
+        Logger.error(
+          "Failed to submit action '#{action}' for player '#{player_id}' in battle '#{battle_id}': #{inspect(reason)}"
+        )
+
         {:noreply, socket}
     end
   end
@@ -96,8 +110,15 @@ defmodule BattleRealTimeWeb.BattleChannel do
     payload = %{"action" => "select_lead", "lead" => lead}
 
     case BattleRealTime.Battles.SubmitAction.call(battle_id, player_id, payload) do
-      {:ok, _} -> {:noreply, socket}
-      {:error, _} -> {:noreply, socket}
+      {:ok, _} ->
+        {:noreply, socket}
+
+      {:error, reason} ->
+        Logger.error(
+          "Failed to select lead for player '#{player_id}' in battle '#{battle_id}': #{inspect(reason)}"
+        )
+
+        {:noreply, socket}
     end
   end
 
@@ -111,9 +132,31 @@ defmodule BattleRealTimeWeb.BattleChannel do
   def handle_info(:after_join, socket) do
     battle_id = socket.assigns.battle_id
 
-    case BattleSession.get_state_payload(battle_id) do
+    case GetBattleState.call(battle_id) do
       {:ok, payload} ->
         push(socket, "battle_event", %{event: "battle_state", payload: payload})
+
+      _ ->
+        :ok
+    end
+
+    {:noreply, socket}
+  end
+
+  @impl true
+  def handle_info(:after_join_private, socket) do
+    battle_id = socket.assigns.battle_id
+    player_id = socket.assigns.player_id
+
+    case GetSetupPokemons.call(battle_id, player_id) do
+      {:ok, pokemons} ->
+        push(socket, "battle_event", %{
+          event: "setup_pokemons",
+          payload: %{
+            "battle_id" => battle_id,
+            "pokemons" => pokemons
+          }
+        })
 
       _ ->
         :ok

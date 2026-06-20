@@ -144,14 +144,14 @@ El motor de batalla interactúa con el servidor de tiempo real mediante mensajer
         "actions": [
           {
             "action": "attack",
-            "player_id": "101",
-            "move_id": "thunderbolt",
-            "targets": ["enemy_pelipper"]
+            "player_id": 101,
+            "move_id": 24,
+            "targets": ["B1"]
           },
           {
             "action": "switch",
-            "player_id": "102",
-            "monster_id": "swampert"
+            "player_id": 102,
+            "pokemon_id": 15
           }
         ]
       }

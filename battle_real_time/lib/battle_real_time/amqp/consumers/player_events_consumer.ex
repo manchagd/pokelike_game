@@ -8,6 +8,11 @@ defmodule BattleRealTime.AMQP.Consumers.PlayerEventsConsumer do
   alias BattleRealTime.Contracts.Consumers.PlayerEvents.InfoContract
   alias BattleRealTime.Contracts.Consumers.PlayerEvents.BattleCreatedContract
   alias BattleRealTime.Contracts.Consumers.PlayerEvents.BattleJoinedContract
+  alias BattleRealTime.Contracts.Consumers.PlayerEvents.BattlesInfoContract
+  alias BattleRealTime.Contracts.Consumers.PlayerEvents.PokemonTemplatesListContract
+  alias BattleRealTime.Contracts.Consumers.PlayerEvents.PokemonTemplateMovesListContract
+  alias BattleRealTime.Contracts.Consumers.PlayerEvents.TeamsInfoContract
+  alias BattleRealTime.Contracts.Consumers.PlayerEvents.TeamDetailsContract
   alias BattleRealTime.Contracts.Contract
 
   def process_message("info" = event, data) do
@@ -42,6 +47,81 @@ defmodule BattleRealTime.AMQP.Consumers.PlayerEventsConsumer do
 
   def process_message("battle_joined" = event, data) do
     case BattleJoinedContract.validate(data) do
+      {:ok, validated_data} ->
+        player_id = validated_data.player_id
+        broadcast_player_event(player_id, event, validated_data)
+
+      {:error, changeset} ->
+        errors = Contract.format_errors(changeset)
+
+        Logger.error(
+          "Inbound contract validation failed for event '#{event}': #{inspect(errors)}"
+        )
+    end
+  end
+
+  def process_message("battles_info" = event, data) do
+    case BattlesInfoContract.validate(data) do
+      {:ok, validated_data} ->
+        player_id = validated_data.player_id
+        broadcast_player_event(player_id, event, validated_data)
+
+      {:error, changeset} ->
+        errors = Contract.format_errors(changeset)
+
+        Logger.error(
+          "Inbound contract validation failed for event '#{event}': #{inspect(errors)}"
+        )
+    end
+  end
+
+  def process_message("pokemon_templates_list" = event, data) do
+    case PokemonTemplatesListContract.validate(data) do
+      {:ok, validated_data} ->
+        player_id = validated_data.player_id
+        broadcast_player_event(player_id, event, validated_data)
+
+      {:error, changeset} ->
+        errors = Contract.format_errors(changeset)
+
+        Logger.error(
+          "Inbound contract validation failed for event '#{event}': #{inspect(errors)}"
+        )
+    end
+  end
+
+  def process_message("pokemon_template_moves_list" = event, data) do
+    case PokemonTemplateMovesListContract.validate(data) do
+      {:ok, validated_data} ->
+        player_id = validated_data.player_id
+        broadcast_player_event(player_id, event, validated_data)
+
+      {:error, changeset} ->
+        errors = Contract.format_errors(changeset)
+
+        Logger.error(
+          "Inbound contract validation failed for event '#{event}': #{inspect(errors)}"
+        )
+    end
+  end
+
+  def process_message("teams_info" = event, data) do
+    case TeamsInfoContract.validate(data) do
+      {:ok, validated_data} ->
+        player_id = validated_data.player_id
+        broadcast_player_event(player_id, event, validated_data)
+
+      {:error, changeset} ->
+        errors = Contract.format_errors(changeset)
+
+        Logger.error(
+          "Inbound contract validation failed for event '#{event}': #{inspect(errors)}"
+        )
+    end
+  end
+
+  def process_message("team_details" = event, data) do
+    case TeamDetailsContract.validate(data) do
       {:ok, validated_data} ->
         player_id = validated_data.player_id
         broadcast_player_event(player_id, event, validated_data)

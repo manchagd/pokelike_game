@@ -1,9 +1,13 @@
 import 'dart:async';
+import 'dart:math' as math;
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:audioplayers/audioplayers.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../theme.dart';
 import '../nav.dart';
 import '../utils/pokemon_type_icons.dart';
@@ -27,16 +31,45 @@ class _BattleViewState extends State<BattleView> {
   StreamSubscription? _chatSub;
   late BattleSocketService _socketService;
 
+  // Audio state
+  static const double _bgmVolumeScale = 0.5; // Límite máximo de volumen real (0.5 = 50%, 0.3 = 30%)
+  final AudioPlayer _audioPlayer = AudioPlayer();
+  double _volume = 0.3;
+  bool _isMuted = false;
+  bool _isMusicPlaying = false;
+  String? _currentTrack;
+
+  static const List<String> _battleMusicTracks = [
+    'bw-rival.mp3',
+    'bw-subway-trainer.mp3',
+    'bw-trainer.mp3',
+    'bw2-homika-dogars.mp3',
+    'bw2-kanto-gym-leader.mp3',
+    'bw2-rival.mp3',
+    'dpp-rival.mp3',
+    'dpp-trainer.mp3',
+    'hgss-johto-trainer.mp3',
+    'hgss-kanto-trainer.mp3',
+    'oras-rival.mp3',
+    'oras-trainer.mp3',
+    'sm-rival.mp3',
+    'sm-trainer.mp3',
+    'spl-elite4.mp3',
+    'xy-rival.mp3',
+    'xy-trainer.mp3',
+  ];
+
   final List<String> _battleFeedback = [];
   final List<Map<String, String>> _chatMessages = [];
 
   List<Map<String, dynamic>> _myMonsters = [];
-  List<Map<String, dynamic>> _attacks = [];
   Map<String, dynamic> _myActive = {};
   Map<String, dynamic> _oppActive = {};
+  int _myAliveCount = 0;
+  int _oppAliveCount = 0;
 
   int _turn = 1;
-  BattlePhase _phase = BattlePhase.waitingPlayers;
+  BattlePhase _phase = BattlePhase.syncing;
   String _myName = 'Tú';
   String _oppName = 'Oponente';
   int? _turnExpiresAt;
@@ -45,16 +78,47 @@ class _BattleViewState extends State<BattleView> {
   String _battleFormat = '1v1';
   int _expectedPlayers = 2;
   int _connectedPlayers = 0;
+  int? _selectedLeadId;
+  bool _leadSubmitted = false;
+  String? _submittedActionType;
+  dynamic _submittedActionTargetId;
+
+  String? _errorMessage;
+  Timer? _syncTimeoutTimer;
+
+  void _startSyncTimeoutTimer() {
+    _syncTimeoutTimer?.cancel();
+    _syncTimeoutTimer = Timer(const Duration(seconds: 10), () {
+      if (mounted && _phase == BattlePhase.syncing) {
+        setState(() {
+          _phase = BattlePhase.error;
+          _errorMessage = 'Se ha agotado el tiempo de espera para conectar con el servidor de combate. Por favor, verifica tu conexión o el estado del servidor.';
+        });
+      }
+    });
+  }
+
+  void _cancelSyncTimeoutTimer() {
+    _syncTimeoutTimer?.cancel();
+    _syncTimeoutTimer = null;
+  }
 
   @override
   void initState() {
     super.initState();
+    _loadAudioSettings();
 
     _turn = 1;
-    _phase = BattlePhase.waitingPlayers;
+    _phase = BattlePhase.syncing;
+    _errorMessage = null;
+    _startSyncTimeoutTimer();
     _battleFormat = '1v1';
     _expectedPlayers = 2;
     _connectedPlayers = 0;
+    _selectedLeadId = null;
+    _leadSubmitted = false;
+    _submittedActionType = null;
+    _submittedActionTargetId = null;
 
     _battleFeedback.addAll([
       '¡Batalla iniciada!',
@@ -66,33 +130,10 @@ class _BattleViewState extends State<BattleView> {
       'message': 'Te has unido al chat del combate.',
     });
 
-    _myMonsters = [
-      {'name': 'Charizard', 'hp': 78, 'maxHp': 100, 'level': 50},
-      {'name': 'Blastoise', 'hp': 100, 'maxHp': 100, 'level': 48},
-      {'name': 'Venusaur', 'hp': 45, 'maxHp': 95, 'level': 49},
-      {'name': 'Pikachu', 'hp': 60, 'maxHp': 60, 'level': 45},
-    ];
+    _myMonsters = [];
+    _myActive   = {};
+    _oppActive  = {};
 
-    _attacks = [
-      {'name': 'Lanzallamas', 'type': 'Fuego', 'power': 90},
-      {'name': 'Vuelo', 'type': 'Volador', 'power': 90},
-      {'name': 'Garra Dragón', 'type': 'Dragón', 'power': 80},
-      {'name': 'Onda Ígnea', 'type': 'Fuego', 'power': 95},
-    ];
-
-    _myActive = {
-      'name': 'Charizard',
-      'hp': 78,
-      'maxHp': 100,
-      'level': 50,
-    };
-
-    _oppActive = {
-      'name': 'Gengar',
-      'hp': 92,
-      'maxHp': 100,
-      'level': 52,
-    };
 
     _socketService = context.read<BattleSocketService>();
     if (widget.battleCode != null) {
@@ -106,6 +147,7 @@ class _BattleViewState extends State<BattleView> {
   @override
   void dispose() {
     _countdownTimer?.cancel();
+    _syncTimeoutTimer?.cancel();
     _battleSub?.cancel();
     _chatSub?.cancel();
     _socketService.leaveBattle();
@@ -114,7 +156,105 @@ class _BattleViewState extends State<BattleView> {
     _chatFocusNode.dispose();
     _feedbackScroll.dispose();
     _chatScroll.dispose();
+
+    _audioPlayer.stop();
+    _audioPlayer.dispose();
     super.dispose();
+  }
+
+  // Audio helper methods
+  bool _isInProgress(BattlePhase phase) {
+    return phase == BattlePhase.waitingActions ||
+        phase == BattlePhase.resolving;
+  }
+
+  Future<void> _loadAudioSettings() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      setState(() {
+        _volume = prefs.getDouble('bgm_volume') ?? 0.3;
+        _isMuted = prefs.getBool('bgm_muted') ?? false;
+      });
+      await _audioPlayer.setVolume(_isMuted ? 0.0 : (_volume * _bgmVolumeScale));
+    } catch (e) {
+      debugPrint("Error loading audio preferences: $e");
+    }
+  }
+
+  Future<void> _saveAudioSettings() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setDouble('bgm_volume', _volume);
+      await prefs.setBool('bgm_muted', _isMuted);
+    } catch (e) {
+      debugPrint("Error saving audio preferences: $e");
+    }
+  }
+
+  Future<void> _startBattleMusic() async {
+    if (_isMusicPlaying) return;
+
+    final random = math.Random();
+    final index = random.nextInt(_battleMusicTracks.length);
+    final track = _battleMusicTracks[index];
+    _currentTrack = track;
+    _isMusicPlaying = true;
+
+    try {
+      await _audioPlayer.setReleaseMode(ReleaseMode.loop);
+      await _audioPlayer.setVolume(_isMuted ? 0.0 : (_volume * _bgmVolumeScale));
+      await _audioPlayer.play(UrlSource('https://play.pokemonshowdown.com/audio/$track'));
+      if (mounted) setState(() {});
+    } catch (e) {
+      debugPrint("Error playing battle music ($track): $e");
+      _isMusicPlaying = false;
+    }
+  }
+
+  Future<void> _stopBattleMusic() async {
+    if (!_isMusicPlaying) return;
+    _isMusicPlaying = false;
+    _currentTrack = null;
+    try {
+      await _audioPlayer.stop();
+      if (mounted) setState(() {});
+    } catch (e) {
+      debugPrint("Error stopping battle music: $e");
+    }
+  }
+
+
+  Future<void> _updateVolume(double val) async {
+    setState(() {
+      _volume = val;
+      if (_volume > 0.0) {
+        _isMuted = false;
+      }
+    });
+    try {
+      await _audioPlayer.setVolume(_isMuted ? 0.0 : (_volume * _bgmVolumeScale));
+      if (!_isMusicPlaying && _isInProgress(_phase) && !_isMuted && _volume > 0.0) {
+        _startBattleMusic();
+      }
+    } catch (e) {
+      debugPrint("Error updating volume: $e");
+    }
+    _saveAudioSettings();
+  }
+
+  Future<void> _toggleMute() async {
+    setState(() {
+      _isMuted = !_isMuted;
+    });
+    try {
+      await _audioPlayer.setVolume(_isMuted ? 0.0 : (_volume * _bgmVolumeScale));
+      if (!_isMusicPlaying && !_isMuted && _isInProgress(_phase)) {
+        _startBattleMusic();
+      }
+    } catch (e) {
+      debugPrint("Error toggling mute: $e");
+    }
+    _saveAudioSettings();
   }
 
   void _handleChatMessage(Map<String, dynamic> msg) {
@@ -148,22 +288,55 @@ class _BattleViewState extends State<BattleView> {
     final eventName = data['event'] as String?;
     final eventPayload = data['payload'] as Map<String, dynamic>? ?? {};
 
+    if (eventName == 'connection_error') {
+      _cancelSyncTimeoutTimer();
+      _stopBattleMusic();
+      setState(() {
+        _phase = BattlePhase.error;
+        _errorMessage = eventPayload['reason'] as String? ?? 'Error al conectar al canal de combate.';
+      });
+      return;
+    }
+
+    if (eventName == 'setup_pokemons') {
+      _cancelSyncTimeoutTimer();
+      final pokemons = eventPayload['pokemons'] as List?;
+      if (pokemons != null) {
+        setState(() {
+          _myMonsters = pokemons.map((p) {
+            final map = Map<String, dynamic>.from(p as Map);
+            map['maxHp']   = map['max_hp']  ?? map['maxHp']  ?? 100;
+            map['level']   = map['level']   ?? 50;
+            map['lead']    = map['lead']    ?? false;
+            map['attacks'] = map['attacks'] ?? [];
+            map['sprite_url'] = map['sprite_url'] ?? map['spriteUrl'];
+            return map;
+          }).toList();
+        });
+      }
+      return;
+    }
+
     if (eventName == 'battle_timeout') {
       final reason = eventPayload['reason'] as String? ?? 'Se ha agotado el tiempo de gracia de 2 minutos.';
+      _stopBattleMusic();
       _showTimeoutDialog(reason);
       return;
     }
 
     if (eventName == 'battle_ended') {
       final reason = eventPayload['reason'] as String? ?? 'El combate ha finalizado.';
+      _stopBattleMusic();
       _showBattleEndedDialog(reason);
       return;
     }
 
     if (eventName == 'battle_state') {
-      final myId = _socketService.currentPlayer?['id']?.toString();
-      final activeA = eventPayload['active_monster_a'];
-      final activeB = eventPayload['active_monster_b'];
+      _cancelSyncTimeoutTimer();
+      final myId = _socketService.currentPlayer?['id']?.toString() ??
+          _socketService.currentPlayer?['name']?.toString() ??
+          '';
+
       final newTurn = eventPayload['turn'] as int? ?? 1;
       final newPhaseStr = eventPayload['phase'] as String?;
       final newPhase = BattlePhase.fromString(newPhaseStr);
@@ -172,56 +345,75 @@ class _BattleViewState extends State<BattleView> {
       final expected = eventPayload['expected_players'] as int? ?? 2;
       final connected = eventPayload['connected_players'] as int? ?? 0;
 
-      final playerAName = eventPayload['player_a_name'] as String? ?? 'Entrenador A';
-      final playerBName = eventPayload['player_b_name'] as String? ?? 'Entrenador B';
+      final players = eventPayload['players'] as List? ?? [];
 
-      String myName = 'Tú';
-      String oppName = 'Oponente';
+      Map<String, dynamic>? myPlayer;
+      Map<String, dynamic>? oppPlayer;
 
-      Map<String, dynamic>? myActiveEvent;
-      Map<String, dynamic>? oppActiveEvent;
-
-      if (activeA != null && activeA['owner_id']?.toString() == myId) {
-        myName = "$playerAName (Tú)";
-        oppName = playerBName;
-        myActiveEvent = activeA;
-        oppActiveEvent = activeB;
-      } else if (activeB != null && activeB['owner_id']?.toString() == myId) {
-        myName = "$playerBName (Tú)";
-        oppName = playerAName;
-        myActiveEvent = activeB;
-        oppActiveEvent = activeA;
-      } else {
-        myName = playerAName;
-        oppName = playerBName;
-        myActiveEvent = activeA;
-        oppActiveEvent = activeB;
+      for (final p in players) {
+        if (p['id']?.toString() == myId || p['name'] == _socketService.currentPlayer?['name']) {
+          myPlayer = p as Map<String, dynamic>;
+        } else {
+          oppPlayer = p as Map<String, dynamic>;
+        }
       }
 
+      String myName = myPlayer?['name'] != null ? "${myPlayer!['name']} (Tú)" : 'Tú';
+      String oppName = oppPlayer?['name'] ?? 'Oponente';
+
       setState(() {
+        if (_turn != newTurn || (newPhase != _phase && newPhase == BattlePhase.waitingActions)) {
+          _submittedActionType = null;
+          _submittedActionTargetId = null;
+        }
+
         _turn = newTurn;
-        _phase = newPhase;
+        if (newPhase != _phase) {
+          if (newPhase == BattlePhase.settingUp) {
+            _selectedLeadId = null;
+            _leadSubmitted = false;
+          }
+          _phase = newPhase;
+        }
         _myName = myName;
         _oppName = oppName;
         _turnExpiresAt = newExpiresAt;
         _battleFormat = format;
         _expectedPlayers = expected;
         _connectedPlayers = connected;
-        if (myActiveEvent != null) {
-          _myActive = {
-            'name': myActiveEvent['name'] ?? '?',
-            'hp': myActiveEvent['hp'] ?? 0,
-            'maxHp': myActiveEvent['max_hp'] ?? 100,
-            'level': myActiveEvent['level'] ?? 50,
-          };
+
+        if (myPlayer != null) {
+          _myAliveCount = myPlayer['alive_pokemon_count'] as int? ?? 0;
+          final am = myPlayer['active_monster'] as Map<String, dynamic>?;
+          if (am != null && am.isNotEmpty) {
+            _myActive = {
+              'name': am['name'] ?? '?',
+              'hp': am['hp'] ?? 0,
+              'maxHp': am['max_hp'] ?? 100,
+              'level': am['level'] ?? 50,
+              'sprite_url': am['sprite_url'] ?? am['spriteUrl'],
+              'status': am['status'] ?? 'normal',
+            };
+          } else {
+            _myActive = {};
+          }
         }
-        if (oppActiveEvent != null) {
-          _oppActive = {
-            'name': oppActiveEvent['name'] ?? '?',
-            'hp': oppActiveEvent['hp'] ?? 0,
-            'maxHp': oppActiveEvent['max_hp'] ?? 100,
-            'level': oppActiveEvent['level'] ?? 50,
-          };
+
+        if (oppPlayer != null) {
+          _oppAliveCount = oppPlayer['alive_pokemon_count'] as int? ?? 0;
+          final am = oppPlayer['active_monster'] as Map<String, dynamic>?;
+          if (am != null && am.isNotEmpty) {
+            _oppActive = {
+              'name': am['name'] ?? '?',
+              'hp': am['hp'] ?? 0,
+              'maxHp': am['max_hp'] ?? 100,
+              'level': am['level'] ?? 50,
+              'sprite_url': am['sprite_url'] ?? am['spriteUrl'],
+              'status': am['status'] ?? 'normal',
+            };
+          } else {
+            _oppActive = {};
+          }
         }
 
         final logs = eventPayload['log'] as List?;
@@ -230,6 +422,13 @@ class _BattleViewState extends State<BattleView> {
           _battleFeedback.addAll(logs.map((l) => l.toString()));
         }
       });
+
+      if (_isInProgress(newPhase)) {
+        _startBattleMusic();
+      } else if (newPhase == BattlePhase.finished || newPhase == BattlePhase.error) {
+        _stopBattleMusic();
+      }
+
       _startLocalCountdown();
       _scrollToFeedbackBottom();
     } else {
@@ -412,10 +611,61 @@ class _BattleViewState extends State<BattleView> {
         ),
         title: Row(
           children: [
-            Text(
-              'Combate en vivo',
-              style: text.titleLarge?.copyWith(fontWeight: FontWeight.w800),
-            ),
+            _buildCompactTopTurnBanner(text),
+            if (!_phase.isWaitingPlayers) ...[
+              Expanded(
+                child: Center(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: AppColors.surfaceHigh.withValues(alpha: 0.5),
+                      borderRadius: BorderRadius.circular(AppRadius.md),
+                      border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.3)),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          _myName.replaceAll(' (Tú)', ''),
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w900,
+                            color: AppColors.onSurface,
+                          ),
+                        ),
+                        Container(
+                          margin: const EdgeInsets.symmetric(horizontal: 12),
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [AppColors.primary, AppColors.secondary],
+                            ),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: const Text(
+                            'VS',
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w900,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                        Text(
+                          _oppName,
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w900,
+                            color: AppColors.onSurface,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ] else
+              const Spacer(),
           ],
         ),
         actions: [
@@ -434,6 +684,120 @@ class _BattleViewState extends State<BattleView> {
                 ),
               ),
             ),
+          Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: PopupMenuButton<double>(
+              icon: Icon(
+                _isMuted
+                    ? Icons.volume_off_rounded
+                    : (_volume == 0
+                        ? Icons.volume_mute_rounded
+                        : (_volume < 0.5
+                            ? Icons.volume_down_rounded
+                            : Icons.volume_up_rounded)),
+                color: _isMuted ? AppColors.onSurfaceMuted : AppColors.primary,
+              ),
+              tooltip: 'Control de volumen BGM',
+              offset: const Offset(0, 40),
+              itemBuilder: (context) => [
+                PopupMenuItem<double>(
+                  enabled: false,
+                  child: StatefulBuilder(
+                    builder: (context, setPopupState) {
+                      return SizedBox(
+                        width: 220,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  'Volumen BGM',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.onSurface,
+                                  ),
+                                ),
+                                IconButton(
+                                  icon: Icon(
+                                    _isMuted
+                                        ? Icons.volume_off_rounded
+                                        : Icons.volume_up_rounded,
+                                    size: 18,
+                                    color: AppColors.primary,
+                                  ),
+                                  onPressed: () {
+                                    _toggleMute();
+                                    setPopupState(() {});
+                                    setState(() {});
+                                  },
+                                ),
+                              ],
+                            ),
+                            Row(
+                              children: [
+                                const Icon(Icons.volume_down_rounded, size: 16),
+                                Expanded(
+                                  child: Slider(
+                                    value: _isMuted ? 0.0 : _volume,
+                                    min: 0.0,
+                                    max: 1.0,
+                                    activeColor: AppColors.primary,
+                                    inactiveColor: AppColors.outline,
+                                    onChanged: (val) {
+                                      _updateVolume(val);
+                                      setPopupState(() {});
+                                      setState(() {});
+                                    },
+                                  ),
+                                ),
+                                const Icon(Icons.volume_up_rounded, size: 16),
+                              ],
+                            ),
+                            if (_currentTrack != null) ...[
+                              const Divider(),
+                              Text(
+                                'Reproduciendo:',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  color: AppColors.onSurfaceMuted,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                _currentTrack!.replaceAll('.mp3', '').toUpperCase(),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  color: AppColors.primary,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ] else ...[
+                              const Divider(),
+                              Text(
+                                'Música silenciada o detenida',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  color: AppColors.onSurfaceMuted,
+                                  fontStyle: FontStyle.italic,
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
           if (widget.battleCode != null)
             Padding(
               padding: const EdgeInsets.only(right: 16, top: 10, bottom: 10),
@@ -475,13 +839,22 @@ class _BattleViewState extends State<BattleView> {
             padding: const EdgeInsets.all(24),
             child: Column(
               children: [
-                _buildTopTurnBanner(text),
-                const SizedBox(height: 16),
                 Expanded(
                   child: LayoutBuilder(
                     builder: (context, c) {
                       final isWide = c.maxWidth > 900 && c.maxHeight > 700;
+                      final isSyncing = _phase.isSyncing;
+                      final isError = _phase.isError;
                       final isWaitingPlayers = _phase.isWaitingPlayers;
+                      final isSettingUp = _phase.isSettingUp;
+
+                      if (isSyncing) {
+                        return _buildSyncingPanel();
+                      }
+
+                      if (isError) {
+                        return _buildErrorPanel();
+                      }
 
                       if (isWaitingPlayers) {
                         if (!isWide) {
@@ -501,6 +874,34 @@ class _BattleViewState extends State<BattleView> {
                             Expanded(
                               flex: 6,
                               child: _buildWaitingRoomPanel(),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              flex: 4,
+                              child: _buildChatPanel(),
+                            ),
+                          ],
+                        );
+                      }
+
+                      if (isSettingUp) {
+                        if (!isWide) {
+                          return SingleChildScrollView(
+                            child: Column(
+                              children: [
+                                _buildLeadSelectionPanel(),
+                                const SizedBox(height: 16),
+                                SizedBox(height: 360, child: _buildChatPanel()),
+                              ],
+                            ),
+                          );
+                        }
+                        return Row(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Expanded(
+                              flex: 6,
+                              child: _buildLeadSelectionPanel(),
                             ),
                             const SizedBox(width: 16),
                             Expanded(
@@ -634,6 +1035,195 @@ class _BattleViewState extends State<BattleView> {
                   strokeWidth: 2,
                   valueColor: AlwaysStoppedAnimation<Color>(AppColors.danger),
                 ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSyncingPanel() {
+    final text = Theme.of(context).textTheme;
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+        side: BorderSide(
+          color: AppColors.outlineVariant.withValues(alpha: 0.4),
+          width: 1.5,
+        ),
+      ),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(AppRadius.lg),
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              AppColors.surfaceHigh.withValues(alpha: 0.95),
+              AppColors.surface.withValues(alpha: 0.98),
+            ],
+          ),
+        ),
+        padding: const EdgeInsets.all(28),
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 80,
+                height: 80,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: AppColors.primary.withValues(alpha: 0.1),
+                  border: Border.all(
+                    color: AppColors.primary.withValues(alpha: 0.2),
+                    width: 2,
+                  ),
+                ),
+                child: CircularProgressIndicator(
+                  strokeWidth: 3,
+                  valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+                ),
+              ),
+              const SizedBox(height: 24),
+              Text(
+                'Estableciendo Sincronización',
+                style: text.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.onSurface,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Obteniendo el estado del combate desde el servidor...',
+                textAlign: TextAlign.center,
+                style: text.bodyMedium?.copyWith(
+                  color: AppColors.onSurfaceMuted,
+                ),
+              ),
+              const SizedBox(height: 32),
+              ElevatedButton.icon(
+                onPressed: () => context.go(AppRoutes.home),
+                icon: const Icon(Icons.arrow_back_rounded),
+                label: const Text('Volver al Inicio'),
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(AppRadius.md),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildErrorPanel() {
+    final text = Theme.of(context).textTheme;
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+        side: BorderSide(
+          color: AppColors.danger.withValues(alpha: 0.4),
+          width: 1.5,
+        ),
+      ),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(AppRadius.lg),
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              AppColors.surfaceHigh.withValues(alpha: 0.95),
+              AppColors.surface.withValues(alpha: 0.98),
+            ],
+          ),
+        ),
+        padding: const EdgeInsets.all(28),
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: AppColors.danger.withValues(alpha: 0.1),
+                  border: Border.all(
+                    color: AppColors.danger.withValues(alpha: 0.3),
+                    width: 2,
+                  ),
+                ),
+                child: Icon(
+                  Icons.error_outline_rounded,
+                  color: AppColors.danger,
+                  size: 44,
+                ),
+              ),
+              const SizedBox(height: 24),
+              Text(
+                'Error de Sincronización',
+                style: text.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.onSurface,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Text(
+                  _errorMessage ?? 'Ocurrió un error inesperado al intentar cargar el combate.',
+                  textAlign: TextAlign.center,
+                  style: text.bodyMedium?.copyWith(
+                    color: AppColors.onSurfaceMuted,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 32),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  OutlinedButton.icon(
+                    onPressed: () => context.go(AppRoutes.home),
+                    icon: const Icon(Icons.home_rounded),
+                    label: const Text('Inicio'),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(AppRadius.md),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      setState(() {
+                        _phase = BattlePhase.syncing;
+                        _errorMessage = null;
+                      });
+                      _startSyncTimeoutTimer();
+                      _socketService.connectToBattle(widget.battleCode!);
+                    },
+                    icon: const Icon(Icons.refresh_rounded),
+                    label: const Text('Reintentar'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(AppRadius.md),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
@@ -797,6 +1387,289 @@ class _BattleViewState extends State<BattleView> {
     );
   }
 
+  Widget _buildLeadSelectionPanel() {
+    final text = Theme.of(context).textTheme;
+
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+        side: BorderSide(
+          color: AppColors.outlineVariant.withValues(alpha: 0.4),
+          width: 1.5,
+        ),
+      ),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(AppRadius.lg),
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              AppColors.surfaceHigh.withValues(alpha: 0.95),
+              AppColors.surface.withValues(alpha: 0.98),
+            ],
+          ),
+        ),
+        padding: const EdgeInsets.all(28),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Header
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: AppColors.primary.withValues(alpha: 0.15),
+                  ),
+                  child: Icon(
+                    Icons.catching_pokemon,
+                    color: AppColors.primary,
+                    size: 24,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'SELECCIÓN DE LÍDER',
+                        style: text.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w900,
+                          color: AppColors.onSurface,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'Elige el Pokémon con el que iniciarás el combate.',
+                        style: text.bodySmall?.copyWith(
+                          color: AppColors.onSurfaceMuted,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+
+            // Main Grid
+            Expanded(
+              child: _myMonsters.isEmpty
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const CircularProgressIndicator(),
+                          const SizedBox(height: 16),
+                          Text(
+                            'Cargando tus Pokémon...',
+                            style: TextStyle(color: AppColors.onSurfaceMuted),
+                          ),
+                        ],
+                      ),
+                    )
+                  : GridView.builder(
+                      itemCount: _myMonsters.length,
+                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        childAspectRatio: 3.0,
+                        crossAxisSpacing: 12,
+                        mainAxisSpacing: 12,
+                      ),
+                      itemBuilder: (context, i) {
+                        final m = _myMonsters[i];
+                        final id = m['id'] as int;
+                        final name = m['name'] as String? ?? 'Pokémon';
+                        final hp = m['hp'] as int? ?? 100;
+                        final maxHp = m['maxHp'] as int? ?? 100;
+                        final level = m['level'] as int? ?? 50;
+                        final types = (m['types'] as List?)?.cast<String>() ?? [];
+                        final isSelected = _selectedLeadId == id;
+                        final pct = hp / maxHp;
+
+                        Color hpColor = AppColors.success;
+                        if (pct < 0.5) hpColor = AppColors.accent;
+                        if (pct < 0.25) hpColor = AppColors.danger;
+
+                        return Container(
+                          decoration: BoxDecoration(
+                            color: isSelected
+                                ? (AppColors.isDark
+                                    ? AppColors.primary.withValues(alpha: 0.15)
+                                    : const Color(0xFFEDE7F6))
+                                : AppColors.surfaceHighest,
+                            borderRadius: BorderRadius.circular(AppRadius.md),
+                            border: Border.all(
+                              color: isSelected
+                                  ? AppColors.primary
+                                  : AppColors.outlineVariant.withValues(alpha: 0.4),
+                              width: isSelected ? 2.0 : 1.0,
+                            ),
+                            boxShadow: isSelected
+                                ? [
+                                    BoxShadow(
+                                      color: AppColors.primary.withValues(alpha: 0.2),
+                                      blurRadius: 10,
+                                      spreadRadius: 0,
+                                    )
+                                  ]
+                                : null,
+                          ),
+                          child: Material(
+                            color: Colors.transparent,
+                            borderRadius: BorderRadius.circular(AppRadius.md),
+                            child: InkWell(
+                              borderRadius: BorderRadius.circular(AppRadius.md),
+                              onTap: _leadSubmitted
+                                  ? null
+                                  : () {
+                                      setState(() {
+                                        _selectedLeadId = id;
+                                      });
+                                    },
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          Row(
+                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              Expanded(
+                                                child: Column(
+                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                  children: [
+                                                    Text(
+                                                      name,
+                                                      style: const TextStyle(
+                                                        fontWeight: FontWeight.w800,
+                                                        fontSize: 13,
+                                                      ),
+                                                      overflow: TextOverflow.ellipsis,
+                                                    ),
+                                                    Text(
+                                                      'Nv. $level • HP $hp/$maxHp',
+                                                      style: TextStyle(
+                                                        color: AppColors.onSurfaceMuted,
+                                                        fontSize: 10,
+                                                        fontWeight: FontWeight.w600,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                              if (isSelected)
+                                                Icon(
+                                                  Icons.check_circle,
+                                                  color: AppColors.primary,
+                                                  size: 18,
+                                                ),
+                                            ],
+                                          ),
+                                          const SizedBox(height: 3),
+                                          // Types row
+                                          Row(
+                                            children: types.map((t) {
+                                              return Padding(
+                                                padding: const EdgeInsets.only(right: 4),
+                                                child: PokemonTypeIcons.buildTypeBadge(t, fontSize: 8),
+                                              );
+                                            }).toList(),
+                                          ),
+                                          const SizedBox(height: 3),
+                                          // HP bar
+                                          ClipRRect(
+                                            borderRadius: BorderRadius.circular(4),
+                                            child: LinearProgressIndicator(
+                                              value: pct,
+                                              minHeight: 3.5,
+                                              backgroundColor: AppColors.surface,
+                                              valueColor: AlwaysStoppedAnimation<Color>(hpColor),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    if (m['sprite_url'] != null && (m['sprite_url'] as String).isNotEmpty) ...[
+                                      const SizedBox(width: 8),
+                                      Image.network(
+                                        m['sprite_url'] as String,
+                                        height: 50,
+                                        width: 50,
+                                        fit: BoxFit.contain,
+                                        errorBuilder: (context, error, stackTrace) => const SizedBox(),
+                                      ),
+                                    ],
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+            ),
+            const SizedBox(height: 20),
+
+            // Footer / Button
+            if (_leadSubmitted)
+              Container(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withValues(alpha: 0.05),
+                  borderRadius: BorderRadius.circular(AppRadius.md),
+                  border: Border.all(
+                    color: AppColors.primary.withValues(alpha: 0.15),
+                  ),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                      ),
+                    ),
+                    SizedBox(width: 12),
+                    Text(
+                      'Esperando a que el oponente elija su líder...',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            else
+              FilledButton(
+                onPressed: _selectedLeadId == null
+                    ? null
+                    : () {
+                        _socketService.sendAction('select_lead', {'lead': _selectedLeadId});
+                        setState(() {
+                          _leadSubmitted = true;
+                        });
+                      },
+                child: const Text('Confirmar Líder'),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildLobbyPlayerTile({
     required String name,
     required bool isConnected,
@@ -885,34 +1758,106 @@ class _BattleViewState extends State<BattleView> {
     );
   }
 
+  Widget _buildPokeballs(int aliveCount, Color color, bool alignRight) {
+    final isDark = AppColors.isDark;
+    // Use AppColors.primary for active pokeballs so both sides have symmetric brightness
+    final Color activeColor = AppColors.primary;
+    // High contrast solid fainted colors (dark grey in dark mode, light grey in light mode)
+    final Color faintedColor = isDark ? const Color(0xFF4A4A4A) : const Color(0xFFCCCCCC);
+
+    return Row(
+      mainAxisAlignment: alignRight ? MainAxisAlignment.end : MainAxisAlignment.start,
+      children: List.generate(6, (index) {
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 1.5),
+          child: Icon(
+            Icons.catching_pokemon,
+            size: 11,
+            color: index < aliveCount ? activeColor : faintedColor,
+          ),
+        );
+      }),
+    );
+  }
+
   Widget _buildParticipants() {
+    // The active mon IS the lead — just check if any lead exists
+    final myIsLead = _myMonsters.any((m) => m['lead'] == true);
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(12),
-        child: Row(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Expanded(
-              child: _ParticipantTile(
-                label: 'TÚ',
-                name: _myName,
-                color: AppColors.secondary,
-                mon: _myActive,
-              ),
+            // Row 1: Pokeballs row aligned with cards
+            Row(
+              children: [
+                Expanded(
+                  child: _buildPokeballs(_myAliveCount, AppColors.secondary, false),
+                ),
+                const SizedBox(width: 46), // Middle gap matching VS container width + horizontal gaps
+                Expanded(
+                  child: _buildPokeballs(_oppAliveCount, AppColors.tertiary, true),
+                ),
+              ],
             ),
-            const SizedBox(width: 8),
-            Icon(
-              Icons.offline_bolt_outlined,
-              color: AppColors.accent,
-              size: 20,
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: _ParticipantTile(
-                label: 'OPONENTE',
-                name: _oppName,
-                color: AppColors.tertiary,
-                mon: _oppActive,
-              ),
+            const SizedBox(height: 6),
+            // Row 2: Cards and clashing swords VS indicator
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Expanded(
+                  child: _ParticipantTile(
+                    label: 'TÚ',
+                    name: _myName,
+                    color: AppColors.secondary,
+                    mon: _myActive,
+                    isLead: myIsLead,
+                    aliveCount: _myAliveCount,
+                    mirror: false,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Container(
+                  width: 30,
+                  height: 30,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: AppColors.surfaceHighest,
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: AppColors.accent,
+                      width: 1.5,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.accent.withValues(alpha: 0.15),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
+                      )
+                    ],
+                  ),
+                  child: SvgPicture.string(
+                    _crossedSwordsSvg,
+                    width: 16,
+                    height: 16,
+                    colorFilter: ColorFilter.mode(AppColors.accent, BlendMode.srcIn),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: _ParticipantTile(
+                    label: 'OPONENTE',
+                    name: _oppName,
+                    color: AppColors.tertiary,
+                    mon: _oppActive,
+                    isLead: false, // opp lead not exposed
+                    aliveCount: _oppAliveCount,
+                    mirror: true,
+                  ),
+                ),
+              ],
             ),
           ],
         ),
@@ -922,169 +1867,222 @@ class _BattleViewState extends State<BattleView> {
 
   Widget _buildAttackPanel() {
     final text = Theme.of(context).textTheme;
+
+    // Pull attacks from the lead Pokémon
+    final lead = _myMonsters.where((m) => m['lead'] == true).firstOrNull;
+    final attacks = (lead?['attacks'] as List?)?.cast<Map<String, dynamic>>() ?? [];
+
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              mainAxisSize: MainAxisSize.max,
               children: [
-                Icon(Icons.flash_on, color: AppColors.accent, size: 25),
+                Icon(Icons.flash_on, color: AppColors.accent, size: 18),
                 const SizedBox(width: 8),
                 Text(
-                  'Selecciona tu ataque',
-                  style: text.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
+                  'Movimientos',
+                  style: text.titleMedium?.copyWith(fontWeight: FontWeight.w700, fontSize: 13),
                 ),
               ],
             ),
-            const SizedBox(height: 12),
-            GridView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                maxCrossAxisExtent: 260,
-                childAspectRatio: 4.5,
-                crossAxisSpacing: 10,
-                mainAxisSpacing: 10,
-              ),
-              itemCount: _attacks.length,
-              itemBuilder: (context, i) {
-                final a = _attacks[i];
-                final c = PokemonTypeIcons.getColor(a['type']);
-                return DecoratedBox(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(AppRadius.md),
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        Color.lerp(c, AppColors.primary, 0.35)!.withValues(alpha: 0.95),
-                        c.withValues(alpha: 0.55),
-                        AppColors.background.withValues(alpha: 0.92),
-                      ],
-                      stops: const [0.0, 0.45, 1.0],
-                    ),
-                    border: Border.all(
-                      color: Color.lerp(c, AppColors.secondary, 0.3)!
-                          .withValues(alpha: 0.75),
-                      width: 1.2,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: c.withValues(alpha: 0.45),
-                        blurRadius: 16,
-                        spreadRadius: -2,
-                        offset: const Offset(0, 6),
+            const SizedBox(height: 10),
+            if (attacks.isEmpty)
+              Center(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  child: Text(
+                    'Elige tu Pokémon líder para ver sus movimientos.',
+                    style: TextStyle(color: AppColors.onSurfaceMuted, fontSize: 11),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              )
+            else
+              Row(
+                children: List.generate(attacks.length, (index) {
+                  return Expanded(
+                    child: Padding(
+                      padding: EdgeInsets.only(
+                        right: index < attacks.length - 1 ? 6.0 : 0.0,
                       ),
-                      BoxShadow(
-                        color: AppColors.primary.withValues(alpha: 0.18),
-                        blurRadius: 20,
-                        spreadRadius: -4,
-                        offset: const Offset(0, 2),
+                      child: _buildAttackCard(attacks[index]),
+                    ),
+                  );
+                }),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAttackCard(Map<String, dynamic> attack) {
+    final types = (attack['types'] as List?)?.cast<String>() ?? [];
+    final name     = attack['name']     as String? ?? '—';
+    final power    = attack['power']    as int?;
+    final pp       = attack['pp']       as int?;
+    final accuracy = attack['accuracy'] as int?;
+    final category = attack['category'] as String? ?? 'Physical';
+
+    final accentColor = types.isNotEmpty
+        ? PokemonTypeIcons.getColor(types.first)
+        : AppColors.outlineVariant;
+
+    final isSelected = _submittedActionType == 'attack' && _submittedActionTargetId == attack['id'];
+
+    return InkWell(
+      borderRadius: BorderRadius.circular(AppRadius.md),
+      onTap: () {
+        setState(() {
+          _submittedActionType = 'attack';
+          _submittedActionTargetId = attack['id'];
+          _battleFeedback.add('Enviando acción: Usar $name...');
+        });
+        _scrollToFeedbackBottom();
+        _socketService.sendAction('attack', {
+          'move_id': attack['id'],
+          'targets': [_oppActive['name']?.toString().toLowerCase() ?? 'opp_active'],
+        });
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          color: AppColors.surfaceHigh,
+          borderRadius: BorderRadius.circular(AppRadius.md),
+          border: Border.all(
+            color: isSelected ? AppColors.primary.withValues(alpha: 0.8) : accentColor.withValues(alpha: 0.45),
+            width: isSelected ? 1.8 : 1.0,
+          ),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: AppColors.primary.withValues(alpha: 0.15),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  )
+                ]
+              : null,
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 5),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            // Left: name + stats
+            Expanded(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Row 1: name + (pp/pp)
+                  Text.rich(
+                    TextSpan(
+                      children: [
+                        TextSpan(
+                          text: name,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w800,
+                            fontSize: 9.5,
+                            letterSpacing: 0.1,
+                          ),
+                        ),
+                        if (pp != null)
+                          TextSpan(
+                            text: ' ($pp/$pp)',
+                            style: TextStyle(
+                              fontSize: 7.5,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.onSurfaceMuted,
+                            ),
+                          ),
+                      ],
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                  ),
+                  const SizedBox(height: 3),
+                  // Row 2: sword + power, bullseye + accuracy
+                  Row(
+                    children: [
+                      SvgPicture.string(
+                        _swordSvg,
+                        width: 8,
+                        height: 8,
+                        colorFilter: ColorFilter.mode(
+                          AppColors.onSurfaceMuted,
+                          BlendMode.srcIn,
+                        ),
+                      ),
+                      const SizedBox(width: 2),
+                      Text(
+                        power != null && power > 0 ? '$power' : '—',
+                        style: TextStyle(
+                          fontSize: 7.5,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.onSurfaceMuted,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      SvgPicture.string(
+                        _bullseyeSvg,
+                        width: 8,
+                        height: 8,
+                        colorFilter: ColorFilter.mode(
+                          AppColors.onSurfaceMuted,
+                          BlendMode.srcIn,
+                        ),
+                      ),
+                      const SizedBox(width: 2),
+                      Text(
+                        accuracy != null ? '$accuracy' : '—',
+                        style: TextStyle(
+                          fontSize: 7.5,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.onSurfaceMuted,
+                        ),
                       ),
                     ],
                   ),
-                  child: Material(
-                    color: Colors.transparent,
-                    borderRadius: BorderRadius.circular(AppRadius.md),
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(AppRadius.md),
-                      onTap: () {
-                        setState(() {
-                          _battleFeedback.add('Enviando acción: Usar ${a['name']}...');
-                        });
-                        _scrollToFeedbackBottom();
-                        _socketService.sendAction('attack', {
-                          'move_id': a['name'].toString().toLowerCase(),
-                          'targets': [_oppActive['name']?.toString().toLowerCase() ?? 'opp_active'],
-                        });
-                      },
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 10,
+                ],
+              ),
+            ),
+            const SizedBox(width: 4),
+            // Right: type badge(s) + category label stacked
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                if (types.isNotEmpty)
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: types.take(2).map((t) => Padding(
+                      padding: const EdgeInsets.only(left: 2),
+                      child: Container(
+                        padding: const EdgeInsets.all(2.5),
+                        decoration: BoxDecoration(
+                          color: PokemonTypeIcons.getColor(t),
+                          shape: BoxShape.circle,
                         ),
-                        child: Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(6),
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                  colors: [
-                                    Color.lerp(c, Colors.white, 0.2)!,
-                                    c,
-                                    Color.lerp(c, Colors.black, 0.35)!,
-                                  ],
-                                ),
-                                borderRadius: BorderRadius.circular(
-                                  AppRadius.sm,
-                                ),
-                                border: Border.all(
-                                  color: Colors.white.withValues(alpha: 0.25),
-                                  width: 0.8,
-                                ),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: c.withValues(alpha: 0.65),
-                                    blurRadius: 10,
-                                    offset: const Offset(0, 2),
-                                  ),
-                                ],
-                              ),
-                              child: PokemonTypeIcons.buildSvgIcon(
-                                a['type'],
-                                color: Colors.white,
-                                size: 16,
-                              ),
-                            ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: Text(
-                                a['name'],
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.w700,
-                                  color: Colors.white,
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 3,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.black.withValues(alpha: 0.35),
-                                borderRadius: BorderRadius.circular(
-                                  AppRadius.sm,
-                                ),
-                                border: Border.all(
-                                  color: Colors.white.withValues(alpha: 0.15),
-                                ),
-                              ),
-                              child: Text(
-                                '${a['power']}',
-                                style: const TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w800,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ),
-                          ],
+                        child: PokemonTypeIcons.buildSvgIcon(
+                          t,
+                          size: 8,
+                          color: Colors.white,
                         ),
                       ),
-                    ),
+                    )).toList(),
                   ),
-                );
-              },
+                const SizedBox(height: 2),
+                Text(
+                  category,
+                  style: TextStyle(
+                    fontSize: 6.5,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.onSurfaceMuted,
+                    letterSpacing: 0.2,
+                  ),
+                ),
+              ],
             ),
           ],
         ),
@@ -1196,7 +2194,7 @@ class _BattleViewState extends State<BattleView> {
               physics: const NeverScrollableScrollPhysics(),
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
-                childAspectRatio: 3.0,
+                childAspectRatio: 3.2,
                 crossAxisSpacing: 10,
                 mainAxisSpacing: 10,
               ),
@@ -1207,98 +2205,132 @@ class _BattleViewState extends State<BattleView> {
                 Color hpColor = AppColors.success;
                 if (pct < 0.5) hpColor = AppColors.accent;
                 if (pct < 0.25) hpColor = AppColors.danger;
-                return DecoratedBox(
+                final isLead = m['lead'] == true;
+                final isSelected = _submittedActionType == 'switch' && _submittedActionTargetId == m['id'];
+                final monTypes = (m['types'] as List?)?.cast<String>() ?? [];
+                final isFainted = (m['hp'] as int) == 0;
+
+                final card = DecoratedBox(
                   decoration: BoxDecoration(
+                    color: AppColors.surfaceHigh,
                     borderRadius: BorderRadius.circular(AppRadius.md),
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        Color.lerp(hpColor, AppColors.primary, 0.4)!
-                            .withValues(alpha: 0.85),
-                        hpColor.withValues(alpha: 0.4),
-                        AppColors.background.withValues(alpha: 0.9),
-                      ],
-                      stops: const [0.0, 0.45, 1.0],
-                    ),
                     border: Border.all(
-                      color: Color.lerp(hpColor, AppColors.secondary, 0.35)!
-                          .withValues(alpha: 0.7),
-                      width: 1.2,
+                      color: isSelected
+                          ? AppColors.primary.withValues(alpha: 0.8)
+                          : (isLead
+                              ? AppColors.primary.withValues(alpha: 0.8)
+                              : AppColors.outlineVariant.withValues(alpha: 0.35)),
+                      width: isSelected || isLead ? 1.8 : 1.0,
                     ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: hpColor.withValues(alpha: 0.35),
-                        blurRadius: 14,
-                        spreadRadius: -2,
-                        offset: const Offset(0, 5),
-                      ),
-                      BoxShadow(
-                        color: AppColors.primary.withValues(alpha: 0.15),
-                        blurRadius: 18,
-                        spreadRadius: -4,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
                   ),
                   child: Material(
                     color: Colors.transparent,
                     borderRadius: BorderRadius.circular(AppRadius.md),
                     child: InkWell(
                       borderRadius: BorderRadius.circular(AppRadius.md),
-                      onTap: () {
+                      onTap: isFainted
+                          ? null
+                          : () {
                         setState(() {
+                          _submittedActionType = 'switch';
+                          _submittedActionTargetId = m['id'];
                           _battleFeedback.add('Enviando acción: Cambiar a ${m['name']}...');
                         });
                         _scrollToFeedbackBottom();
                         _socketService.sendAction('switch', {
-                          'monster_id': m['name'].toString().toLowerCase(),
+                          'pokemon_id': m['id'] as int,
                         });
                       },
                       child: Padding(
-                        padding: const EdgeInsets.all(10),
-                        child: Row(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Icon(
-                              Icons.catching_pokemon,
-                              color: hpColor,
-                              size: 18,
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Text(
-                                    m['name'],
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.w700,
-                                      fontSize: 12,
-                                    ),
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                  Text(
-                                    'Nv.${m['level']} • HP ${m['hp']}/${m['maxHp']}',
-                                    style: TextStyle(
-                                      color: AppColors.onSurfaceMuted,
-                                      fontSize: 10,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  ClipRRect(
-                                    borderRadius: BorderRadius.circular(4),
-                                    child: LinearProgressIndicator(
-                                      value: pct,
-                                      minHeight: 4,
-                                      backgroundColor: AppColors.surfaceHighest,
-                                      valueColor: AlwaysStoppedAnimation<Color>(
-                                        hpColor,
+                            // Row 1: Name & Level (left), Types & LEAD (right)
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Expanded(
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Flexible(
+                                        child: Text(
+                                          m['name'],
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.w700,
+                                            fontSize: 12,
+                                          ),
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
                                       ),
-                                    ),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        'Nv.${m['level']}',
+                                        style: TextStyle(
+                                          color: AppColors.onSurfaceMuted,
+                                          fontSize: 9,
+                                        ),
+                                      ),
+                                    ],
                                   ),
+                                ),
+                                const SizedBox(width: 6),
+                                Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    ...monTypes.map((t) => Padding(
+                                      padding: const EdgeInsets.only(left: 3),
+                                      child: PokemonTypeIcons.buildTypeBadge(t, fontSize: 8),
+                                    )),
+                                  ],
+                                ),
+                              ],
+                            ),
+
+                            // Row 2: Sprite (Max 36x36) and Health Bar (Centered)
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                if (m['sprite_url'] != null && (m['sprite_url'] as String).isNotEmpty) ...[
+                                  Image.network(
+                                    m['sprite_url'] as String,
+                                    height: 36,
+                                    width: 36,
+                                    fit: BoxFit.contain,
+                                    errorBuilder: (context, error, stackTrace) => const SizedBox(width: 36, height: 36),
+                                  ),
+                                  const SizedBox(width: 8),
                                 ],
-                              ),
+                                Expanded(
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        'HP ${m['hp']}/${m['maxHp']}',
+                                        style: TextStyle(
+                                          color: AppColors.onSurfaceMuted,
+                                          fontSize: 9,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 3),
+                                      ClipRRect(
+                                        borderRadius: BorderRadius.circular(4),
+                                        child: LinearProgressIndicator(
+                                          value: pct,
+                                          minHeight: 4,
+                                          backgroundColor: AppColors.surfaceHighest,
+                                          valueColor: AlwaysStoppedAnimation<Color>(hpColor),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
                             ),
                           ],
                         ),
@@ -1306,6 +2338,7 @@ class _BattleViewState extends State<BattleView> {
                     ),
                   ),
                 );
+                return isFainted ? Opacity(opacity: 0.45, child: card) : card;
               },
             ),
           ],
@@ -1444,85 +2477,87 @@ class _BattleViewState extends State<BattleView> {
     );
   }
 
-  Widget _buildTopTurnBanner(TextTheme text) {
+  Widget _buildCompactTopTurnBanner(TextTheme text) {
+    final isSyncing = _phase.isSyncing;
+    final isError = _phase.isError;
     final isWaitingPlayers = _phase.isWaitingPlayers;
     final isWaiting = _phase.isWaitingActions;
 
-    final statusColor = isWaitingPlayers
-        ? AppColors.warning
-        : (isWaiting ? AppColors.accent : AppColors.success);
-
-    final statusText = isWaitingPlayers
-        ? 'Esperando jugadores...'
-        : (isWaiting ? 'Esperando acciones...' : 'Procesando turno...');
-
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: AppColors.background.withValues(alpha: 0.8),
-        borderRadius: BorderRadius.circular(AppRadius.md),
-        border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.5)),
+        color: AppColors.background.withValues(alpha: 0.6),
+        borderRadius: BorderRadius.circular(AppRadius.sm),
+        border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.3)),
       ),
       child: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
           Icon(
-            isWaitingPlayers ? Icons.group_add_rounded : Icons.hourglass_empty_rounded,
+            isSyncing
+                ? Icons.sync_rounded
+                : (isError
+                    ? Icons.error_outline_rounded
+                    : (isWaitingPlayers
+                        ? Icons.group_add_rounded
+                        : Icons.hourglass_empty_rounded)),
             color: AppColors.primary,
-            size: 18,
+            size: 14,
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 6),
           Text(
-            isWaitingPlayers ? 'Lobby' : 'Turno $_turn',
-            style: text.bodyMedium?.copyWith(
+            isSyncing
+                ? 'Conectando'
+                : (isError
+                    ? 'Error'
+                    : (isWaitingPlayers ? 'Lobby' : 'Turno $_turn')),
+            style: text.bodySmall?.copyWith(
               fontWeight: FontWeight.w900,
               color: AppColors.onSurface,
             ),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 8),
           Container(
-            height: 14,
+            height: 10,
             width: 1,
             color: AppColors.outlineVariant,
           ),
-          const SizedBox(width: 12),
-          if (isWaitingPlayers)
+          const SizedBox(width: 8),
+          if (isSyncing)
+            _PulsingIndicator(color: AppColors.primary)
+          else if (isError)
+            _PulsingIndicator(color: AppColors.danger)
+          else if (isWaitingPlayers)
             _PulsingIndicator(color: AppColors.warning)
           else if (isWaiting)
-            _PulsingIndicator(color: AppColors.accent)
+            _PulsingIndicator(color: AppColors.warning)
           else
-            SizedBox(
-              width: 10,
+            _PulsingIndicator(color: AppColors.primary),
+          if (!isSyncing && !isError && !isWaitingPlayers && isWaiting && _remainingSeconds > 0) ...[
+            const SizedBox(width: 8),
+            Container(
               height: 10,
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                valueColor: AlwaysStoppedAnimation<Color>(AppColors.success),
-              ),
+              width: 1,
+              color: AppColors.outlineVariant,
             ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              statusText,
-              style: text.bodySmall?.copyWith(
-                color: statusColor,
-                fontWeight: FontWeight.w700,
-                letterSpacing: 0.5,
-              ),
-            ),
-          ),
-          if (!isWaitingPlayers && isWaiting && _remainingSeconds > 0) ...[
+            const SizedBox(width: 8),
             Icon(
               Icons.timer_outlined,
               color: AppColors.onSurfaceMuted,
-              size: 14,
+              size: 12,
             ),
             const SizedBox(width: 4),
-            Text(
-              _formatDuration(_remainingSeconds),
-              style: TextStyle(
-                fontFamily: 'monospace',
-                fontSize: 12,
-                fontWeight: FontWeight.w800,
-                color: AppColors.onSurfaceMuted,
+            SizedBox(
+              width: 38,
+              child: Text(
+                _formatDuration(_remainingSeconds),
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontFamily: 'monospace',
+                  fontSize: 11,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.onSurfaceMuted,
+                ),
               ),
             ),
           ],
@@ -1537,12 +2572,83 @@ class _ParticipantTile extends StatelessWidget {
   final String name;
   final Color color;
   final Map<String, dynamic> mon;
+  final bool isLead;
+  final int aliveCount;
+  final bool mirror;
   const _ParticipantTile({
     required this.label,
     required this.name,
     required this.color,
     required this.mon,
+    this.isLead = false,
+    this.aliveCount = 0,
+    this.mirror = false,
   });
+
+  Widget _buildStatusBadge(String? status) {
+    if (status == null || status.isEmpty || status.toLowerCase() == 'normal') {
+      return const SizedBox(height: 16); // placeholder spacer to keep the card height constant!
+    }
+
+    final normalized = status.toLowerCase();
+    String label = status.toUpperCase();
+    Color badgeColor = Colors.grey;
+
+    if (normalized.contains('paral')) {
+      label = 'PAR';
+      badgeColor = const Color(0xFFF1C40F); // Yellow
+    } else if (normalized.contains('burn') || normalized.contains('quem')) {
+      label = 'BRN';
+      badgeColor = const Color(0xFFE74C3C); // Red
+    } else if (normalized.contains('badly') || normalized.contains('toxic') || normalized.contains('tox')) {
+      label = 'TOX';
+      badgeColor = const Color(0xFF6C3483); // Darker purple (Badly Poisoned)
+    } else if (normalized.contains('pois') || normalized.contains('env')) {
+      label = 'PSN';
+      badgeColor = const Color(0xFF9B59B6); // Regular purple (Poison)
+    } else if (normalized.contains('sleep') || normalized.contains('sue')) {
+      label = 'SLP';
+      badgeColor = const Color(0xFF95A5A6); // Grey
+    } else if (normalized.contains('freez') || normalized.contains('congel')) {
+      label = 'FRZ';
+      badgeColor = const Color(0xFF3498DB); // Blue
+    } else if (normalized == 'par') {
+      label = 'PAR';
+      badgeColor = const Color(0xFFF1C40F);
+    } else if (normalized == 'brn') {
+      label = 'BRN';
+      badgeColor = const Color(0xFFE74C3C);
+    } else if (normalized == 'psn') {
+      label = 'PSN';
+      badgeColor = const Color(0xFF9B59B6);
+    } else if (normalized == 'tox') {
+      label = 'TOX';
+      badgeColor = const Color(0xFF6C3483);
+    } else if (normalized == 'slp') {
+      label = 'SLP';
+      badgeColor = const Color(0xFF95A5A6);
+    } else if (normalized == 'frz') {
+      label = 'FRZ';
+      badgeColor = const Color(0xFF3498DB);
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+      decoration: BoxDecoration(
+        color: badgeColor,
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Text(
+        label,
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 9,
+          fontWeight: FontWeight.w900,
+          letterSpacing: 0.5,
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -1550,78 +2656,154 @@ class _ParticipantTile extends StatelessWidget {
     final pct = (mon['hp'] as num?) != null && (mon['maxHp'] as num?) != null && (mon['maxHp'] as num) > 0
         ? (mon['hp'] as num) / (mon['maxHp'] as num)
         : 0.0;
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: AppColors.surfaceHigh,
-        borderRadius: BorderRadius.circular(AppRadius.md),
-        border: Border.all(color: color.withValues(alpha: 0.35)),
-      ),
+
+    Color hpColor = AppColors.success;
+    if (pct < 0.5) hpColor = AppColors.accent;
+    if (pct < 0.25) hpColor = AppColors.danger;
+
+    final textInfo = Expanded(
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: mirror ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            mainAxisAlignment: mirror ? MainAxisAlignment.end : MainAxisAlignment.start,
+            children: mirror
+                ? [
+                    Text(
+                      'Nv.${mon['level'] ?? 50}',
+                      style: text.bodySmall?.copyWith(
+                        color: AppColors.onSurfaceMuted,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Flexible(
+                      child: Text(
+                        mon['name'] ?? '?',
+                        textAlign: TextAlign.right,
+                        style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    Icon(Icons.catching_pokemon, color: color, size: 14),
+                  ]
+                : [
+                    Icon(Icons.catching_pokemon, color: color, size: 14),
+                    const SizedBox(width: 4),
+                    Flexible(
+                      child: Text(
+                        mon['name'] ?? '?',
+                        style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      'Nv.${mon['level'] ?? 50}',
+                      style: text.bodySmall?.copyWith(
+                        color: AppColors.onSurfaceMuted,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+          ),
+          const SizedBox(height: 4),
+          Row(
+            mainAxisAlignment: mirror ? MainAxisAlignment.end : MainAxisAlignment.start,
             children: [
-              Expanded(
-                child: Text(
-                  name,
-                  style: text.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.onSurface,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                'Nv.${mon['level'] ?? 50}',
-                style: text.bodySmall?.copyWith(
-                  color: AppColors.onSurfaceMuted,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
+              _buildStatusBadge(mon['status']),
             ],
           ),
           const SizedBox(height: 6),
           Row(
-            children: [
-              Icon(Icons.catching_pokemon, color: color, size: 14),
-              const SizedBox(width: 4),
-              Text(
-                mon['name'] ?? '?',
-                style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(4),
-                  child: LinearProgressIndicator(
-                    value: pct,
-                    minHeight: 5,
-                    backgroundColor: AppColors.surfaceHighest,
-                    valueColor: AlwaysStoppedAnimation<Color>(color),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Text(
-                '${mon['hp'] ?? 0}/${mon['maxHp'] ?? 100}',
-                style: TextStyle(
-                  fontFamily: 'monospace',
-                  fontSize: 11,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.onSurfaceMuted,
-                ),
-              ),
-            ],
+            children: mirror
+                ? [
+                    Text(
+                      '${mon['hp'] ?? 0}/${mon['maxHp'] ?? 100}',
+                      style: TextStyle(
+                        fontFamily: 'monospace',
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.onSurfaceMuted,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(4),
+                        child: LinearProgressIndicator(
+                          value: pct,
+                          minHeight: 5,
+                          backgroundColor: AppColors.surface,
+                          valueColor: AlwaysStoppedAnimation<Color>(hpColor),
+                        ),
+                      ),
+                    ),
+                  ]
+                : [
+                    Expanded(
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(4),
+                        child: LinearProgressIndicator(
+                          value: pct,
+                          minHeight: 5,
+                          backgroundColor: AppColors.surface,
+                          valueColor: AlwaysStoppedAnimation<Color>(hpColor),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Text(
+                      '${mon['hp'] ?? 0}/${mon['maxHp'] ?? 100}',
+                      style: TextStyle(
+                        fontFamily: 'monospace',
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.onSurfaceMuted,
+                      ),
+                    ),
+                  ],
           ),
         ],
+      ),
+    );
+
+    final spriteImage = mon['sprite_url'] != null && (mon['sprite_url'] as String).isNotEmpty
+        ? SizedBox(
+            height: 70,
+            width: 70,
+            child: Image.network(
+              mon['sprite_url'],
+              fit: BoxFit.contain,
+              errorBuilder: (context, error, stackTrace) => const SizedBox(width: 70, height: 70),
+            ),
+          )
+        : const SizedBox(width: 70, height: 70);
+
+    return Container(
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceHighest,
+        borderRadius: BorderRadius.circular(AppRadius.md),
+        border: Border.all(
+          color: isLead ? color.withValues(alpha: 0.8) : color.withValues(alpha: 0.35),
+          width: isLead ? 1.8 : 1.0,
+        ),
+      ),
+      child: Row(
+        children: mirror
+            ? [
+                spriteImage,
+                const SizedBox(width: 8),
+                textInfo,
+              ]
+            : [
+                textInfo,
+                const SizedBox(width: 8),
+                spriteImage,
+              ],
       ),
     );
   }
@@ -1722,39 +2904,89 @@ class _PulsingIconState extends State<_PulsingIcon> with SingleTickerProviderSta
 }
 
 enum BattlePhase {
+  syncing,
   waitingPlayers,
+  settingUp,
   waitingActions,
   resolving,
-  finished;
+  finished,
+  error;
 
+  bool get isSyncing => this == BattlePhase.syncing;
   bool get isWaitingPlayers => this == BattlePhase.waitingPlayers;
+  bool get isSettingUp => this == BattlePhase.settingUp;
   bool get isWaitingActions => this == BattlePhase.waitingActions;
+  bool get isError => this == BattlePhase.error;
 
   static BattlePhase fromString(String? value) {
     switch (value) {
+      case 'syncing':
+        return BattlePhase.syncing;
       case 'waiting_players':
         return BattlePhase.waitingPlayers;
+      case 'setting_up':
+        return BattlePhase.settingUp;
       case 'waiting_actions':
         return BattlePhase.waitingActions;
       case 'resolving':
         return BattlePhase.resolving;
       case 'finished':
         return BattlePhase.finished;
+      case 'error':
+        return BattlePhase.error;
       default:
-        return BattlePhase.waitingActions;
+        return BattlePhase.error;
     }
   }
 
   String toJsonString() {
     switch (this) {
+      case BattlePhase.syncing:
+        return 'syncing';
       case BattlePhase.waitingPlayers:
         return 'waiting_players';
+      case BattlePhase.settingUp:
+        return 'setting_up';
       case BattlePhase.waitingActions:
         return 'waiting_actions';
       case BattlePhase.resolving:
         return 'resolving';
       case BattlePhase.finished:
         return 'finished';
+      case BattlePhase.error:
+        return 'error';
     }
   }
 }
+
+const String _crossedSwordsSvg = '''
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <polyline points="14.5 17.5 3 6 3 3 6 3 17.5 14.5" />
+  <line x1="13" x2="19" y1="19" y2="13" />
+  <line x1="16" x2="20" y1="16" y2="20" />
+  <line x1="19" x2="21" y1="21" y2="19" />
+  <polyline points="14.5 6.5 18 3 21 3 21 6 17.5 9.5" />
+  <line x1="5" x2="9" y1="14" y2="18" />
+  <line x1="7" x2="4" y1="17" y2="20" />
+  <line x1="3" x2="5" y1="19" y2="21" />
+</svg>
+''';
+
+
+
+const String _swordSvg = '''
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <polyline points="14.5 17.5 3 6 3 3 6 3 17.5 14.5" />
+  <line x1="13" y1="19" x2="19" y2="13" />
+  <line x1="16" y1="16" x2="20" y2="20" />
+  <line x1="19" y1="21" x2="21" y2="19" />
+</svg>
+''';
+
+const String _bullseyeSvg = '''
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <circle cx="12" cy="12" r="10" />
+  <circle cx="12" cy="12" r="6" />
+  <circle cx="12" cy="12" r="2" fill="currentColor" />
+</svg>
+''';

@@ -23,6 +23,18 @@ class BattleSocketService with ChangeNotifier {
   Map<String, dynamic>? _currentPlayer;
   Map<String, dynamic>? get currentPlayer => _currentPlayer;
 
+  // Team builder template loading state
+  final Map<int, Map<String, dynamic>> _pokemonTemplates = {};
+  List<Map<String, dynamic>> get pokemonTemplates => _pokemonTemplates.values.toList();
+  bool _isLoadingTemplates = false;
+  bool get isLoadingTemplates => _isLoadingTemplates;
+
+  // Cached moves for pokemon templates
+  final Map<int, List<Map<String, dynamic>>> _templateMoves = {};
+  Map<int, List<Map<String, dynamic>>> get templateMoves => _templateMoves;
+  bool _isLoadingMoves = false;
+  bool get isLoadingMoves => _isLoadingMoves;
+
   // Track active battles from the player profile
   List<Map<String, dynamic>> _activeBattles = [];
   List<Map<String, dynamic>> get activeBattles => _activeBattles;
@@ -33,6 +45,14 @@ class BattleSocketService with ChangeNotifier {
 
   // Presence map
   Map<String, dynamic> _presences = {};
+
+  // Team builder detailed team editing state
+  Map<String, dynamic>? loadedTeamDetails;
+
+  void clearLoadedTeamDetails() {
+    loadedTeamDetails = null;
+    notifyListeners();
+  }
 
   // Controllers for streams
   final _battleEventController = StreamController<Map<String, dynamic>>.broadcast();
@@ -233,6 +253,54 @@ class BattleSocketService with ChangeNotifier {
           final battleId = innerPayload['battle_id']?.toString() ?? '';
           print("Evento battle_joined recibido. Battle ID: $battleId");
           _battleJoinedController.add(battleId);
+        } else if (innerEvent == 'battles_info' && innerPayload != null) {
+          if (_currentPlayer != null && innerPayload['battle_history'] != null) {
+            _currentPlayer!['battle_history'] = Map<String, dynamic>.from(innerPayload['battle_history'] as Map);
+          }
+          final rawBattles = innerPayload['battles'] as List?;
+          _activeBattles = rawBattles != null
+              ? rawBattles.map((b) => Map<String, dynamic>.from(b as Map)).toList()
+              : [];
+          notifyListeners();
+        } else if (innerEvent == 'pokemon_templates_list' && innerPayload != null) {
+          final list = innerPayload['pokemon_templates'] as List?;
+          if (list != null) {
+            final templates = list.map((item) => Map<String, dynamic>.from(item as Map)).toList();
+            for (final t in templates) {
+              final id = t['id'] as int?;
+              if (id != null) _pokemonTemplates[id] = t;
+            }
+            print("Recibido lote de ${templates.length} plantillas de Pokémon. Total único: ${_pokemonTemplates.length}");
+
+            // Standard total count in generation 9 is 1025. If we have at least 1025, or if we stop receiving:
+            if (_pokemonTemplates.length >= 1025 || templates.length < 200) {
+              _isLoadingTemplates = false;
+            }
+            notifyListeners();
+          }
+        } else if (innerEvent == 'pokemon_template_moves_list' && innerPayload != null) {
+          final templateId = innerPayload['pokemon_template_id'] as int?;
+          final movesList = innerPayload['moves'] as List?;
+          if (templateId != null && movesList != null) {
+            final moves = movesList.map((item) => Map<String, dynamic>.from(item as Map)).toList();
+            _templateMoves[templateId] = moves;
+            print("Recibidos ${moves.length} movimientos para la plantilla $templateId");
+            _isLoadingMoves = false;
+            notifyListeners();
+          }
+        } else if (innerEvent == 'teams_info' && innerPayload != null) {
+          final rawTeams = innerPayload['teams'] as List?;
+          if (_currentPlayer != null && rawTeams != null) {
+            final mappedTeams = rawTeams.map((t) => Map<String, dynamic>.from(t as Map)).toList();
+            _currentPlayer!['teams'] = mappedTeams;
+            print("Perfil del jugador actualizado con ${rawTeams.length} equipos");
+            _playerEventController.add({'event': 'teams_info', 'teams': mappedTeams});
+            notifyListeners();
+          }
+        } else if (innerEvent == 'team_details' && innerPayload != null) {
+          loadedTeamDetails = Map<String, dynamic>.from(innerPayload);
+          print("Detalles del equipo cargados exitosamente: ${loadedTeamDetails?['name']}");
+          notifyListeners();
         }
       }
     });
@@ -262,6 +330,12 @@ class BattleSocketService with ChangeNotifier {
     });
     joinResponse.onReply("error", (response) {
       print("Fallo al unirse al canal público battle:$battleId: $response");
+      final payload = response.response;
+      final reason = (payload is Map) ? (payload['reason'] ?? 'Fallo al unirse al canal de combate.') : 'Fallo al unirse al canal de combate.';
+      _battleEventController.add({
+        'event': 'connection_error',
+        'payload': {'reason': reason}
+      });
       notifyListeners();
     });
 
@@ -283,6 +357,12 @@ class BattleSocketService with ChangeNotifier {
       });
       privateJoinResponse.onReply("error", (response) {
         print("Fallo al unirse al canal privado battle:$battleId:$playerId: $response");
+        final payload = response.response;
+        final reason = (payload is Map) ? (payload['reason'] ?? 'Fallo al unirse al canal privado.') : 'Fallo al unirse al canal privado.';
+        _battleEventController.add({
+          'event': 'connection_error',
+          'payload': {'reason': reason}
+        });
         notifyListeners();
       });
 
@@ -394,6 +474,77 @@ class BattleSocketService with ChangeNotifier {
     }
   }
 
+  /// Request pokemon templates for the team builder
+  void loadPokemonTemplates({bool force = false}) {
+    if (!force && (_pokemonTemplates.isNotEmpty || _isLoadingTemplates)) return;
+
+    if (_playerChannel != null && _playerChannel!.state == PhoenixChannelState.joined) {
+      print("Cargando plantillas de Pokémon...");
+      _pokemonTemplates.clear();
+      _isLoadingTemplates = true;
+      notifyListeners();
+
+      _playerChannel!.push('get_pokemon_templates', {});
+    } else {
+      print("Advertencia: No se pudo enviar get_pokemon_templates porque el canal del jugador no está listo.");
+    }
+  }
+
+  /// Request moves for a specific pokemon template ID
+  void loadPokemonTemplateMoves(int templateId) {
+    if (_templateMoves.containsKey(templateId)) return;
+
+    if (_playerChannel != null && _playerChannel!.state == PhoenixChannelState.joined) {
+      print("Cargando movimientos para la plantilla $templateId...");
+      _isLoadingMoves = true;
+      notifyListeners();
+
+      _playerChannel!.push('get_pokemon_template_moves', {
+        'pokemon_template_id': templateId,
+      });
+    } else {
+      print("Advertencia: No se pudo enviar get_pokemon_template_moves porque el canal del jugador no está listo.");
+    }
+  }
+
+  /// Save/create a new team (or update if teamId is provided)
+  void mutateTeam(String name, List<Map<String, dynamic>> pokemons, {int? teamId}) {
+    if (_playerChannel != null && _playerChannel!.state == PhoenixChannelState.joined) {
+      print("Enviando acción mutate_team al canal de player...");
+      _playerChannel!.push('mutate_team', {
+        'name': name,
+        'pokemons': pokemons,
+        'team_id': teamId,
+      });
+    } else {
+      print("Advertencia: No se pudo enviar mutate_team porque el canal del jugador no está listo.");
+    }
+  }
+
+  /// Request detailed team configuration for editing
+  void getTeamDetails(int teamId) {
+    if (_playerChannel != null && _playerChannel!.state == PhoenixChannelState.joined) {
+      print("Enviando acción get_team_details al canal de player para equipo $teamId...");
+      _playerChannel!.push('get_team_details', {
+        'team_id': teamId,
+      });
+    } else {
+      print("Advertencia: No se pudo enviar get_team_details porque el canal del jugador no está listo.");
+    }
+  }
+
+  /// Request to delete a team
+  void deleteTeam(int teamId) {
+    if (_playerChannel != null && _playerChannel!.state == PhoenixChannelState.joined) {
+      print("Enviando acción delete_team al canal de player para equipo $teamId...");
+      _playerChannel!.push('delete_team', {
+        'team_id': teamId,
+      });
+    } else {
+      print("Advertencia: No se pudo enviar delete_team porque el canal del jugador no está listo.");
+    }
+  }
+
   /// Disconnect and clean up all resources
   void disconnect() {
     leaveBattle();
@@ -423,6 +574,10 @@ class BattleSocketService with ChangeNotifier {
     _activeBattles.clear();
     _presences.clear();
     _activeUsersCount = 0;
+    _pokemonTemplates.clear();
+    _isLoadingTemplates = false;
+    _templateMoves.clear();
+    _isLoadingMoves = false;
     notifyListeners();
   }
 

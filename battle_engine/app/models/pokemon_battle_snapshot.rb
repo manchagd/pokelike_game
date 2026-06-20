@@ -3,6 +3,7 @@
 class PokemonBattleSnapshot < ApplicationRecord
   belongs_to :pokemon
   belongs_to :battle
+  belongs_to :player
 
   # =========================================================================
   # DOCUMENTACIÓN DE CAMPOS JSONB (Estructura y posibles valores)
