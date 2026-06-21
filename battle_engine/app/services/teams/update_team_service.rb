@@ -52,9 +52,25 @@ module Services
         ivs = DEFAULT_IVS.merge((pkmn_data[:ivs] || {}).transform_keys(&:to_s))
         evs = DEFAULT_EVS.merge((pkmn_data[:evs] || {}).transform_keys(&:to_s))
 
+        gender = pkmn_data[:gender].presence
+        if template.gender_rate.nil? || template.gender_rate == -1
+          gender = nil
+        elsif template.gender_rate == 0
+          gender = ::Pokemon::MALE
+        elsif template.gender_rate == 8
+          gender = ::Pokemon::FEMALE
+        elsif ![::Pokemon::MALE, ::Pokemon::FEMALE].include?(gender)
+          gender = pokemon.gender || determine_gender(template)
+        end
+
+        nature = pkmn_data[:nature].presence
+        nature = pokemon.nature unless Nature::LIST.include?(nature)
+
         pokemon.update!(
           pokemon_template: template,
           nickname: nickname,
+          gender: gender,
+          nature: nature,
           ivs: ivs,
           evs: evs,
           weight: template.weight || rand(10.0..150.0).round(2),
@@ -67,12 +83,23 @@ module Services
         ivs = DEFAULT_IVS.merge((pkmn_data[:ivs] || {}).transform_keys(&:to_s))
         evs = DEFAULT_EVS.merge((pkmn_data[:evs] || {}).transform_keys(&:to_s))
 
+        gender = pkmn_data[:gender].presence
+        if template.gender_rate.nil? || template.gender_rate == -1
+          gender = nil
+        elsif template.gender_rate == 0
+          gender = ::Pokemon::MALE
+        elsif template.gender_rate == 8
+          gender = ::Pokemon::FEMALE
+        elsif ![::Pokemon::MALE, ::Pokemon::FEMALE].include?(gender)
+          gender = determine_gender(template)
+        end
+
         ::Pokemon.create!(
           pokemon_template: template,
           team: team,
           nickname: nickname,
-          gender: [::Pokemon::MALE, ::Pokemon::FEMALE].sample,
-          nature: Nature::LIST.sample,
+          gender: gender,
+          nature: (Nature::LIST.include?(pkmn_data[:nature].to_s) ? pkmn_data[:nature].to_s : Nature::LIST.sample),
           weight: template.weight || rand(10.0..150.0).round(2),
           ivs: ivs,
           evs: evs,
@@ -94,6 +121,12 @@ module Services
         rescue ActiveRecord::InvalidForeignKey
           extra_pkmn.update!(team: nil)
         end
+      end
+
+      def determine_gender(template)
+        return nil if template.gender_rate.nil? || template.gender_rate == -1
+
+        rand(8) < template.gender_rate ? ::Pokemon::FEMALE : ::Pokemon::MALE
       end
     end
   end

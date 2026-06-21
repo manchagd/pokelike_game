@@ -31,8 +31,14 @@ templates.each do |template|
   # Determine weight (fallback if template has no weight)
   weight = template.weight || rand(10.0..150.0).round(2)
 
-  # Determine gender (random Male/Female, or nil with 10% probability for genderless)
-  gender = rand < 0.1 ? nil : [Pokemon::MALE, Pokemon::FEMALE].sample
+  # Determine gender based on template's gender_rate
+  gender = if template.gender_rate.nil? || template.gender_rate == -1
+             nil
+           elsif rand(8) < template.gender_rate
+             Pokemon::FEMALE
+           else
+             Pokemon::MALE
+           end
 
   # Determine nature
   nature = Nature::LIST.sample

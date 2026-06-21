@@ -15,6 +15,7 @@ module Contracts
           required(:stats).filled(:hash)
           optional(:nickname).maybe(:string)
           required(:gender).maybe(:string)
+          optional(:gender_rate).maybe(:integer)
           required(:nature).filled(:string)
           required(:weight).filled(:float)
           required(:lvl).filled(:integer)

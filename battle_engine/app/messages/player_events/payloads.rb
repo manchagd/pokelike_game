@@ -69,6 +69,7 @@ module Messages
               stats: pokemon.pokemon_template.stats,
               nickname: pokemon.nickname,
               gender: pokemon.gender,
+              gender_rate: pokemon.pokemon_template.gender_rate,
               nature: pokemon.nature,
               weight: pokemon.weight.to_f,
               lvl: pokemon.lvl,
@@ -91,7 +92,8 @@ module Messages
               name: t.name,
               types: t.types,
               stats: t.stats,
-              sprite: t.front_sprite
+              sprite: t.front_sprite,
+              gender_rate: t.gender_rate
             }
           end
         }
@@ -106,6 +108,7 @@ module Messages
               id: m.id,
               name: m.name,
               type: m.type,
+              secondary_type: m.secondary_type,
               category: m.category,
               power: m.power,
               accuracy: m.accuracy,

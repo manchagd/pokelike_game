@@ -86,6 +86,19 @@ if pokemon_list.empty?
       stats[mapped_name] = s['base_stat'] if mapped_name
     end
 
+    # Fetch species data to get gender_rate
+    species_url = pokemon_data.dig('species', 'url')
+    gender_rate = nil
+    if species_url
+      species_response = Faraday.get(species_url)
+      if species_response.success?
+        species_data = JSON.parse(species_response.body)
+        gender_rate = species_data['gender_rate']
+      else
+        BattleEngine.logger.error("[Seeds] Failed to fetch species data for Pokemon ID #{pokemon_id}. Skipping gender_rate.")
+      end
+    end
+
     # Extract sprites with fallback:
     #   Primary:  sprites.other.showdown.front_default / back_default
     #   Fallback: sprites.front_default                / back_default
@@ -109,7 +122,8 @@ if pokemon_list.empty?
       'front_sprite' => front_sprite,
       'back_sprite' => back_sprite,
       'pokeapi_id' => pokemon_id,
-      'moves' => pokeapi_move_ids
+      'moves' => pokeapi_move_ids,
+      'gender_rate' => gender_rate
     }
   end
 
@@ -136,6 +150,7 @@ pokemon_list.each_slice(100).with_index(1) do |batch, batch_number|
       front_sprite: pkmn['front_sprite'],
       back_sprite: pkmn['back_sprite'],
       pokeapi_id: pkmn['pokeapi_id'],
+      gender_rate: pkmn['gender_rate'],
       created_at: now,
       updated_at: now
     }

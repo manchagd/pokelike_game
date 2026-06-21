@@ -15,6 +15,7 @@ defmodule BattleRealTime.Contracts.Consumers.PlayerEvents.PokemonTemplatesListCo
       field(:types, {:array, :string})
       field(:stats, :map)
       field(:sprite, :string)
+      field(:gender_rate, :integer)
     end
   end
 
@@ -27,7 +28,7 @@ defmodule BattleRealTime.Contracts.Consumers.PlayerEvents.PokemonTemplatesListCo
 
   defp pokemon_template_changeset(struct, params) do
     struct
-    |> cast(params, [:id, :name, :types, :stats, :sprite])
+    |> cast(params, [:id, :name, :types, :stats, :sprite, :gender_rate])
     |> validate_required([:id, :name, :types, :stats])
   end
 end
