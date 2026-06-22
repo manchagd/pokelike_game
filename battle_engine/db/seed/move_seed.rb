@@ -171,6 +171,17 @@ if moves_list.empty?
   end
 end
 
+custom_json_file_path = File.join(local_data_dir, 'moves_custom.json')
+if File.exist?(custom_json_file_path)
+  begin
+    custom_moves = JSON.parse(File.read(custom_json_file_path))
+    BattleEngine.logger.info("[Seeds] Loaded #{custom_moves.size} custom moves from #{custom_json_file_path}.")
+    moves_list.concat(custom_moves)
+  rescue StandardError => e
+    BattleEngine.logger.error("[Seeds] Failed to read or parse custom moves file: #{e.message}")
+  end
+end
+
 # Upsert to DB in batches of 100
 BattleEngine.logger.info("[Seeds] Seeding database with #{moves_list.size} moves...")
 

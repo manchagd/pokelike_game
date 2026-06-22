@@ -137,6 +137,17 @@ if pokemon_list.empty?
   end
 end
 
+custom_json_file_path = File.join(local_data_dir, 'pokemon_custom.json')
+if File.exist?(custom_json_file_path)
+  begin
+    custom_pokemon = JSON.parse(File.read(custom_json_file_path))
+    BattleEngine.logger.info("[Seeds] Loaded #{custom_pokemon.size} custom Pokémon templates from #{custom_json_file_path}.")
+    pokemon_list.concat(custom_pokemon)
+  rescue StandardError => e
+    BattleEngine.logger.error("[Seeds] Failed to read or parse custom Pokémon file: #{e.message}")
+  end
+end
+
 # Now perform upsert in batches of 100
 BattleEngine.logger.info("[Seeds] Seeding database with #{pokemon_list.size} Pokémon templates...")
 
