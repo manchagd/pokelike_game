@@ -14,6 +14,7 @@ defmodule BattleRealTime.Contracts.Consumers.PlayerEvents.PokemonTemplateMovesLi
       field(:id, :integer)
       field(:name, :string)
       field(:type, :string)
+      field(:secondary_type, :string)
       field(:category, :string)
       field(:power, :integer)
       field(:accuracy, :integer)
@@ -30,7 +31,7 @@ defmodule BattleRealTime.Contracts.Consumers.PlayerEvents.PokemonTemplateMovesLi
 
   defp move_changeset(struct, params) do
     struct
-    |> cast(params, [:id, :name, :type, :category, :power, :accuracy, :pp])
+    |> cast(params, [:id, :name, :type, :secondary_type, :category, :power, :accuracy, :pp])
     |> validate_required([:id, :name, :type, :category, :pp])
   end
 end

@@ -10,6 +10,7 @@ module Contracts
           required(:id).filled(:integer)
           required(:name).filled(:string)
           required(:type).filled(:string)
+          optional(:secondary_type).maybe(:string)
           required(:category).filled(:string)
           optional(:power).maybe(:integer)
           optional(:accuracy).maybe(:integer)
