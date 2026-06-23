@@ -17,21 +17,21 @@ module Services
           end
 
           by_group.each do |group_name, entries|
-            # For 1v1 layout, we only take the first player per group
-            entry = entries.first
-            pokemon_snap_id = entry[:lead]
+            entries.each.with_index(1) do |entry, index|
+              pokemon_snap_id = entry[:lead]
 
-            # Retrieve snapshot and verify ownership
-            snapshot = battle.pokemon_battle_snapshots.find(pokemon_snap_id)
-            raise 'Invalid snapshot ownership' unless snapshot.player_id == entry[:player_id].to_i
+              # Retrieve snapshot and verify ownership
+              snapshot = battle.pokemon_battle_snapshots.find(pokemon_snap_id)
+              raise 'Invalid snapshot ownership' unless snapshot.player_id == entry[:player_id].to_i
 
-            # Position lead pokemon on field
-            Position.create!(
-              field: battle.field,
-              group: group_name == 'A' ? 1 : 2,
-              side: group_name == 'A' ? 'A' : 'B',
-              pokemon_snapshot_id: snapshot.id
-            )
+              # Position lead pokemon on field
+              Position.create!(
+                field: battle.field,
+                group: index,
+                side: group_name,
+                pokemon_snapshot_id: snapshot.id
+              )
+            end
           end
 
           # Mutate state to in_progress
