@@ -65,7 +65,8 @@ defmodule BattleRealTime.BattleSessionTest do
     # Player 1 submits action
     action1 = %{
       "action" => "attack",
-      "move_id" => 85,
+      "id" => 85,
+      "pokemon_id" => 10,
       "player_id" => 1,
       "battle_id" => battle_id,
       "targets" => ["B1"]

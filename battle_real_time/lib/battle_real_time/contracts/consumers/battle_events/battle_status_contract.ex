@@ -32,6 +32,11 @@ defmodule BattleRealTime.Contracts.Consumers.BattleEvents.BattleStatusContract d
         field(:locked_condition, :map)
         field(:attack_log, {:array, :map})
 
+        embeds_one :field_position, FieldPosition, primary_key: false do
+          field(:group, :integer)
+          field(:side, :string)
+        end
+
         embeds_many :attacks, Attack, primary_key: false do
           field(:id, :integer)
           field(:name, :string)
@@ -40,6 +45,10 @@ defmodule BattleRealTime.Contracts.Consumers.BattleEvents.BattleStatusContract d
           field(:pp, :integer)
           field(:category, :string)
           field(:types, {:array, :string})
+
+          embeds_one :meta, Meta, primary_key: false do
+            field(:enforce_switch, :boolean)
+          end
         end
       end
     end
@@ -79,13 +88,26 @@ defmodule BattleRealTime.Contracts.Consumers.BattleEvents.BattleStatusContract d
       :locked_condition,
       :attack_log
     ])
+    |> cast_embed(:field_position, required: false, with: &field_position_changeset/2)
     |> cast_embed(:attacks, required: false, with: &attack_changeset/2)
     |> validate_required([:id, :hp, :max_hp, :level, :lead, :name, :pokemon_name, :types])
+  end
+
+  def field_position_changeset(struct, params) do
+    struct
+    |> cast(params, [:group, :side])
+    |> validate_required([:group, :side])
   end
 
   def attack_changeset(struct, params) do
     struct
     |> cast(params, [:id, :name, :power, :accuracy, :pp, :types, :category])
+    |> cast_embed(:meta, required: false, with: &meta_changeset/2)
     |> validate_required([:id, :name, :pp, :types, :category])
+  end
+
+  def meta_changeset(struct, params) do
+    struct
+    |> cast(params, [:enforce_switch])
   end
 end

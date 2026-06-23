@@ -395,7 +395,8 @@ defmodule BattleRealTime.BattleSession do
           "types" => lead["types"] || [],
           "status" => get_in(lead, ["status_condition", "name"]) || "normal",
           "owner_id" => owner_id,
-          "sprite_url" => lead["sprite_url"]
+          "sprite_url" => lead["sprite_url"],
+          "field_position" => lead["field_position"]
         }
     end
   end

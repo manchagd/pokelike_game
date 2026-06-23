@@ -82,6 +82,9 @@ class _BattleViewState extends State<BattleView> {
   bool _leadSubmitted = false;
   String? _submittedActionType;
   dynamic _submittedActionTargetId;
+  dynamic _submittedActionSwitchTargetId;
+  bool _pendingEnforceSwitch = false;
+  Map<String, dynamic>? _pendingAttack;
 
   String? _errorMessage;
   Timer? _syncTimeoutTimer;
@@ -119,6 +122,7 @@ class _BattleViewState extends State<BattleView> {
     _leadSubmitted = false;
     _submittedActionType = null;
     _submittedActionTargetId = null;
+    _submittedActionSwitchTargetId = null;
 
     _battleFeedback.addAll([
       '¡Batalla iniciada!',
@@ -365,6 +369,7 @@ class _BattleViewState extends State<BattleView> {
         if (_turn != newTurn || (newPhase != _phase && newPhase == BattlePhase.waitingActions)) {
           _submittedActionType = null;
           _submittedActionTargetId = null;
+          _submittedActionSwitchTargetId = null;
         }
 
         _turn = newTurn;
@@ -387,6 +392,8 @@ class _BattleViewState extends State<BattleView> {
           final am = myPlayer['active_monster'] as Map<String, dynamic>?;
           if (am != null && am.isNotEmpty) {
             _myActive = {
+              'id': am['id'],
+              'field_position': am['field_position'] as Map<String, dynamic>?,
               'name': am['name'] ?? '?',
               'hp': am['hp'] ?? 0,
               'maxHp': am['max_hp'] ?? 100,
@@ -404,6 +411,8 @@ class _BattleViewState extends State<BattleView> {
           final am = oppPlayer['active_monster'] as Map<String, dynamic>?;
           if (am != null && am.isNotEmpty) {
             _oppActive = {
+              'id': am['id'],
+              'field_position': am['field_position'] as Map<String, dynamic>?,
               'name': am['name'] ?? '?',
               'hp': am['hp'] ?? 0,
               'maxHp': am['max_hp'] ?? 100,
@@ -450,6 +459,22 @@ class _BattleViewState extends State<BattleView> {
       }
     });
   }
+
+  String _findAttackName(dynamic id) {
+    if (id == null) return '';
+    final lead = _myMonsters.where((m) => m['lead'] == true).firstOrNull;
+    final attacks = (lead?['attacks'] as List?)?.cast<Map<String, dynamic>>() ?? [];
+    final attack = attacks.where((a) => a['id'] == id).firstOrNull;
+    return attack?['name'] as String? ?? '';
+  }
+
+  String _findMonsterName(dynamic id) {
+    if (id == null) return '';
+    final mon = _myMonsters.where((m) => m['id'] == id).firstOrNull;
+    return mon?['name'] as String? ?? '';
+  }
+
+
 
   void _startLocalCountdown() {
     _countdownTimer?.cancel();
@@ -587,6 +612,31 @@ class _BattleViewState extends State<BattleView> {
         );
       },
     );
+  }
+
+  void _submitAttackSwitch(int switchedInSnapshotId) {
+    final attack = _pendingAttack!;
+    final oppPosition = _oppActive['field_position'] as Map<String, dynamic>?;
+    final targetStr = oppPosition != null
+        ? '${oppPosition['side']}${oppPosition['group']}'
+        : 'B1';
+
+    setState(() {
+      _pendingEnforceSwitch = false;
+      _pendingAttack = null;
+      _submittedActionType = 'attack_switch';
+      _submittedActionTargetId = attack['id'];
+      _submittedActionSwitchTargetId = switchedInSnapshotId;
+      _battleFeedback.add('Enviando acción: ${attack['name']} + cambio de Pokémon...');
+    });
+    _scrollToFeedbackBottom();
+
+    _socketService.sendAction('attack_switch', {
+      'id': attack['id'],
+      'pokemon_id': _myActive['id'] as int,
+      'targets': [targetStr],
+      'pokemon_switched_id': switchedInSnapshotId,
+    });
   }
 
   void _sendMessage() {
@@ -1872,6 +1922,13 @@ class _BattleViewState extends State<BattleView> {
     final lead = _myMonsters.where((m) => m['lead'] == true).firstOrNull;
     final attacks = (lead?['attacks'] as List?)?.cast<Map<String, dynamic>>() ?? [];
 
+    final bool isActionSubmitted = _submittedActionType == 'attack' || _submittedActionType == 'attack_switch';
+    final bool isPendingEnforce = _pendingEnforceSwitch && _pendingAttack != null;
+    final bool isAnyAttackSelected = isActionSubmitted || isPendingEnforce;
+    final int? selectedAttackId = isActionSubmitted
+        ? _submittedActionTargetId
+        : (isPendingEnforce ? _pendingAttack!['id'] as int? : null);
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(12),
@@ -1886,6 +1943,51 @@ class _BattleViewState extends State<BattleView> {
                   'Movimientos',
                   style: text.titleMedium?.copyWith(fontWeight: FontWeight.w700, fontSize: 13),
                 ),
+                if (isAnyAttackSelected) ...[
+                  const Spacer(),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: isActionSubmitted
+                          ? AppColors.success.withValues(alpha: 0.12)
+                          : AppColors.info.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(4),
+                      border: Border.all(
+                        color: isActionSubmitted
+                            ? AppColors.success.withValues(alpha: 0.35)
+                            : AppColors.info.withValues(alpha: 0.35),
+                        width: 0.5,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        SizedBox(
+                          width: 10,
+                          height: 10,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 1.5,
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              isActionSubmitted ? AppColors.success : AppColors.info,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          isActionSubmitted
+                              ? 'ENVIADO: ${_findAttackName(selectedAttackId).toUpperCase()}'
+                              : 'SELECCIONADO: ${_findAttackName(selectedAttackId).toUpperCase()}',
+                          style: TextStyle(
+                            color: isActionSubmitted ? AppColors.success : AppColors.info,
+                            fontSize: 9,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 0.4,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ],
             ),
             const SizedBox(height: 10),
@@ -1908,7 +2010,10 @@ class _BattleViewState extends State<BattleView> {
                       padding: EdgeInsets.only(
                         right: index < attacks.length - 1 ? 6.0 : 0.0,
                       ),
-                      child: _buildAttackCard(attacks[index]),
+                      child: _buildAttackCard(
+                        attacks[index],
+                        isDimmed: isAnyAttackSelected && selectedAttackId != attacks[index]['id'],
+                      ),
                     ),
                   );
                 }),
@@ -1919,7 +2024,7 @@ class _BattleViewState extends State<BattleView> {
     );
   }
 
-  Widget _buildAttackCard(Map<String, dynamic> attack) {
+  Widget _buildAttackCard(Map<String, dynamic> attack, {bool isDimmed = false}) {
     final types = (attack['types'] as List?)?.cast<String>() ?? [];
     final name     = attack['name']     as String? ?? '—';
     final power    = attack['power']    as int?;
@@ -1931,162 +2036,188 @@ class _BattleViewState extends State<BattleView> {
         ? PokemonTypeIcons.getColor(types.first)
         : AppColors.outlineVariant;
 
-    final isSelected = _submittedActionType == 'attack' && _submittedActionTargetId == attack['id'];
+    final isSelected = ((_submittedActionType == 'attack' || _submittedActionType == 'attack_switch') &&
+        _submittedActionTargetId == attack['id']) ||
+        (_pendingEnforceSwitch && _pendingAttack != null && _pendingAttack!['id'] == attack['id']);
+    final enforceSwitch = (attack['meta'] as Map<String, dynamic>?)?['enforce_switch'] as bool? ?? false;
+
+    final cardContent = Container(
+      decoration: BoxDecoration(
+        color: AppColors.surfaceHigh,
+        borderRadius: BorderRadius.circular(AppRadius.md),
+        border: Border.all(
+          color: isSelected ? AppColors.primary.withValues(alpha: 0.8) : accentColor.withValues(alpha: 0.45),
+          width: isSelected ? 1.8 : 1.0,
+        ),
+        boxShadow: isSelected
+            ? [
+                BoxShadow(
+                  color: AppColors.primary.withValues(alpha: 0.15),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                )
+              ]
+            : null,
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 5),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          // Left: name + stats
+          Expanded(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Row 1: name + (pp/pp)
+                Text.rich(
+                  TextSpan(
+                    children: [
+                      TextSpan(
+                        text: name,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w800,
+                          fontSize: 9.5,
+                          letterSpacing: 0.1,
+                        ),
+                      ),
+                      if (pp != null)
+                        TextSpan(
+                          text: ' ($pp/$pp)',
+                          style: TextStyle(
+                            fontSize: 7.5,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.onSurfaceMuted,
+                          ),
+                        ),
+                    ],
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                ),
+                const SizedBox(height: 3),
+                // Row 2: sword + power, bullseye + accuracy
+                Row(
+                  children: [
+                    SvgPicture.string(
+                      _swordSvg,
+                      width: 8,
+                      height: 8,
+                      colorFilter: ColorFilter.mode(
+                        AppColors.onSurfaceMuted,
+                        BlendMode.srcIn,
+                      ),
+                    ),
+                    const SizedBox(width: 2),
+                    Text(
+                      power != null && power > 0 ? '$power' : '—',
+                      style: TextStyle(
+                        fontSize: 7.5,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.onSurfaceMuted,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    SvgPicture.string(
+                      _bullseyeSvg,
+                      width: 8,
+                      height: 8,
+                      colorFilter: ColorFilter.mode(
+                        AppColors.onSurfaceMuted,
+                        BlendMode.srcIn,
+                      ),
+                    ),
+                    const SizedBox(width: 2),
+                    Text(
+                      accuracy != null ? '$accuracy' : '—',
+                      style: TextStyle(
+                        fontSize: 7.5,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.onSurfaceMuted,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 4),
+          // Right: type badge(s) + category label stacked
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              if (types.isNotEmpty)
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: types.take(2).map((t) => Padding(
+                    padding: const EdgeInsets.only(left: 2),
+                    child: Container(
+                      padding: const EdgeInsets.all(2.5),
+                      decoration: BoxDecoration(
+                        color: PokemonTypeIcons.getColor(t),
+                        shape: BoxShape.circle,
+                      ),
+                      child: PokemonTypeIcons.buildSvgIcon(
+                        t,
+                        size: 8,
+                        color: Colors.white,
+                      ),
+                    ),
+                  )).toList(),
+                ),
+              const SizedBox(height: 2),
+              Text(
+                category,
+                style: TextStyle(
+                  fontSize: 6.5,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.onSurfaceMuted,
+                  letterSpacing: 0.2,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
 
     return InkWell(
       borderRadius: BorderRadius.circular(AppRadius.md),
       onTap: () {
-        setState(() {
-          _submittedActionType = 'attack';
-          _submittedActionTargetId = attack['id'];
-          _battleFeedback.add('Enviando acción: Usar $name...');
-        });
-        _scrollToFeedbackBottom();
-        _socketService.sendAction('attack', {
-          'move_id': attack['id'],
-          'targets': [_oppActive['name']?.toString().toLowerCase() ?? 'opp_active'],
-        });
+        final oppPosition = _oppActive['field_position'] as Map<String, dynamic>?;
+        final targetStr = oppPosition != null
+            ? '${oppPosition['side']}${oppPosition['group']}'
+            : 'B1';
+
+        if (enforceSwitch) {
+          setState(() {
+            _pendingEnforceSwitch = true;
+            _pendingAttack = attack;
+            _submittedActionType = null;
+            _submittedActionTargetId = null;
+            _submittedActionSwitchTargetId = null;
+            _battleFeedback.add('$name requiere un cambio. ¿Quién entra al combate?');
+          });
+          _scrollToFeedbackBottom();
+        } else {
+          setState(() {
+            _submittedActionType = 'attack';
+            _submittedActionTargetId = attack['id'];
+            _submittedActionSwitchTargetId = null;
+            _pendingEnforceSwitch = false;
+            _pendingAttack = null;
+            _battleFeedback.add('Enviando acción: Usar $name...');
+          });
+          _scrollToFeedbackBottom();
+          _socketService.sendAction('attack', {
+            'id': attack['id'],
+            'pokemon_id': _myActive['id'] as int,
+            'targets': [targetStr],
+          });
+        }
       },
-      child: Container(
-        decoration: BoxDecoration(
-          color: AppColors.surfaceHigh,
-          borderRadius: BorderRadius.circular(AppRadius.md),
-          border: Border.all(
-            color: isSelected ? AppColors.primary.withValues(alpha: 0.8) : accentColor.withValues(alpha: 0.45),
-            width: isSelected ? 1.8 : 1.0,
-          ),
-          boxShadow: isSelected
-              ? [
-                  BoxShadow(
-                    color: AppColors.primary.withValues(alpha: 0.15),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  )
-                ]
-              : null,
-        ),
-        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 5),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            // Left: name + stats
-            Expanded(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Row 1: name + (pp/pp)
-                  Text.rich(
-                    TextSpan(
-                      children: [
-                        TextSpan(
-                          text: name,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.w800,
-                            fontSize: 9.5,
-                            letterSpacing: 0.1,
-                          ),
-                        ),
-                        if (pp != null)
-                          TextSpan(
-                            text: ' ($pp/$pp)',
-                            style: TextStyle(
-                              fontSize: 7.5,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.onSurfaceMuted,
-                            ),
-                          ),
-                      ],
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 1,
-                  ),
-                  const SizedBox(height: 3),
-                  // Row 2: sword + power, bullseye + accuracy
-                  Row(
-                    children: [
-                      SvgPicture.string(
-                        _swordSvg,
-                        width: 8,
-                        height: 8,
-                        colorFilter: ColorFilter.mode(
-                          AppColors.onSurfaceMuted,
-                          BlendMode.srcIn,
-                        ),
-                      ),
-                      const SizedBox(width: 2),
-                      Text(
-                        power != null && power > 0 ? '$power' : '—',
-                        style: TextStyle(
-                          fontSize: 7.5,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.onSurfaceMuted,
-                        ),
-                      ),
-                      const SizedBox(width: 6),
-                      SvgPicture.string(
-                        _bullseyeSvg,
-                        width: 8,
-                        height: 8,
-                        colorFilter: ColorFilter.mode(
-                          AppColors.onSurfaceMuted,
-                          BlendMode.srcIn,
-                        ),
-                      ),
-                      const SizedBox(width: 2),
-                      Text(
-                        accuracy != null ? '$accuracy' : '—',
-                        style: TextStyle(
-                          fontSize: 7.5,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.onSurfaceMuted,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 4),
-            // Right: type badge(s) + category label stacked
-            Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                if (types.isNotEmpty)
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: types.take(2).map((t) => Padding(
-                      padding: const EdgeInsets.only(left: 2),
-                      child: Container(
-                        padding: const EdgeInsets.all(2.5),
-                        decoration: BoxDecoration(
-                          color: PokemonTypeIcons.getColor(t),
-                          shape: BoxShape.circle,
-                        ),
-                        child: PokemonTypeIcons.buildSvgIcon(
-                          t,
-                          size: 8,
-                          color: Colors.white,
-                        ),
-                      ),
-                    )).toList(),
-                  ),
-                const SizedBox(height: 2),
-                Text(
-                  category,
-                  style: TextStyle(
-                    fontSize: 6.5,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.onSurfaceMuted,
-                    letterSpacing: 0.2,
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
+      child: isDimmed ? Opacity(opacity: 0.45, child: cardContent) : cardContent,
     );
   }
 
@@ -2165,6 +2296,9 @@ class _BattleViewState extends State<BattleView> {
 
   Widget _buildMonstersPanel() {
     final text = Theme.of(context).textTheme;
+    final isAnySwitchSelected = _submittedActionType == 'switch' || _submittedActionType == 'attack_switch';
+    final switchTargetId = _submittedActionType == 'switch' ? _submittedActionTargetId : _submittedActionSwitchTargetId;
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(20),
@@ -2186,6 +2320,40 @@ class _BattleViewState extends State<BattleView> {
                     fontWeight: FontWeight.w700,
                   ),
                 ),
+                if (isAnySwitchSelected && switchTargetId != null) ...[
+                  const Spacer(),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: AppColors.success.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(4),
+                      border: Border.all(color: AppColors.success.withValues(alpha: 0.35), width: 0.5),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        SizedBox(
+                          width: 10,
+                          height: 10,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 1.5,
+                            valueColor: AlwaysStoppedAnimation<Color>(AppColors.success),
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          'ENVIADO: ENTRA ${_findMonsterName(switchTargetId).toUpperCase()}',
+                          style: TextStyle(
+                            color: AppColors.success,
+                            fontSize: 9,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 0.4,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ],
             ),
             const SizedBox(height: 12),
@@ -2206,21 +2374,119 @@ class _BattleViewState extends State<BattleView> {
                 if (pct < 0.5) hpColor = AppColors.accent;
                 if (pct < 0.25) hpColor = AppColors.danger;
                 final isLead = m['lead'] == true;
-                final isSelected = _submittedActionType == 'switch' && _submittedActionTargetId == m['id'];
+                final isSelected = (_submittedActionType == 'switch' && _submittedActionTargetId == m['id']) ||
+                                   (_submittedActionType == 'attack_switch' && _submittedActionSwitchTargetId == m['id']);
                 final monTypes = (m['types'] as List?)?.cast<String>() ?? [];
                 final isFainted = (m['hp'] as int) == 0;
 
-                final card = DecoratedBox(
+                final isDimmed = isFainted || (isAnySwitchSelected && !isSelected);
+
+                final cardContent = Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      // Row 1: Name & Level (left), Types & LEAD (right)
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Flexible(
+                                  child: Text(
+                                    m['name'],
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 12,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  'Nv.${m['level']}',
+                                  style: TextStyle(
+                                    color: AppColors.onSurfaceMuted,
+                                    fontSize: 9,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              ...monTypes.map((t) => Padding(
+                                padding: const EdgeInsets.only(left: 3),
+                                child: PokemonTypeIcons.buildTypeBadge(t, fontSize: 8),
+                              )),
+                            ],
+                          ),
+                        ],
+                      ),
+
+                      // Row 2: Sprite (Max 36x36) and Health Bar (Centered)
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          if (m['sprite_url'] != null && (m['sprite_url'] as String).isNotEmpty) ...[
+                            Image.network(
+                              m['sprite_url'] as String,
+                              height: 36,
+                              width: 36,
+                              fit: BoxFit.contain,
+                              errorBuilder: (context, error, stackTrace) => const SizedBox(width: 36, height: 36),
+                            ),
+                            const SizedBox(width: 8),
+                          ],
+                          Expanded(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  'HP ${m['hp']}/${m['maxHp']}',
+                                  style: TextStyle(
+                                    color: AppColors.onSurfaceMuted,
+                                    fontSize: 9,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                const SizedBox(height: 3),
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(4),
+                                  child: LinearProgressIndicator(
+                                    value: pct,
+                                    minHeight: 4,
+                                    backgroundColor: AppColors.surfaceHighest,
+                                    valueColor: AlwaysStoppedAnimation<Color>(hpColor),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                );
+
+                return DecoratedBox(
                   decoration: BoxDecoration(
                     color: AppColors.surfaceHigh,
                     borderRadius: BorderRadius.circular(AppRadius.md),
                     border: Border.all(
                       color: isSelected
-                          ? AppColors.primary.withValues(alpha: 0.8)
+                          ? AppColors.success.withValues(alpha: 0.9)
                           : (isLead
-                              ? AppColors.primary.withValues(alpha: 0.8)
+                              ? AppColors.info.withValues(alpha: 0.7)
                               : AppColors.outlineVariant.withValues(alpha: 0.35)),
-                      width: isSelected || isLead ? 1.8 : 1.0,
+                      width: isSelected ? 2.0 : (isLead ? 1.5 : 1.0),
                     ),
                   ),
                   child: Material(
@@ -2228,117 +2494,29 @@ class _BattleViewState extends State<BattleView> {
                     borderRadius: BorderRadius.circular(AppRadius.md),
                     child: InkWell(
                       borderRadius: BorderRadius.circular(AppRadius.md),
-                      onTap: isFainted
+                      onTap: isFainted || isLead
                           ? null
                           : () {
-                        setState(() {
-                          _submittedActionType = 'switch';
-                          _submittedActionTargetId = m['id'];
-                          _battleFeedback.add('Enviando acción: Cambiar a ${m['name']}...');
-                        });
-                        _scrollToFeedbackBottom();
-                        _socketService.sendAction('switch', {
-                          'pokemon_id': m['id'] as int,
-                        });
+                        if (_pendingEnforceSwitch) {
+                          _submitAttackSwitch(m['id'] as int);
+                        } else {
+                          setState(() {
+                            _submittedActionType = 'switch';
+                            _submittedActionTargetId = m['id'];
+                            _submittedActionSwitchTargetId = null;
+                            _pendingEnforceSwitch = false;
+                            _battleFeedback.add('Enviando acción: Cambiar a ${m['name']}...');
+                          });
+                          _scrollToFeedbackBottom();
+                          _socketService.sendAction('switch', {
+                            'pokemon_id': m['id'] as int,
+                          });
+                        }
                       },
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            // Row 1: Name & Level (left), Types & LEAD (right)
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Expanded(
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Flexible(
-                                        child: Text(
-                                          m['name'],
-                                          style: const TextStyle(
-                                            fontWeight: FontWeight.w700,
-                                            fontSize: 12,
-                                          ),
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 4),
-                                      Text(
-                                        'Nv.${m['level']}',
-                                        style: TextStyle(
-                                          color: AppColors.onSurfaceMuted,
-                                          fontSize: 9,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                const SizedBox(width: 6),
-                                Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    ...monTypes.map((t) => Padding(
-                                      padding: const EdgeInsets.only(left: 3),
-                                      child: PokemonTypeIcons.buildTypeBadge(t, fontSize: 8),
-                                    )),
-                                  ],
-                                ),
-                              ],
-                            ),
-
-                            // Row 2: Sprite (Max 36x36) and Health Bar (Centered)
-                            Row(
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                if (m['sprite_url'] != null && (m['sprite_url'] as String).isNotEmpty) ...[
-                                  Image.network(
-                                    m['sprite_url'] as String,
-                                    height: 36,
-                                    width: 36,
-                                    fit: BoxFit.contain,
-                                    errorBuilder: (context, error, stackTrace) => const SizedBox(width: 36, height: 36),
-                                  ),
-                                  const SizedBox(width: 8),
-                                ],
-                                Expanded(
-                                  child: Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Text(
-                                        'HP ${m['hp']}/${m['maxHp']}',
-                                        style: TextStyle(
-                                          color: AppColors.onSurfaceMuted,
-                                          fontSize: 9,
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 3),
-                                      ClipRRect(
-                                        borderRadius: BorderRadius.circular(4),
-                                        child: LinearProgressIndicator(
-                                          value: pct,
-                                          minHeight: 4,
-                                          backgroundColor: AppColors.surfaceHighest,
-                                          valueColor: AlwaysStoppedAnimation<Color>(hpColor),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
+                      child: isDimmed ? Opacity(opacity: 0.45, child: cardContent) : cardContent,
                     ),
                   ),
                 );
-                return isFainted ? Opacity(opacity: 0.45, child: card) : card;
               },
             ),
           ],

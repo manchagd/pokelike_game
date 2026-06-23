@@ -27,7 +27,9 @@ module Messages
                           .includes(pokemon: [:pokemon_template, :team, { attacks: :move }])
                           .to_a
 
-        lead_ids = battle.field.positions.pluck(:pokemon_snapshot_id).to_set
+        positions_by_snap = battle.field.positions.to_h do |pos|
+          [pos.pokemon_snapshot_id, { group: pos.group, side: pos.side }]
+        end
 
         battle.battle_players.includes(:player).map do |bp|
           player_snapshots = snapshots.select { |snap| snap.player_id == bp.player_id }
@@ -36,14 +38,15 @@ module Messages
             id: bp.player_id,
             name: bp.player.name,
             team: bp.group,
-            pokemons: pokemons_snap_list(player_snapshots, lead_ids)
+            pokemons: pokemons_snap_list(player_snapshots, positions_by_snap)
           }
         end
       end
 
-      private_class_method def pokemons_snap_list(player_snapshots, lead_ids = Set.new)
+      private_class_method def pokemons_snap_list(player_snapshots, positions_by_snap = {})
         player_snapshots.map do |snap|
-          is_lead = lead_ids.include?(snap.id)
+          field_position = positions_by_snap[snap.id]
+          is_lead = field_position.present?
           template = snap.pokemon.pokemon_template
 
           {
@@ -60,6 +63,7 @@ module Messages
             types: template.types,
             level: snap.pokemon.lvl,
             lead: is_lead,
+            field_position: field_position,
             sprite_url: template.front_sprite.presence || template.back_sprite,
             attacks: is_lead ? attacks_list(snap.pokemon.attacks) : []
           }
@@ -76,7 +80,8 @@ module Messages
             accuracy: move.accuracy,
             pp: move.pp,
             category: move.category,
-            types: [move.type, move.secondary_type].compact
+            types: [move.type, move.secondary_type].compact,
+            meta: move.meta || {}
           }
         end
       end

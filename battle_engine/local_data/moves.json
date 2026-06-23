@@ -22,6 +22,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 1
@@ -49,6 +50,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 2
@@ -76,6 +78,7 @@
       "min_hits": 2,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 3
@@ -103,6 +106,7 @@
       "min_hits": 2,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 4
@@ -130,6 +134,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 5
@@ -157,6 +162,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 6
@@ -184,6 +190,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 7
@@ -211,6 +218,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 8
@@ -238,6 +246,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 9
@@ -265,6 +274,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 10
@@ -292,6 +302,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 11
@@ -319,6 +330,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 12
@@ -346,6 +358,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 13
@@ -373,6 +386,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "atk",
@@ -405,6 +419,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 15
@@ -432,6 +447,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 16
@@ -459,6 +475,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 17
@@ -486,6 +503,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 18
@@ -513,6 +531,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 19
@@ -540,6 +559,7 @@
       "min_hits": null,
       "max_turns": 6,
       "min_turns": 5,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 20
@@ -567,6 +587,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 21
@@ -594,6 +615,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 22
@@ -621,6 +643,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 23
@@ -648,6 +671,7 @@
       "min_hits": 2,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 24
@@ -675,6 +699,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 25
@@ -702,6 +727,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 26
@@ -729,6 +755,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 27
@@ -756,6 +783,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "accuracy",
@@ -788,6 +816,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 29
@@ -815,6 +844,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 30
@@ -842,6 +872,7 @@
       "min_hits": 2,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 31
@@ -869,6 +900,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 32
@@ -896,6 +928,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 33
@@ -923,6 +956,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 34
@@ -950,6 +984,7 @@
       "min_hits": null,
       "max_turns": 4,
       "min_turns": 2,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 35
@@ -977,6 +1012,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 36
@@ -1004,6 +1040,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 37
@@ -1031,6 +1068,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 38
@@ -1058,6 +1096,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "def",
@@ -1090,6 +1129,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 40
@@ -1117,6 +1157,7 @@
       "min_hits": 2,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 41
@@ -1144,6 +1185,7 @@
       "min_hits": 2,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 42
@@ -1171,6 +1213,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "def",
@@ -1203,6 +1246,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 44
@@ -1230,6 +1274,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "atk",
@@ -1262,6 +1307,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 46
@@ -1289,6 +1335,7 @@
       "min_hits": null,
       "max_turns": 4,
       "min_turns": 2,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 47
@@ -1316,6 +1363,7 @@
       "min_hits": null,
       "max_turns": 5,
       "min_turns": 2,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 48
@@ -1343,6 +1391,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 49
@@ -1370,6 +1419,7 @@
       "min_hits": null,
       "max_turns": 4,
       "min_turns": 4,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 50
@@ -1397,6 +1447,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "sp_def",
@@ -1429,6 +1480,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 52
@@ -1456,6 +1508,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 53
@@ -1483,6 +1536,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 54
@@ -1510,6 +1564,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 55
@@ -1537,6 +1592,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 56
@@ -1564,6 +1620,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 57
@@ -1591,6 +1648,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 58
@@ -1618,6 +1676,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 59
@@ -1645,6 +1704,7 @@
       "min_hits": null,
       "max_turns": 5,
       "min_turns": 2,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 60
@@ -1672,6 +1732,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "spd",
@@ -1704,6 +1765,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "atk",
@@ -1736,6 +1798,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 63
@@ -1763,6 +1826,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 64
@@ -1790,6 +1854,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 65
@@ -1817,6 +1882,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 66
@@ -1844,6 +1910,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 67
@@ -1871,6 +1938,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 68
@@ -1898,6 +1966,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 69
@@ -1925,6 +1994,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 70
@@ -1952,6 +2022,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 71
@@ -1979,6 +2050,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 72
@@ -2006,6 +2078,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 73
@@ -2033,6 +2106,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "atk",
@@ -2069,6 +2143,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 75
@@ -2096,6 +2171,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 76
@@ -2123,6 +2199,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 77
@@ -2150,6 +2227,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 78
@@ -2177,6 +2255,7 @@
       "min_hits": null,
       "max_turns": 4,
       "min_turns": 2,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 79
@@ -2204,6 +2283,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 80
@@ -2231,6 +2311,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "spd",
@@ -2263,6 +2344,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 82
@@ -2290,6 +2372,7 @@
       "min_hits": null,
       "max_turns": 6,
       "min_turns": 5,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 83
@@ -2317,6 +2400,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 84
@@ -2344,6 +2428,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 85
@@ -2371,6 +2456,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 86
@@ -2398,6 +2484,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 87
@@ -2425,6 +2512,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 88
@@ -2452,6 +2540,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 89
@@ -2479,6 +2568,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 90
@@ -2506,6 +2596,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 91
@@ -2533,6 +2624,7 @@
       "min_hits": null,
       "max_turns": 15,
       "min_turns": 15,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 92
@@ -2560,6 +2652,7 @@
       "min_hits": null,
       "max_turns": 5,
       "min_turns": 2,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 93
@@ -2587,6 +2680,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "sp_def",
@@ -2619,6 +2713,7 @@
       "min_hits": null,
       "max_turns": 4,
       "min_turns": 2,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 95
@@ -2646,6 +2741,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "atk",
@@ -2678,6 +2774,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "spd",
@@ -2710,6 +2807,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 98
@@ -2737,6 +2835,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 99
@@ -2764,6 +2863,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 100
@@ -2791,6 +2891,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 101
@@ -2818,6 +2919,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 102
@@ -2845,6 +2947,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "def",
@@ -2877,6 +2980,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "evasion",
@@ -2909,6 +3013,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 105
@@ -2936,6 +3041,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "def",
@@ -2968,6 +3074,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "evasion",
@@ -3000,6 +3107,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "accuracy",
@@ -3032,6 +3140,7 @@
       "min_hits": null,
       "max_turns": 5,
       "min_turns": 2,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 109
@@ -3059,6 +3168,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "def",
@@ -3091,6 +3201,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "def",
@@ -3123,6 +3234,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "def",
@@ -3155,6 +3267,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 113
@@ -3182,6 +3295,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 114
@@ -3209,6 +3323,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 115
@@ -3236,6 +3351,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 116
@@ -3263,6 +3379,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 117
@@ -3290,6 +3407,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 118
@@ -3317,6 +3435,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 119
@@ -3344,6 +3463,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 120
@@ -3371,6 +3491,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 121
@@ -3398,6 +3519,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 122
@@ -3425,6 +3547,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 123
@@ -3452,6 +3575,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 124
@@ -3479,6 +3603,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 125
@@ -3506,6 +3631,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 126
@@ -3533,6 +3659,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 127
@@ -3560,6 +3687,7 @@
       "min_hits": null,
       "max_turns": 6,
       "min_turns": 5,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 128
@@ -3587,6 +3715,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 129
@@ -3614,6 +3743,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 130
@@ -3641,6 +3771,7 @@
       "min_hits": 2,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 131
@@ -3668,6 +3799,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "spd",
@@ -3700,6 +3832,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "sp_def",
@@ -3732,6 +3865,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "accuracy",
@@ -3764,6 +3898,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 135
@@ -3791,6 +3926,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 136
@@ -3818,6 +3954,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 137
@@ -3845,6 +3982,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 138
@@ -3872,6 +4010,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 139
@@ -3899,6 +4038,7 @@
       "min_hits": 2,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 140
@@ -3926,6 +4066,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 141
@@ -3953,6 +4094,7 @@
       "min_hits": null,
       "max_turns": 4,
       "min_turns": 2,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 142
@@ -3980,6 +4122,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 143
@@ -4007,6 +4150,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 144
@@ -4034,6 +4178,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "spd",
@@ -4066,6 +4211,7 @@
       "min_hits": null,
       "max_turns": 5,
       "min_turns": 2,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 146
@@ -4093,6 +4239,7 @@
       "min_hits": null,
       "max_turns": 4,
       "min_turns": 2,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 147
@@ -4120,6 +4267,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "accuracy",
@@ -4152,6 +4300,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 149
@@ -4179,6 +4328,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 150
@@ -4206,6 +4356,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "def",
@@ -4238,6 +4389,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 152
@@ -4265,6 +4417,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 153
@@ -4292,6 +4445,7 @@
       "min_hits": 2,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 154
@@ -4319,6 +4473,7 @@
       "min_hits": 2,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 155
@@ -4346,6 +4501,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 156
@@ -4373,6 +4529,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 157
@@ -4400,6 +4557,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 158
@@ -4427,6 +4585,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "atk",
@@ -4459,6 +4618,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 160
@@ -4486,6 +4646,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 161
@@ -4513,6 +4674,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 162
@@ -4540,6 +4702,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 163
@@ -4567,6 +4730,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 164
@@ -4594,6 +4758,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 165
@@ -4621,6 +4786,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 166
@@ -4648,6 +4814,7 @@
       "min_hits": 3,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 167
@@ -4675,6 +4842,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 168
@@ -4702,6 +4870,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 169
@@ -4729,6 +4898,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 170
@@ -4756,6 +4926,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 171
@@ -4783,6 +4954,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 172
@@ -4810,6 +4982,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 173
@@ -4837,6 +5010,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 174
@@ -4864,6 +5038,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 175
@@ -4891,6 +5066,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 176
@@ -4918,6 +5094,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 177
@@ -4945,6 +5122,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "spd",
@@ -4977,6 +5155,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 179
@@ -5004,6 +5183,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 180
@@ -5031,6 +5211,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 181
@@ -5058,6 +5239,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 182
@@ -5085,6 +5267,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 183
@@ -5112,6 +5295,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "spd",
@@ -5144,6 +5328,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 185
@@ -5171,6 +5356,7 @@
       "min_hits": null,
       "max_turns": 5,
       "min_turns": 2,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 186
@@ -5198,6 +5384,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 187
@@ -5225,6 +5412,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 188
@@ -5252,6 +5440,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "accuracy",
@@ -5284,6 +5473,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "accuracy",
@@ -5316,6 +5506,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 191
@@ -5343,6 +5534,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 192
@@ -5370,6 +5562,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 193
@@ -5397,6 +5590,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 194
@@ -5424,6 +5618,7 @@
       "min_hits": null,
       "max_turns": 4,
       "min_turns": 4,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 195
@@ -5451,6 +5646,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "spd",
@@ -5483,6 +5679,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 197
@@ -5510,6 +5707,7 @@
       "min_hits": 2,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 198
@@ -5537,6 +5735,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 199
@@ -5564,6 +5763,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 200
@@ -5591,6 +5791,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 201
@@ -5618,6 +5819,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 202
@@ -5645,6 +5847,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 203
@@ -5672,6 +5875,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "atk",
@@ -5704,6 +5908,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 205
@@ -5731,6 +5936,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 206
@@ -5758,6 +5964,7 @@
       "min_hits": null,
       "max_turns": 5,
       "min_turns": 2,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "atk",
@@ -5790,6 +5997,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 208
@@ -5817,6 +6025,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 209
@@ -5844,6 +6053,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 210
@@ -5871,6 +6081,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "def",
@@ -5903,6 +6114,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 212
@@ -5930,6 +6142,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 213
@@ -5957,6 +6170,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 214
@@ -5984,6 +6198,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 215
@@ -6011,6 +6226,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 216
@@ -6038,6 +6254,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 217
@@ -6065,6 +6282,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 218
@@ -6092,6 +6310,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 219
@@ -6119,6 +6338,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 220
@@ -6146,6 +6366,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 221
@@ -6173,6 +6394,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 222
@@ -6200,6 +6422,7 @@
       "min_hits": null,
       "max_turns": 5,
       "min_turns": 2,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 223
@@ -6227,6 +6450,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 224
@@ -6254,6 +6478,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 225
@@ -6281,6 +6506,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 226
@@ -6308,6 +6534,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 227
@@ -6335,6 +6562,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 228
@@ -6362,6 +6590,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "spd",
@@ -6394,6 +6623,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "evasion",
@@ -6426,6 +6656,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "def",
@@ -6458,6 +6689,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "atk",
@@ -6490,6 +6722,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 233
@@ -6517,6 +6750,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 234
@@ -6544,6 +6778,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 235
@@ -6571,6 +6806,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 236
@@ -6598,6 +6834,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 237
@@ -6625,6 +6862,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 238
@@ -6652,6 +6890,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 239
@@ -6679,6 +6918,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 240
@@ -6706,6 +6946,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 241
@@ -6733,6 +6974,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "def",
@@ -6765,6 +7007,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 243
@@ -6792,6 +7035,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 244
@@ -6819,6 +7063,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 245
@@ -6846,6 +7091,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "atk",
@@ -6894,6 +7140,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "sp_def",
@@ -6926,6 +7173,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 248
@@ -6953,6 +7201,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "def",
@@ -6985,6 +7234,7 @@
       "min_hits": null,
       "max_turns": 6,
       "min_turns": 5,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 250
@@ -7012,6 +7262,7 @@
       "min_hits": 6,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 251
@@ -7039,6 +7290,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 252
@@ -7066,6 +7318,7 @@
       "min_hits": null,
       "max_turns": 3,
       "min_turns": 3,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 253
@@ -7093,6 +7346,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "def",
@@ -7129,6 +7383,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 255
@@ -7156,6 +7411,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 256
@@ -7183,6 +7439,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 257
@@ -7210,6 +7467,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 258
@@ -7237,6 +7495,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 259
@@ -7264,6 +7523,7 @@
       "min_hits": null,
       "max_turns": 5,
       "min_turns": 2,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "sp_atk",
@@ -7296,6 +7556,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 261
@@ -7323,6 +7584,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "atk",
@@ -7359,6 +7621,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 263
@@ -7386,6 +7649,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 264
@@ -7413,6 +7677,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 265
@@ -7440,6 +7705,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 266
@@ -7467,6 +7733,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 267
@@ -7494,6 +7761,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "sp_def",
@@ -7526,6 +7794,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 269
@@ -7553,6 +7822,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 270
@@ -7580,6 +7850,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 271
@@ -7607,6 +7878,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 272
@@ -7634,6 +7906,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 273
@@ -7661,6 +7934,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 274
@@ -7688,6 +7962,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 275
@@ -7715,6 +7990,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "atk",
@@ -7751,6 +8027,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 277
@@ -7778,6 +8055,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 278
@@ -7805,6 +8083,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 279
@@ -7832,6 +8111,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 280
@@ -7859,6 +8139,7 @@
       "min_hits": null,
       "max_turns": 2,
       "min_turns": 2,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 281
@@ -7886,6 +8167,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 282
@@ -7913,6 +8195,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 283
@@ -7940,6 +8223,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 284
@@ -7967,6 +8251,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 285
@@ -7994,6 +8279,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 286
@@ -8021,6 +8307,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 287
@@ -8048,6 +8335,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 288
@@ -8075,6 +8363,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 289
@@ -8102,6 +8391,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 290
@@ -8129,6 +8419,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 291
@@ -8156,6 +8447,7 @@
       "min_hits": 2,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 292
@@ -8183,6 +8475,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 293
@@ -8210,6 +8503,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "sp_atk",
@@ -8242,6 +8536,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "sp_def",
@@ -8274,6 +8569,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "sp_atk",
@@ -8306,6 +8602,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "atk",
@@ -8338,6 +8635,7 @@
       "min_hits": null,
       "max_turns": 5,
       "min_turns": 2,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 298
@@ -8365,6 +8663,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 299
@@ -8392,6 +8691,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 300
@@ -8419,6 +8719,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 301
@@ -8446,6 +8747,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 302
@@ -8473,6 +8775,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 303
@@ -8500,6 +8803,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 304
@@ -8527,6 +8831,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 305
@@ -8554,6 +8859,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "def",
@@ -8586,6 +8892,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 307
@@ -8613,6 +8920,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 308
@@ -8640,6 +8948,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "atk",
@@ -8672,6 +8981,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 310
@@ -8699,6 +9009,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 311
@@ -8726,6 +9037,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 312
@@ -8753,6 +9065,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "sp_def",
@@ -8785,6 +9098,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 314
@@ -8812,6 +9126,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "sp_atk",
@@ -8844,6 +9159,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 316
@@ -8871,6 +9187,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "spd",
@@ -8903,6 +9220,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "atk",
@@ -8951,6 +9269,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "sp_def",
@@ -8983,6 +9302,7 @@
       "min_hits": null,
       "max_turns": 4,
       "min_turns": 2,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 320
@@ -9010,6 +9330,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "atk",
@@ -9046,6 +9367,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "def",
@@ -9082,6 +9404,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 323
@@ -9109,6 +9432,7 @@
       "min_hits": null,
       "max_turns": 5,
       "min_turns": 2,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 324
@@ -9136,6 +9460,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 325
@@ -9163,6 +9488,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 326
@@ -9190,6 +9516,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 327
@@ -9217,6 +9544,7 @@
       "min_hits": null,
       "max_turns": 6,
       "min_turns": 5,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 328
@@ -9244,6 +9572,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 329
@@ -9271,6 +9600,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "accuracy",
@@ -9303,6 +9633,7 @@
       "min_hits": 2,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 331
@@ -9330,6 +9661,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 332
@@ -9357,6 +9689,7 @@
       "min_hits": 2,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 333
@@ -9384,6 +9717,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "def",
@@ -9416,6 +9750,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 335
@@ -9443,6 +9778,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "atk",
@@ -9475,6 +9811,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 337
@@ -9502,6 +9839,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 338
@@ -9529,6 +9867,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "atk",
@@ -9565,6 +9904,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 340
@@ -9592,6 +9932,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "spd",
@@ -9624,6 +9965,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 342
@@ -9651,6 +9993,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 343
@@ -9678,6 +10021,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 344
@@ -9705,6 +10049,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 345
@@ -9732,6 +10077,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 346
@@ -9759,6 +10105,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "sp_atk",
@@ -9795,6 +10142,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 348
@@ -9822,6 +10170,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "atk",
@@ -9858,6 +10207,7 @@
       "min_hits": 2,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 350
@@ -9885,6 +10235,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 351
@@ -9912,6 +10263,7 @@
       "min_hits": null,
       "max_turns": 5,
       "min_turns": 2,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 352
@@ -9939,6 +10291,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 353
@@ -9966,6 +10319,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "sp_atk",
@@ -9998,6 +10352,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 355
@@ -10025,6 +10380,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 356
@@ -10052,6 +10408,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 357
@@ -10079,6 +10436,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 358
@@ -10106,6 +10464,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "spd",
@@ -10138,6 +10497,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 360
@@ -10165,6 +10525,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 361
@@ -10192,6 +10553,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 362
@@ -10219,6 +10581,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 363
@@ -10246,6 +10609,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 364
@@ -10273,6 +10637,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 365
@@ -10300,6 +10665,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 366
@@ -10327,6 +10693,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 367
@@ -10354,6 +10721,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 368
@@ -10381,6 +10749,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": true,
       "stat_changes": []
     },
     "pokeapi_id": 369
@@ -10408,6 +10777,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "def",
@@ -10444,6 +10814,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 371
@@ -10471,6 +10842,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 372
@@ -10498,6 +10870,7 @@
       "min_hits": null,
       "max_turns": 5,
       "min_turns": 5,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 373
@@ -10525,6 +10898,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 374
@@ -10552,6 +10926,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 375
@@ -10579,6 +10954,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 376
@@ -10606,6 +10982,7 @@
       "min_hits": null,
       "max_turns": 5,
       "min_turns": 5,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 377
@@ -10633,6 +11010,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 378
@@ -10660,6 +11038,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 379
@@ -10687,6 +11066,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 380
@@ -10714,6 +11094,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 381
@@ -10741,6 +11122,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 382
@@ -10768,6 +11150,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 383
@@ -10795,6 +11178,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 384
@@ -10822,6 +11206,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 385
@@ -10849,6 +11234,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 386
@@ -10876,6 +11262,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 387
@@ -10903,6 +11290,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 388
@@ -10930,6 +11318,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 389
@@ -10957,6 +11346,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 390
@@ -10984,6 +11374,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 391
@@ -11011,6 +11402,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 392
@@ -11038,6 +11430,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 393
@@ -11065,6 +11458,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 394
@@ -11092,6 +11486,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 395
@@ -11119,6 +11514,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 396
@@ -11146,6 +11542,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "spd",
@@ -11178,6 +11575,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 398
@@ -11205,6 +11603,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 399
@@ -11232,6 +11631,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 400
@@ -11259,6 +11659,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 401
@@ -11286,6 +11687,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 402
@@ -11313,6 +11715,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 403
@@ -11340,6 +11743,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 404
@@ -11367,6 +11771,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "sp_def",
@@ -11399,6 +11804,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 406
@@ -11426,6 +11832,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 407
@@ -11453,6 +11860,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 408
@@ -11480,6 +11888,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 409
@@ -11507,6 +11916,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 410
@@ -11534,6 +11944,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "sp_def",
@@ -11566,6 +11977,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "sp_def",
@@ -11598,6 +12010,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 413
@@ -11625,6 +12038,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "sp_def",
@@ -11657,6 +12071,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 415
@@ -11684,6 +12099,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 416
@@ -11711,6 +12127,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "sp_atk",
@@ -11743,6 +12160,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 418
@@ -11770,6 +12188,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 419
@@ -11797,6 +12216,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 420
@@ -11824,6 +12244,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 421
@@ -11851,6 +12272,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 422
@@ -11878,6 +12300,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 423
@@ -11905,6 +12328,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 424
@@ -11932,6 +12356,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 425
@@ -11959,6 +12384,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "accuracy",
@@ -11991,6 +12417,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 427
@@ -12018,6 +12445,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 428
@@ -12045,6 +12473,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "accuracy",
@@ -12077,6 +12506,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "sp_def",
@@ -12109,6 +12539,7 @@
       "min_hits": null,
       "max_turns": 5,
       "min_turns": 2,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 431
@@ -12136,6 +12567,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "evasion",
@@ -12168,6 +12600,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 433
@@ -12195,6 +12628,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "sp_atk",
@@ -12227,6 +12661,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 435
@@ -12254,6 +12689,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 436
@@ -12281,6 +12717,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "sp_atk",
@@ -12313,6 +12750,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 438
@@ -12340,6 +12778,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 439
@@ -12367,6 +12806,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 440
@@ -12394,6 +12834,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 441
@@ -12421,6 +12862,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 442
@@ -12448,6 +12890,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 443
@@ -12475,6 +12918,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 444
@@ -12502,6 +12946,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "sp_atk",
@@ -12534,6 +12979,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 446
@@ -12561,6 +13007,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 447
@@ -12588,6 +13035,7 @@
       "min_hits": null,
       "max_turns": 5,
       "min_turns": 2,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 448
@@ -12615,6 +13063,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 449
@@ -12642,6 +13091,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 450
@@ -12669,6 +13119,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "sp_atk",
@@ -12701,6 +13152,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 452
@@ -12728,6 +13180,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 453
@@ -12755,6 +13208,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 454
@@ -12782,6 +13236,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "def",
@@ -12818,6 +13273,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 456
@@ -12845,6 +13301,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 457
@@ -12872,6 +13329,7 @@
       "min_hits": 2,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 458
@@ -12899,6 +13357,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 459
@@ -12926,6 +13385,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 460
@@ -12953,6 +13413,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 461
@@ -12980,6 +13441,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 462
@@ -13007,6 +13469,7 @@
       "min_hits": null,
       "max_turns": 6,
       "min_turns": 5,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 463
@@ -13034,6 +13497,7 @@
       "min_hits": null,
       "max_turns": 4,
       "min_turns": 2,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 464
@@ -13061,6 +13525,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "sp_def",
@@ -13093,6 +13558,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "atk",
@@ -13141,6 +13607,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 467
@@ -13168,6 +13635,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "atk",
@@ -13204,6 +13672,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 469
@@ -13231,6 +13700,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 470
@@ -13258,6 +13728,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 471
@@ -13285,6 +13756,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 472
@@ -13312,6 +13784,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 473
@@ -13339,6 +13812,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 474
@@ -13366,6 +13840,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "spd",
@@ -13398,6 +13873,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 476
@@ -13425,6 +13901,7 @@
       "min_hits": null,
       "max_turns": 3,
       "min_turns": 3,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 477
@@ -13452,6 +13929,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 478
@@ -13479,6 +13957,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 479
@@ -13506,6 +13985,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 480
@@ -13533,6 +14013,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 481
@@ -13560,6 +14041,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 482
@@ -13587,6 +14069,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "sp_atk",
@@ -13627,6 +14110,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 484
@@ -13654,6 +14138,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 485
@@ -13681,6 +14166,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 486
@@ -13708,6 +14194,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 487
@@ -13735,6 +14222,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "spd",
@@ -13767,6 +14255,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "atk",
@@ -13807,6 +14296,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "spd",
@@ -13839,6 +14329,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "sp_def",
@@ -13871,6 +14362,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 492
@@ -13898,6 +14390,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 493
@@ -13925,6 +14418,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 494
@@ -13952,6 +14446,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 495
@@ -13979,6 +14474,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 496
@@ -14006,6 +14502,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 497
@@ -14033,6 +14530,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 498
@@ -14060,6 +14558,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 499
@@ -14087,6 +14586,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 500
@@ -14114,6 +14614,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 501
@@ -14141,6 +14642,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 502
@@ -14168,6 +14670,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 503
@@ -14195,6 +14698,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "def",
@@ -14243,6 +14747,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 505
@@ -14270,6 +14775,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 506
@@ -14297,6 +14803,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 507
@@ -14324,6 +14831,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "atk",
@@ -14360,6 +14868,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 509
@@ -14387,6 +14896,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 510
@@ -14414,6 +14924,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 511
@@ -14441,6 +14952,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 512
@@ -14468,6 +14980,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 513
@@ -14495,6 +15008,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 514
@@ -14522,6 +15036,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 515
@@ -14549,6 +15064,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 516
@@ -14576,6 +15092,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 517
@@ -14603,6 +15120,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 518
@@ -14630,6 +15148,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 519
@@ -14657,6 +15176,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 520
@@ -14684,6 +15204,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": true,
       "stat_changes": []
     },
     "pokeapi_id": 521
@@ -14711,6 +15232,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "sp_atk",
@@ -14743,6 +15265,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "spd",
@@ -14775,6 +15298,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 524
@@ -14802,6 +15326,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 525
@@ -14829,6 +15354,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "atk",
@@ -14865,6 +15391,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "spd",
@@ -14897,6 +15424,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 528
@@ -14924,6 +15452,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 529
@@ -14951,6 +15480,7 @@
       "min_hits": 2,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 530
@@ -14978,6 +15508,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 531
@@ -15005,6 +15536,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 532
@@ -15032,6 +15564,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 533
@@ -15059,6 +15592,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "def",
@@ -15091,6 +15625,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 535
@@ -15118,6 +15653,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "accuracy",
@@ -15150,6 +15686,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 537
@@ -15177,6 +15714,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "def",
@@ -15209,6 +15747,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "accuracy",
@@ -15241,6 +15780,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 540
@@ -15268,6 +15808,7 @@
       "min_hits": 2,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 541
@@ -15295,6 +15836,7 @@
       "min_hits": null,
       "max_turns": 5,
       "min_turns": 2,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 542
@@ -15322,6 +15864,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 543
@@ -15349,6 +15892,7 @@
       "min_hits": 2,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 544
@@ -15376,6 +15920,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 545
@@ -15403,6 +15948,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 546
@@ -15430,6 +15976,7 @@
       "min_hits": null,
       "max_turns": 4,
       "min_turns": 2,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 547
@@ -15457,6 +16004,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 548
@@ -15484,6 +16032,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "spd",
@@ -15516,6 +16065,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 550
@@ -15543,6 +16093,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 551
@@ -15570,6 +16121,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "sp_atk",
@@ -15602,6 +16154,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 553
@@ -15629,6 +16182,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 554
@@ -15656,6 +16210,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "sp_atk",
@@ -15688,6 +16243,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 556
@@ -15715,6 +16271,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "def",
@@ -15755,6 +16312,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 558
@@ -15782,6 +16340,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 559
@@ -15809,6 +16368,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 560
@@ -15836,6 +16396,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 561
@@ -15863,6 +16424,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 562
@@ -15890,6 +16452,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "atk",
@@ -15926,6 +16489,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 564
@@ -15953,6 +16517,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 565
@@ -15980,6 +16545,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 566
@@ -16007,6 +16573,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 567
@@ -16034,6 +16601,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "atk",
@@ -16070,6 +16638,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 569
@@ -16097,6 +16666,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 570
@@ -16124,6 +16694,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 571
@@ -16151,6 +16722,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 572
@@ -16178,6 +16750,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 573
@@ -16205,6 +16778,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 574
@@ -16232,6 +16806,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "atk",
@@ -16268,6 +16843,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 576
@@ -16295,6 +16871,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 577
@@ -16322,6 +16899,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 578
@@ -16349,6 +16927,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "def",
@@ -16381,6 +16960,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 580
@@ -16408,6 +16988,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 581
@@ -16435,6 +17016,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 582
@@ -16462,6 +17044,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "atk",
@@ -16494,6 +17077,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 584
@@ -16521,6 +17105,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "sp_atk",
@@ -16553,6 +17138,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 586
@@ -16580,6 +17166,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 587
@@ -16607,6 +17194,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 588
@@ -16634,6 +17222,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "atk",
@@ -16666,6 +17255,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "sp_atk",
@@ -16698,6 +17288,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "def",
@@ -16730,6 +17321,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 592
@@ -16757,6 +17349,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 593
@@ -16784,6 +17377,7 @@
       "min_hits": 2,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 594
@@ -16811,6 +17405,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "sp_atk",
@@ -16843,6 +17438,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 596
@@ -16870,6 +17466,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "sp_def",
@@ -16902,6 +17499,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "sp_atk",
@@ -16934,6 +17532,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "atk",
@@ -16974,6 +17573,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 600
@@ -17001,6 +17601,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "sp_atk",
@@ -17041,6 +17642,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "def",
@@ -17077,6 +17679,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 603
@@ -17104,6 +17707,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 604
@@ -17131,6 +17735,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 605
@@ -17158,6 +17763,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 606
@@ -17185,6 +17791,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 607
@@ -17212,6 +17819,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "atk",
@@ -17244,6 +17852,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 609
@@ -17271,6 +17880,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 610
@@ -17298,6 +17908,7 @@
       "min_hits": null,
       "max_turns": 5,
       "min_turns": 4,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 611
@@ -17325,6 +17936,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "atk",
@@ -17357,6 +17969,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 613
@@ -17384,6 +17997,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 614
@@ -17411,6 +18025,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 615
@@ -17438,6 +18053,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 616
@@ -17465,6 +18081,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 617
@@ -17492,6 +18109,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 618
@@ -17519,6 +18137,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 619
@@ -17546,6 +18165,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "def",
@@ -17582,6 +18202,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "def",
@@ -17614,6 +18235,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 622
@@ -17641,6 +18263,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 623
@@ -17668,6 +18291,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 624
@@ -17695,6 +18319,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 625
@@ -17722,6 +18347,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 626
@@ -17749,6 +18375,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 627
@@ -17776,6 +18403,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 628
@@ -17803,6 +18431,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 629
@@ -17830,6 +18459,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 630
@@ -17857,6 +18487,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 631
@@ -17884,6 +18515,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 632
@@ -17911,6 +18543,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 633
@@ -17938,6 +18571,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 634
@@ -17965,6 +18599,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 635
@@ -17992,6 +18627,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 636
@@ -18019,6 +18655,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 637
@@ -18046,6 +18683,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 638
@@ -18073,6 +18711,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 639
@@ -18100,6 +18739,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 640
@@ -18127,6 +18767,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 641
@@ -18154,6 +18795,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 642
@@ -18181,6 +18823,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 643
@@ -18208,6 +18851,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 644
@@ -18235,6 +18879,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 645
@@ -18262,6 +18907,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 646
@@ -18289,6 +18935,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 647
@@ -18316,6 +18963,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 648
@@ -18343,6 +18991,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 649
@@ -18370,6 +19019,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 650
@@ -18397,6 +19047,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 651
@@ -18424,6 +19075,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 652
@@ -18451,6 +19103,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 653
@@ -18478,6 +19131,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 654
@@ -18505,6 +19159,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 655
@@ -18532,6 +19187,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 656
@@ -18559,6 +19215,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 657
@@ -18586,6 +19243,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 658
@@ -18613,6 +19271,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 659
@@ -18640,6 +19299,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 660
@@ -18667,6 +19327,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 661
@@ -18694,6 +19355,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 662
@@ -18721,6 +19383,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 663
@@ -18748,6 +19411,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 664
@@ -18775,6 +19439,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "spd",
@@ -18807,6 +19472,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 666
@@ -18834,6 +19500,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 667
@@ -18861,6 +19528,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "atk",
@@ -18893,6 +19561,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 669
@@ -18920,6 +19589,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 670
@@ -18947,6 +19617,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 671
@@ -18974,6 +19645,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "spd",
@@ -19006,6 +19678,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 673
@@ -19033,6 +19706,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "atk",
@@ -19069,6 +19743,7 @@
       "min_hits": null,
       "max_turns": 2,
       "min_turns": 2,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 675
@@ -19096,6 +19771,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 676
@@ -19123,6 +19799,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 677
@@ -19150,6 +19827,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 678
@@ -19177,6 +19855,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "atk",
@@ -19209,6 +19888,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "def",
@@ -19241,6 +19921,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 681
@@ -19268,6 +19949,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 682
@@ -19295,6 +19977,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 683
@@ -19322,6 +20005,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 684
@@ -19349,6 +20033,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 685
@@ -19376,6 +20061,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 686
@@ -19403,6 +20089,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 687
@@ -19430,6 +20117,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "atk",
@@ -19462,6 +20150,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 689
@@ -19489,6 +20178,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 690
@@ -19516,6 +20206,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "def",
@@ -19548,6 +20239,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 692
@@ -19575,6 +20267,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 693
@@ -19602,6 +20295,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 694
@@ -19629,6 +20323,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 695
@@ -19656,6 +20351,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 696
@@ -19683,6 +20379,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 697
@@ -19710,6 +20407,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 698
@@ -19737,6 +20435,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 699
@@ -19764,6 +20463,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 700
@@ -19791,6 +20491,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 701
@@ -19818,6 +20519,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "atk",
@@ -19866,6 +20568,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 703
@@ -19893,6 +20596,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 704
@@ -19920,6 +20624,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "sp_atk",
@@ -19952,6 +20657,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 706
@@ -19979,6 +20685,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 707
@@ -20006,6 +20713,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "def",
@@ -20038,6 +20746,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 709
@@ -20065,6 +20774,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "def",
@@ -20097,6 +20807,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 711
@@ -20124,6 +20835,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 712
@@ -20151,6 +20863,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 713
@@ -20178,6 +20891,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 714
@@ -20205,6 +20919,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "atk",
@@ -20241,6 +20956,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 716
@@ -20268,6 +20984,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 717
@@ -20295,6 +21012,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 718
@@ -20322,6 +21040,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 719
@@ -20349,6 +21068,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 720
@@ -20376,6 +21096,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 721
@@ -20403,6 +21124,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 722
@@ -20430,6 +21152,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 723
@@ -20457,6 +21180,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 724
@@ -20484,6 +21208,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 725
@@ -20511,6 +21236,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 726
@@ -20538,6 +21264,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 727
@@ -20565,6 +21292,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "atk",
@@ -20613,6 +21341,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "evasion",
@@ -20645,6 +21374,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 730
@@ -20672,6 +21402,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 731
@@ -20699,6 +21430,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 732
@@ -20726,6 +21458,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 733
@@ -20753,6 +21486,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 734
@@ -20780,6 +21514,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 735
@@ -20807,6 +21542,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 736
@@ -20834,6 +21570,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 737
@@ -20861,6 +21598,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 738
@@ -20888,6 +21626,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 739
@@ -20915,6 +21654,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 740
@@ -20942,6 +21682,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 741
@@ -20969,6 +21710,7 @@
       "min_hits": 2,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 742
@@ -20996,6 +21738,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 743
@@ -21023,6 +21766,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 744
@@ -21050,6 +21794,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 745
@@ -21077,6 +21822,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 746
@@ -21104,6 +21850,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "def",
@@ -21136,6 +21883,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "atk",
@@ -21184,6 +21932,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "spd",
@@ -21216,6 +21965,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 750
@@ -21243,6 +21993,7 @@
       "min_hits": 2,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 751
@@ -21270,6 +22021,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 752
@@ -21297,6 +22049,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 753
@@ -21324,6 +22077,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 754
@@ -21351,6 +22105,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 755
@@ -21378,6 +22133,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 756
@@ -21405,6 +22161,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 757
@@ -21432,6 +22189,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 758
@@ -21459,6 +22217,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 759
@@ -21486,6 +22245,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 760
@@ -21513,6 +22273,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 761
@@ -21540,6 +22301,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 762
@@ -21567,6 +22329,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 763
@@ -21594,6 +22357,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 764
@@ -21621,6 +22385,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 765
@@ -21648,6 +22413,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 766
@@ -21675,6 +22441,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 767
@@ -21702,6 +22469,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 768
@@ -21729,6 +22497,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 769
@@ -21756,6 +22525,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 770
@@ -21783,6 +22553,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 771
@@ -21810,6 +22581,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 772
@@ -21837,6 +22609,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 773
@@ -21864,6 +22637,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 774
@@ -21891,6 +22665,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "atk",
@@ -21939,6 +22714,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 776
@@ -21966,6 +22742,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "atk",
@@ -22002,6 +22779,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "spd",
@@ -22034,6 +22812,7 @@
       "min_hits": null,
       "max_turns": 6,
       "min_turns": 5,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 779
@@ -22061,6 +22840,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 780
@@ -22088,6 +22868,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 781
@@ -22115,6 +22896,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 782
@@ -22142,6 +22924,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "spd",
@@ -22174,6 +22957,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "atk",
@@ -22206,6 +22990,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 785
@@ -22233,6 +23018,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 786
@@ -22260,6 +23046,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "sp_def",
@@ -22292,6 +23079,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "def",
@@ -22324,6 +23112,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "sp_atk",
@@ -22356,6 +23145,7 @@
       "min_hits": null,
       "max_turns": 5,
       "min_turns": 2,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 790
@@ -22383,6 +23173,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 791
@@ -22410,6 +23201,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 792
@@ -22437,6 +23229,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 793
@@ -22464,6 +23257,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 794
@@ -22491,6 +23285,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 795
@@ -22518,6 +23313,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 796
@@ -22545,6 +23341,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 797
@@ -22572,6 +23369,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 798
@@ -22599,6 +23397,7 @@
       "min_hits": 2,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 799
@@ -22626,6 +23425,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 800
@@ -22653,6 +23453,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 801
@@ -22680,6 +23481,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 802
@@ -22707,6 +23509,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 803
@@ -22734,6 +23537,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 804
@@ -22761,6 +23565,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 805
@@ -22788,6 +23593,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "sp_atk",
@@ -22820,6 +23626,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 807
@@ -22847,6 +23654,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 808
@@ -22874,6 +23682,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 809
@@ -22901,6 +23710,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 810
@@ -22928,6 +23738,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "atk",
@@ -22964,6 +23775,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 812
@@ -22991,6 +23803,7 @@
       "min_hits": 3,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 813
@@ -23018,6 +23831,7 @@
       "min_hits": 2,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 814
@@ -23045,6 +23859,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 815
@@ -23072,6 +23887,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 816
@@ -23099,6 +23915,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 817
@@ -23126,6 +23943,7 @@
       "min_hits": 3,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 818
@@ -23153,6 +23971,7 @@
       "min_hits": null,
       "max_turns": 6,
       "min_turns": 5,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 819
@@ -23180,6 +23999,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 820
@@ -23207,6 +24027,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 821
@@ -23234,6 +24055,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 822
@@ -23261,6 +24083,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "def",
@@ -23293,6 +24116,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 824
@@ -23320,6 +24144,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 825
@@ -23347,6 +24172,7 @@
       "min_hits": null,
       "max_turns": null,
       "min_turns": null,
+      "enforce_switch": false,
       "stat_changes": []
     },
     "pokeapi_id": 826
@@ -24362,6 +25188,7 @@
       "min_hits": null,
       "max_turns": 3,
       "min_turns": 3,
+      "enforce_switch": false,
       "stat_changes": [
         {
           "stat": "spd",

@@ -139,6 +139,7 @@ if moves_list.empty?
                'min_hits' => raw_meta['min_hits'],
                'max_turns' => raw_meta['max_turns'],
                'min_turns' => raw_meta['min_turns'],
+               'enforce_switch' => [369, 521].include?(move_id), # U Turn and Volt Switch
                'stat_changes' => stat_changes
              }
            end
