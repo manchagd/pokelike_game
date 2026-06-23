@@ -5,6 +5,8 @@ module Services
     class TurnActionsEvent
       def call(payload)
         BattleEngine.logger.info("[TurnActionsEvent] Received turn actions payload: #{payload.inspect}")
+
+        Services::Battles::TurnResolverService.new.call(actions: payload[:actions] || [])
       end
     end
   end
