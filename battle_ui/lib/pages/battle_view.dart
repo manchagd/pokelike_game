@@ -632,7 +632,7 @@ class _BattleViewState extends State<BattleView> {
     _scrollToFeedbackBottom();
 
     _socketService.sendAction('attack_switch', {
-      'id': attack['id'],
+      'attack_id': attack['id'],
       'pokemon_id': _myActive['id'] as int,
       'targets': [targetStr],
       'pokemon_switched_id': switchedInSnapshotId,
@@ -2211,7 +2211,7 @@ class _BattleViewState extends State<BattleView> {
           });
           _scrollToFeedbackBottom();
           _socketService.sendAction('attack', {
-            'id': attack['id'],
+            'attack_id': attack['id'],
             'pokemon_id': _myActive['id'] as int,
             'targets': [targetStr],
           });

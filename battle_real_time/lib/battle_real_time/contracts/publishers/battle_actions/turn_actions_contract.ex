@@ -13,7 +13,7 @@ defmodule BattleRealTime.Contracts.Publishers.BattleActions.TurnActionsContract 
     embeds_many :actions, ActionItem, primary_key: false do
       field(:action, :string)
       field(:player_id, :integer)
-      field(:id, :integer)
+      field(:attack_id, :integer)
       field(:pokemon_id, :integer)
       field(:pokemon_switched_id, :integer)
       field(:targets, {:array, :string})
@@ -29,7 +29,7 @@ defmodule BattleRealTime.Contracts.Publishers.BattleActions.TurnActionsContract 
 
   defp action_item_changeset(struct, params) do
     struct
-    |> cast(params, [:action, :player_id, :id, :pokemon_id, :pokemon_switched_id, :targets])
+    |> cast(params, [:action, :player_id, :attack_id, :pokemon_id, :pokemon_switched_id, :targets])
     |> validate_required([:action, :player_id])
     |> validate_action_fields()
   end
@@ -40,11 +40,11 @@ defmodule BattleRealTime.Contracts.Publishers.BattleActions.TurnActionsContract 
     case action do
       "attack" ->
         changeset
-        |> validate_required([:id, :pokemon_id, :targets])
+        |> validate_required([:attack_id, :pokemon_id, :targets])
 
       "attack_switch" ->
         changeset
-        |> validate_required([:id, :pokemon_id, :pokemon_switched_id, :targets])
+        |> validate_required([:attack_id, :pokemon_id, :pokemon_switched_id, :targets])
 
       "switch" ->
         changeset
