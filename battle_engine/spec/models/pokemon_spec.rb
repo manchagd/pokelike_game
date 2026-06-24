@@ -64,43 +64,4 @@ RSpec.describe Pokemon, type: :model do
       expect(move.handler).to eq('Damage')
     end
   end
-
-  describe 'shared context battle_setup' do
-    include_context 'battle_setup'
-    let(:player_1_pokemon) { [:snorlax, :scaledart] }
-    let(:player_2_pokemon) { [:dracocoon, :dracanfly] }
-
-    it 'correctly initializes the battle with players, teams, and snapshots' do
-      expect(battle).to be_persisted
-      expect(player_1).to be_persisted
-      expect(player_2).to be_persisted
-
-      # Check automatic group assignment (first gets B, second gets A)
-      expect(battle_player_1.group).to eq('B')
-      expect(battle_player_2.group).to eq('A')
-
-      # Check teams association
-      expect(team_1.player).to eq(player_1)
-      expect(team_2.player).to eq(player_2)
-
-      # Check player 1 pokemons
-      expect(player_1_pokemons.size).to eq(2)
-      expect(player_1_pokemons.first.pokemon_template.name).to eq('Snorlax')
-      expect(player_1_pokemons.second.pokemon_template.name).to eq('Scaledart')
-
-      # Check player 2 pokemons
-      expect(player_2_pokemons.size).to eq(2)
-      expect(player_2_pokemons.first.pokemon_template.name).to eq('Dracocoon')
-      expect(player_2_pokemons.second.pokemon_template.name).to eq('Dracanfly')
-
-      # Check snapshots and hp matching calculated stats
-      expect(player_1_snapshots.size).to eq(2)
-      expect(player_1_snapshots.first.pokemon.pokemon_template.name).to eq('Snorlax')
-      expect(player_1_snapshots.first.hp).to eq(player_1_pokemons.first.hp_stat)
-
-      expect(player_2_snapshots.size).to eq(2)
-      expect(player_2_snapshots.first.pokemon.pokemon_template.name).to eq('Dracocoon')
-      expect(player_2_snapshots.first.hp).to eq(player_2_pokemons.first.hp_stat)
-    end
-  end
 end

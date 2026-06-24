@@ -14,10 +14,10 @@ FactoryBot.define do
   end
 
   # Dynamically define factories for all Pokémon in local data
-  Spec::Support::LocalDataHelper.pokemon_templates.each do |_key, data|
+  Spec::Support::LocalDataHelper.pokemon_templates.each_value do |data|
     clean_name = Spec::Support::LocalDataHelper.clean_factory_name(data['name'])
     factory_name = clean_name.to_sym
-    template_factory_name = "#{clean_name}_template".to_sym
+    template_factory_name = :"#{clean_name}_template"
 
     next if FactoryBot.factories.registered?(factory_name)
 

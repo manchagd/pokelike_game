@@ -14,7 +14,7 @@ FactoryBot.define do
   end
 
   # Dynamically define factories for all moves in local data
-  Spec::Support::LocalDataHelper.moves.each do |_key, data|
+  Spec::Support::LocalDataHelper.moves.each_value do |data|
     clean_name = Spec::Support::LocalDataHelper.clean_factory_name(data['name'])
     factory_name = clean_name.to_sym
 

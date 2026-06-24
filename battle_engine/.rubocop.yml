@@ -48,3 +48,7 @@ Style/FrozenStringLiteralComment:
 
 Style/Documentation:
   Enabled: false   # sin comentarios de documentación obligatorios en cada clase
+
+Naming/VariableNumber:
+  EnforcedStyle: snake_case
+

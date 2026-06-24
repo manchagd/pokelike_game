@@ -34,7 +34,7 @@ module Spec
       end
 
       def clean_factory_name(name)
-        name.to_s.downcase.gsub(/[^a-z0-9_]/, '_').gsub(/_+/, '_').gsub(/^_|_$/, '')
+        name.to_s.downcase.gsub(/[^a-z0-9_]/, '_').squeeze('_').gsub(/^_|_$/, '')
       end
     end
   end
