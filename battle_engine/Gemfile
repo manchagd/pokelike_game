@@ -20,3 +20,9 @@ group :development do
   gem 'rubocop', '~> 1.75', require: false
   gem 'rubocop-performance', require: false
 end
+
+group :test do
+  gem 'rspec', '~> 3.13'
+  gem 'factory_bot', '~> 6.5'
+end
+
