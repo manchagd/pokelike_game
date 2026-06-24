@@ -3,7 +3,7 @@
 require 'spec_helper'
 
 RSpec.describe 'BattleSetup' do
-  describe 'shared context battle_setup with default leads' do
+  describe 'shared context battle_setup with default leads', :aggregate_failures do
     include_context 'single_battle_setup'
 
     let(:player_1_pokemon) { %i[snorlax scaledart] }
@@ -57,7 +57,7 @@ RSpec.describe 'BattleSetup' do
     end
   end
 
-  describe 'shared context battle_setup with overridden leads' do
+  describe 'shared context battle_setup with overridden leads', :aggregate_failures do
     include_context 'single_battle_setup'
     let(:player_1_pokemon) { %i[snorlax scaledart] }
     let(:player_2_pokemon) { %i[dracocoon dracanfly] }
