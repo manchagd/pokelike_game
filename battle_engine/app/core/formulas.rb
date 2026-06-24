@@ -56,4 +56,20 @@ module Formulas
 
     (((((2 * lvl) / 5).floor + 2) * power * (attack / defense) / 50) + 2) * targets * pb * weather * glaive_rush * critical * stab * type * burn * other * z_move * terashield
   end
+
+  def self.stage_multiplier(stage, step = 2)
+    return 1.0 if stage.nil?
+
+    stage.negative? ? step / (step + stage) : (step + stage) / step
+  end
+
+  def self.accuracy_formula(pokemon, target, move)
+    modifier = 1
+    micle_berry = 1
+    affection = 0
+    adjusted_stage = pokemon.accuracy_stage - target.evasion_stage
+    adjusted_accuracy = stage_multiplier(adjusted_stage, 3)
+
+    (move.accuracy * modifier * adjusted_accuracy * micle_berry) - affection
+  end
 end

@@ -15,6 +15,7 @@ class Move < ApplicationRecord
   validates :name, presence: true, uniqueness: true
   validates :pp, :category, :type, :handler, presence: true
   validates :power, numericality: { only_integer: true }, allow_nil: true
+  validates :accuracy, numericality: { only_integer: true }
   validates :category, inclusion: { in: CATEGORIES }
   validates :pokeapi_id, uniqueness: { allow_nil: true }
 
