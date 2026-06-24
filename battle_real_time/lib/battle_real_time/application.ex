@@ -13,8 +13,7 @@ defmodule BattleRealTime.Application do
         {DNSCluster,
          query: Application.get_env(:battle_real_time, :dns_cluster_query) || :ignore},
         {Phoenix.PubSub, name: BattleRealTime.PubSub},
-        {Registry, keys: :unique, name: BattleRealTime.BattleRegistry},
-        {DynamicSupervisor, name: BattleRealTime.BattleSupervisor, strategy: :one_for_one},
+        {BattleRealTime.BattleSession.Supervisor, []},
         BattleRealTime.AMQP.Connection
       ] ++
         BattleRealTime.AMQP.children() ++

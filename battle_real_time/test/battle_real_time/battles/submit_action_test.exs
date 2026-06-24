@@ -6,11 +6,7 @@ defmodule BattleRealTime.Battles.SubmitActionTest do
   setup do
     battle_id = "test_battle_#{System.unique_integer([:positive])}"
 
-    {:ok, _pid} =
-      DynamicSupervisor.start_child(
-        BattleRealTime.BattleSupervisor,
-        {BattleSession, battle_id}
-      )
+    {:ok, _pid} = BattleRealTime.BattleSession.Supervisor.start_session(battle_id)
 
     # Sync first to transition out of :syncing
     :ok = BattleSession.sync_state(battle_id, %{"turn" => 1, "status" => "not_started"})

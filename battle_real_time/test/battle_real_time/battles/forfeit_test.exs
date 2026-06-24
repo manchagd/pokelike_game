@@ -6,11 +6,7 @@ defmodule BattleRealTime.Battles.ForfeitTest do
   setup do
     battle_id = "test_battle_#{System.unique_integer([:positive])}"
 
-    {:ok, pid} =
-      DynamicSupervisor.start_child(
-        BattleRealTime.BattleSupervisor,
-        {BattleSession, battle_id}
-      )
+    {:ok, pid} = BattleRealTime.BattleSession.Supervisor.start_session(battle_id)
 
     # Sync first to transition out of :syncing
     :ok = BattleSession.sync_state(battle_id, %{"turn" => 1, "status" => "not_started"})

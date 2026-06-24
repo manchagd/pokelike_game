@@ -6,11 +6,7 @@ defmodule BattleRealTime.BattleSessionTest do
     battle_id = "test_battle_#{System.unique_integer([:positive])}"
 
     # Start the process dynamically under the supervisor
-    {:ok, pid} =
-      DynamicSupervisor.start_child(
-        BattleRealTime.BattleSupervisor,
-        {BattleSession, battle_id}
-      )
+    {:ok, pid} = BattleRealTime.BattleSession.Supervisor.start_session(battle_id)
 
     %{battle_id: battle_id, pid: pid}
   end

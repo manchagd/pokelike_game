@@ -10,13 +10,13 @@ defmodule BattleRealTime.Battles.ConnectToBattleTest do
 
   test "starts a new battle session and registers player", %{battle_id: battle_id} do
     # Ensure not running
-    assert Registry.lookup(BattleRealTime.BattleRegistry, battle_id) == []
+    assert BattleRealTime.BattleSession.Supervisor.find_session(battle_id) == {:error, :not_found}
 
     # Connect to battle
     assert {:ok, %{battle_id: ^battle_id}} = ConnectToBattle.call(battle_id, "player_1", "Ash")
 
     # Verify Registry has the session
-    assert [{pid, _value}] = Registry.lookup(BattleRealTime.BattleRegistry, battle_id)
+    assert {:ok, pid} = BattleRealTime.BattleSession.Supervisor.find_session(battle_id)
     assert Process.alive?(pid)
 
     # Verify player registered
@@ -26,17 +26,13 @@ defmodule BattleRealTime.Battles.ConnectToBattleTest do
 
   test "uses existing battle session if already started", %{battle_id: battle_id} do
     # Start it manually
-    {:ok, pid} =
-      DynamicSupervisor.start_child(
-        BattleRealTime.BattleSupervisor,
-        {BattleSession, battle_id}
-      )
+    {:ok, pid} = BattleRealTime.BattleSession.Supervisor.start_session(battle_id)
 
     # Connect to battle
     assert {:ok, %{battle_id: ^battle_id}} = ConnectToBattle.call(battle_id, "player_2", "Misty")
 
     # Verify Registry still has the same pid
-    assert [{^pid, _value}] = Registry.lookup(BattleRealTime.BattleRegistry, battle_id)
+    assert {:ok, ^pid} = BattleRealTime.BattleSession.Supervisor.find_session(battle_id)
 
     # Verify player registered
     assert {:ok, state} = BattleSession.get_state(battle_id)
