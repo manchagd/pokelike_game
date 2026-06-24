@@ -72,4 +72,42 @@ RSpec.describe Pokemon, type: :model do
       end
     end
   end
+
+  describe 'calculated stats' do
+    context 'when Snorlax is at lvl 50 with Adamant nature, and 252 EV in HP and 252 EV in Attack' do
+      subject { create(:snorlax, lvl: 50, nature: Nature::ADAMANT, evs: { 'hp' => 252, 'atk' => 252, 'def' => 6 }, ivs: { 'hp' => 31, 'atk' => 31, 'def' => 31, 'sp_atk' => 31, 'sp_def' => 31, 'spd' => 31 }) }
+
+      it_behaves_like(
+        'pokemon_with_stats',
+        hp: 267,
+        atk: 178,
+        def: 86,
+        sp_atk: 76,
+        sp_def: 130,
+        spd: 50
+      )
+    end
+
+    context 'when Snorlax is at lvl 50 with Adamant nature, and 252 EV in HP and 252 EV in Attack' do
+      subject do
+        create(
+          :snorlax,
+          lvl: 100,
+          nature: Nature::BRAVE,
+          evs: { 'hp' => 252, 'atk' => 252, 'def' => 6 },
+          ivs: { 'hp' => 31, 'atk' => 31, 'def' => 31, 'sp_atk' => 31, 'sp_def' => 31, 'spd' => 0 }
+        )
+      end
+
+      it_behaves_like(
+        'pokemon_with_stats',
+        hp: 524,
+        atk: 350,
+        def: 167,
+        sp_atk: 166,
+        sp_def: 256,
+        spd: 58
+      )
+    end
+  end
 end
