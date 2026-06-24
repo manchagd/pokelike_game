@@ -35,6 +35,7 @@ end
 
 # Connect to the test database
 BattleEngine::Database.connect!
+ActiveRecord::Base.logger = nil
 
 # Require support helpers (like local data helper)
 Dir[File.join(__dir__, 'support/**/*.rb')].each { |f| require f }
