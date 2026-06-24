@@ -5,7 +5,7 @@ class PokemonBattleSnapshot < ApplicationRecord
   belongs_to :battle
   belongs_to :player
 
-  before_create :set_default_stat_stages
+  before_validation :set_default_stat_stages, on: :create
 
   def lvl
     pokemon.lvl
@@ -32,17 +32,17 @@ class PokemonBattleSnapshot < ApplicationRecord
   end
 
   def accuracy_stage
-    stat_stages[:accuracy_stage]
+    stat_stages[:accuracy_stage].to_i
   end
 
   def evasion_stage
-    stat_stages[:evasion_stage]
+    stat_stages[:evasion_stage].to_i
   end
 
   private
 
   def set_default_stat_stages
-    self.stat_stages ||= {
+    self.stat_stages = {
       atk_stage: 0,
       def_stage: 0,
       sp_atk_stage: 0,
