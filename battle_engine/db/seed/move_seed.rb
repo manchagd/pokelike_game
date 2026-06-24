@@ -139,6 +139,7 @@ if moves_list.empty?
                'min_hits' => raw_meta['min_hits'],
                'max_turns' => raw_meta['max_turns'],
                'min_turns' => raw_meta['min_turns'],
+               'enforce_switch' => [369, 521].include?(move_id), # U Turn and Volt Switch
                'stat_changes' => stat_changes
              }
            end
@@ -168,6 +169,17 @@ if moves_list.empty?
     BattleEngine.logger.info("[Seeds] Saved #{moves_list.size} moves to cache at #{json_file_path}.")
   rescue StandardError => e
     BattleEngine.logger.error("[Seeds] Failed to write cache: #{e.message}")
+  end
+end
+
+custom_json_file_path = File.join(local_data_dir, 'moves_custom.json')
+if File.exist?(custom_json_file_path)
+  begin
+    custom_moves = JSON.parse(File.read(custom_json_file_path))
+    BattleEngine.logger.info("[Seeds] Loaded #{custom_moves.size} custom moves from #{custom_json_file_path}.")
+    moves_list.concat(custom_moves)
+  rescue StandardError => e
+    BattleEngine.logger.error("[Seeds] Failed to read or parse custom moves file: #{e.message}")
   end
 end
 

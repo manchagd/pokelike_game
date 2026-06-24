@@ -19,7 +19,7 @@ app_dir = File.expand_path('../app', __dir__)
 
 loader.push_dir(app_dir)
 loader.collapse("#{app_dir}/models")
-loader.collapse("#{app_dir}/domain")
+loader.collapse("#{app_dir}/core")
 
 loader.setup
 

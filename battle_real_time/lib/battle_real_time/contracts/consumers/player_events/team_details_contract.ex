@@ -19,6 +19,7 @@ defmodule BattleRealTime.Contracts.Consumers.PlayerEvents.TeamDetailsContract do
       field(:stats, :map)
       field(:nickname, :string)
       field(:gender, :string)
+      field(:gender_rate, :integer)
       field(:nature, :string)
       field(:weight, :float)
       field(:lvl, :integer)
@@ -47,6 +48,7 @@ defmodule BattleRealTime.Contracts.Consumers.PlayerEvents.TeamDetailsContract do
       :stats,
       :nickname,
       :gender,
+      :gender_rate,
       :nature,
       :weight,
       :lvl,

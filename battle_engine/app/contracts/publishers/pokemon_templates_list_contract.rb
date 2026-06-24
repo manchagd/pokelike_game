@@ -11,6 +11,7 @@ module Contracts
           required(:types).array(:string)
           required(:stats).filled(:hash)
           optional(:sprite).maybe(:string)
+          optional(:gender_rate).maybe(:integer)
         end
         optional(:timestamp).maybe(:string)
       end

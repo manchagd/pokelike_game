@@ -14,6 +14,8 @@ defmodule BattleRealTime.Contracts.Publishers.PlayerActions.MutateTeamContract d
     embeds_many :pokemons, PokemonItem, primary_key: false do
       field(:pokemon_template_id, :integer)
       field(:nickname, :string)
+      field(:nature, :string)
+      field(:gender, :string)
       field(:ivs, :map)
       field(:evs, :map)
       field(:moves, {:array, :integer})
@@ -29,7 +31,7 @@ defmodule BattleRealTime.Contracts.Publishers.PlayerActions.MutateTeamContract d
 
   defp pokemon_changeset(struct, params) do
     struct
-    |> cast(params, [:pokemon_template_id, :nickname, :ivs, :evs, :moves])
+    |> cast(params, [:pokemon_template_id, :nickname, :nature, :gender, :ivs, :evs, :moves])
     |> validate_required([:pokemon_template_id, :moves])
   end
 end

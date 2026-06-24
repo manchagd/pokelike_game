@@ -9,6 +9,8 @@ module Contracts
         required(:pokemons).array(:hash) do
           required(:pokemon_template_id).filled(:integer)
           optional(:nickname).maybe(:string)
+          optional(:gender).maybe(:string)
+          optional(:nature).maybe(:string)
           optional(:ivs).maybe(:hash)
           optional(:evs).maybe(:hash)
           required(:moves).array(:integer)

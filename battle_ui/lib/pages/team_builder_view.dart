@@ -6,6 +6,39 @@ import '../theme.dart';
 import '../utils/battle_socket_service.dart';
 import '../utils/pokemon_type_icons.dart';
 
+// Maps each nature to its boosted and reduced stat labels.
+// Neutral natures (Hardy, Docile, Serious, Bashful, Quirky) are absent.
+const _kNatureModifiers = {
+  'Lonely':  (up: 'ATK',    down: 'DEF'),
+  'Brave':   (up: 'ATK',    down: 'SPD'),
+  'Adamant': (up: 'ATK',    down: 'SP.ATK'),
+  'Naughty': (up: 'ATK',    down: 'SP.DEF'),
+  'Bold':    (up: 'DEF',    down: 'ATK'),
+  'Relaxed': (up: 'DEF',    down: 'SPD'),
+  'Impish':  (up: 'DEF',    down: 'SP.ATK'),
+  'Lax':     (up: 'DEF',    down: 'SP.DEF'),
+  'Timid':   (up: 'SPD',    down: 'ATK'),
+  'Hasty':   (up: 'SPD',    down: 'DEF'),
+  'Jolly':   (up: 'SPD',    down: 'SP.ATK'),
+  'Naive':   (up: 'SPD',    down: 'SP.DEF'),
+  'Modest':  (up: 'SP.ATK', down: 'ATK'),
+  'Mild':    (up: 'SP.ATK', down: 'DEF'),
+  'Quiet':   (up: 'SP.ATK', down: 'SPD'),
+  'Rash':    (up: 'SP.ATK', down: 'SP.DEF'),
+  'Calm':    (up: 'SP.DEF', down: 'ATK'),
+  'Gentle':  (up: 'SP.DEF', down: 'DEF'),
+  'Sassy':   (up: 'SP.DEF', down: 'SPD'),
+  'Careful': (up: 'SP.DEF', down: 'SP.ATK'),
+};
+
+const _kAllNatures = [
+  'Hardy', 'Lonely', 'Brave', 'Adamant', 'Naughty',
+  'Bold', 'Docile', 'Relaxed', 'Impish', 'Lax',
+  'Timid', 'Hasty', 'Serious', 'Jolly', 'Naive',
+  'Modest', 'Mild', 'Quiet', 'Bashful', 'Rash',
+  'Calm', 'Gentle', 'Sassy', 'Careful', 'Quirky',
+];
+
 class TeamBuilderView extends StatefulWidget {
   const TeamBuilderView({super.key});
 
@@ -79,6 +112,7 @@ class _TeamBuilderViewState extends State<TeamBuilderView> {
 
     final index = _selectedSlotIndex!;
     final templateId = template['id'] as int;
+    final genderRate = template['gender_rate'] as int?;
 
     setState(() {
       _editingPokemons[index] = _EditingPokemon(
@@ -90,6 +124,9 @@ class _TeamBuilderViewState extends State<TeamBuilderView> {
         sprite: template['sprite'],
         ivs: {'hp': 31, 'atk': 31, 'def': 31, 'sp_atk': 31, 'sp_def': 31, 'spd': 31},
         evs: {'hp': 0, 'atk': 0, 'def': 0, 'sp_atk': 0, 'sp_def': 0, 'spd': 0},
+        nature: 'Hardy',
+        genderRate: genderRate,
+        gender: _defaultGenderForRate(genderRate),
         selectedMoves: [],
       );
     });
@@ -160,6 +197,8 @@ class _TeamBuilderViewState extends State<TeamBuilderView> {
         payloadPokemons.add({
           'pokemon_template_id': pkmn.templateId,
           'nickname': pkmn.nickname.trim().isEmpty ? pkmn.name : pkmn.nickname.trim(),
+          'nature': pkmn.nature,
+          'gender': pkmn.gender,
           'ivs': pkmn.ivs,
           'evs': pkmn.evs,
           'moves': pkmn.selectedMoves,
@@ -213,6 +252,9 @@ class _TeamBuilderViewState extends State<TeamBuilderView> {
             sprite: p['sprite'] as String?,
             ivs: Map<String, int>.from(p['ivs'] ?? {}),
             evs: Map<String, int>.from(p['evs'] ?? {}),
+            nature: (p['nature'] as String?) ?? 'Hardy',
+            genderRate: p['gender_rate'] as int?,
+            gender: p['gender'] as String?,
             selectedMoves: List<int>.from(p['selected_moves'] ?? []),
           );
         } else {
@@ -772,72 +814,338 @@ class _TeamBuilderViewState extends State<TeamBuilderView> {
 
     // Load available moves for template
     final moves = socketService.templateMoves[pkmn.templateId] ?? [];
+    final allMoves = socketService.templateMoves[pkmn.templateId] ?? [];
 
     return Container(
-      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppColors.surface,
         border: Border.all(color: AppColors.outlineVariant),
         borderRadius: BorderRadius.circular(AppRadius.md),
       ),
-      child: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Nickname Customizer
-            Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    decoration: InputDecoration(
-                      labelText: 'Apodo (Nickname)',
-                      hintText: pkmn.name,
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                      border: const OutlineInputBorder(),
-                    ),
-                    maxLength: 10,
-                    controller: TextEditingController(text: pkmn.nickname)..selection = TextSelection.collapsed(offset: pkmn.nickname.length),
-                    onChanged: (val) {
-                      setState(() {
-                        pkmn.nickname = val;
-                      });
-                    },
+      child: CustomScrollView(
+        slivers: [
+          // ── Top content: Nickname / Nature / IVs&EVs ──
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          decoration: InputDecoration(
+                            labelText: 'Apodo (Nickname)',
+                            hintText: pkmn.name,
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                            border: const OutlineInputBorder(),
+                          ),
+                          maxLength: 10,
+                          controller: TextEditingController(text: pkmn.nickname)
+                            ..selection = TextSelection.collapsed(offset: pkmn.nickname.length),
+                          onChanged: (val) => setState(() => pkmn.nickname = val),
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            const Divider(),
-            const SizedBox(height: 8),
-            // IVs & EVs Editor
-            Text('Estadísticas Individuales (IVs) y de Esfuerzo (EVs)', style: text.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-            const SizedBox(height: 12),
-            _buildStatsSlidersTable(pkmn),
-            const SizedBox(height: 16),
-            const Divider(),
-            const SizedBox(height: 8),
-            // Moves selection
-            Row(
-              children: [
-                Text('Movimientos Seleccionados (${pkmn.selectedMoves.length}/4)', style: text.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-                if (pkmn.selectedMoves.isEmpty) ...[
-                  const SizedBox(width: 8),
-                  Text('(Agrega al menos 1 para poder guardar)', style: TextStyle(color: AppColors.danger, fontSize: 11, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 16),
+                  const Divider(),
+                  const SizedBox(height: 8),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Naturaleza', style: text.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                            const SizedBox(height: 8),
+                            _buildNatureSelector(pkmn),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Género', style: text.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                            const SizedBox(height: 8),
+                            _buildGenderSelector(pkmn),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  const Divider(),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Estadísticas Individuales (IVs) y de Esfuerzo (EVs)',
+                    style: text.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 12),
+                  _buildStatsSlidersTable(pkmn),
+                  const SizedBox(height: 20),
                 ],
-              ],
+              ),
             ),
-            const SizedBox(height: 12),
-            if (socketService.isLoadingMoves)
-              const Center(child: Padding(padding: EdgeInsets.all(24), child: CircularProgressIndicator()))
-            else
-              _buildMovesGrid(pkmn, moves),
-          ],
+          ),
+
+          // ── Sticky: moves title + mini-bar ──
+          SliverPersistentHeader(
+            pinned: true,
+            delegate: _MovesStickyBarDelegate(
+              pkmn: pkmn,
+              allMoves: allMoves,
+              onToggle: (move) => _toggleMoveSelection(_selectedSlotIndex!, move),
+              textTheme: text,
+            ),
+          ),
+
+          // ── Moves grid ──
+          if (socketService.isLoadingMoves)
+            const SliverFillRemaining(
+              child: Center(child: CircularProgressIndicator()),
+            )
+          else if (moves.isEmpty)
+            const SliverFillRemaining(
+              child: Center(
+                child: Text(
+                  'No hay movimientos disponibles para este Pokémon.',
+                  style: TextStyle(color: Colors.grey, fontStyle: FontStyle.italic),
+                ),
+              ),
+            )
+          else
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+              sliver: SliverGrid(
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  childAspectRatio: 2.7,
+                  crossAxisSpacing: 8,
+                  mainAxisSpacing: 8,
+                ),
+                delegate: SliverChildBuilderDelegate(
+                  (context, index) => _buildMoveCard(pkmn, moves[index]),
+                  childCount: moves.length,
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMoveCard(_EditingPokemon pkmn, Map<String, dynamic> move) {
+    final name = move['name'] ?? 'Movimiento';
+    final moveId = move['id'] as int;
+    final isSelected = pkmn.selectedMoves.contains(moveId);
+    final type = move['type'] as String? ?? 'Normal';
+    final secondaryType = move['secondary_type'] as String?;
+    final power = move['power'] as int?;
+    final accuracy = move['accuracy'] as int?;
+    final pp = move['pp'] as int? ?? 0;
+    final category = move['category'] as String? ?? 'Physical';
+    final typeColor = PokemonTypeIcons.getColor(type);
+
+    return Material(
+      color: isSelected ? typeColor.withValues(alpha: 0.15) : AppColors.surfaceHigh,
+      shape: RoundedRectangleBorder(
+        side: BorderSide(
+          color: isSelected ? typeColor : AppColors.outlineVariant,
+          width: isSelected ? 2 : 1,
+        ),
+        borderRadius: BorderRadius.circular(AppRadius.sm),
+      ),
+      child: InkWell(
+        onTap: () => _toggleMoveSelection(_selectedSlotIndex!, move),
+        borderRadius: BorderRadius.circular(AppRadius.sm),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      name,
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  if (isSelected) Icon(Icons.check_circle, size: 14, color: typeColor),
+                ],
+              ),
+              const SizedBox(height: 6),
+              Row(
+                children: [
+                  PokemonTypeIcons.buildTypeBadge(type, fontSize: 8),
+                  if (secondaryType != null) ...[
+                    const SizedBox(width: 3),
+                    Text('/', style: TextStyle(color: AppColors.onSurfaceMuted, fontSize: 8, fontWeight: FontWeight.bold)),
+                    const SizedBox(width: 3),
+                    PokemonTypeIcons.buildTypeBadge(secondaryType, fontSize: 8),
+                  ],
+                  const SizedBox(width: 4),
+                  Text(
+                    category,
+                    style: TextStyle(color: AppColors.onSurfaceMuted, fontSize: 9, fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 6),
+              Row(
+                children: [
+                  SvgPicture.string(_swordSvg, width: 8, height: 8,
+                      colorFilter: ColorFilter.mode(AppColors.onSurfaceMuted, BlendMode.srcIn)),
+                  const SizedBox(width: 2),
+                  Text(
+                    power != null && power > 0 ? '$power' : '—',
+                    style: TextStyle(fontSize: 8.5, fontWeight: FontWeight.w600, color: AppColors.onSurfaceMuted),
+                  ),
+                  const SizedBox(width: 6),
+                  SvgPicture.string(_bullseyeSvg, width: 8, height: 8,
+                      colorFilter: ColorFilter.mode(AppColors.onSurfaceMuted, BlendMode.srcIn)),
+                  const SizedBox(width: 2),
+                  Text(
+                    accuracy != null ? '$accuracy' : '—',
+                    style: TextStyle(fontSize: 8.5, fontWeight: FontWeight.w600, color: AppColors.onSurfaceMuted),
+                  ),
+                  const Spacer(),
+                  Text(
+                    'PP: $pp',
+                    style: TextStyle(fontSize: 8.5, fontWeight: FontWeight.w600, color: AppColors.onSurfaceMuted),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
+  Widget _buildNatureSelector(_EditingPokemon pkmn) {
+    return DropdownButtonFormField<String>(
+      initialValue: pkmn.nature,
+      isExpanded: true,
+      decoration: const InputDecoration(
+        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        border: OutlineInputBorder(),
+        isDense: true,
+      ),
+      items: _kAllNatures.map((nature) {
+        final m = _kNatureModifiers[nature];
+        return DropdownMenuItem<String>(
+          value: nature,
+          child: Row(
+            children: [
+              SizedBox(
+                width: 80,
+                child: Text(nature, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+              ),
+              if (m != null) ...[
+                const SizedBox(width: 8),
+                Icon(Icons.arrow_upward, size: 13, color: Colors.green.shade400),
+                Text(m.up, style: TextStyle(fontSize: 11, color: Colors.green.shade400, fontWeight: FontWeight.w600)),
+                const SizedBox(width: 8),
+                Icon(Icons.arrow_downward, size: 13, color: Colors.red.shade400),
+                Text(m.down, style: TextStyle(fontSize: 11, color: Colors.red.shade400, fontWeight: FontWeight.w600)),
+              ] else
+                Text('  Neutral', style: TextStyle(fontSize: 11, color: AppColors.onSurfaceMuted)),
+            ],
+          ),
+        );
+      }).toList(),
+      selectedItemBuilder: (context) => _kAllNatures.map((nature) {
+        final m = _kNatureModifiers[nature];
+        return Row(
+          children: [
+            Text(nature, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+            if (m != null) ...[
+              const SizedBox(width: 8),
+              Icon(Icons.arrow_upward, size: 13, color: Colors.green.shade400),
+              Text(m.up, style: TextStyle(fontSize: 11, color: Colors.green.shade400, fontWeight: FontWeight.w600)),
+              const SizedBox(width: 8),
+              Icon(Icons.arrow_downward, size: 13, color: Colors.red.shade400),
+              Text(m.down, style: TextStyle(fontSize: 11, color: Colors.red.shade400, fontWeight: FontWeight.w600)),
+            ] else
+              Text('  Neutral', style: TextStyle(fontSize: 11, color: AppColors.onSurfaceMuted)),
+          ],
+        );
+      }).toList(),
+      onChanged: (val) {
+        if (val != null) setState(() => pkmn.nature = val);
+      },
+    );
+  }
+
+  String? _defaultGenderForRate(int? rate) {
+    if (rate == null || rate == -1) return null;
+    if (rate == 0) return 'Male';
+    if (rate == 8) return 'Female';
+    return 'Male';
+  }
+
+  Widget _buildGenderSelector(_EditingPokemon pkmn) {
+    final rate = pkmn.genderRate;
+    final items = <DropdownMenuItem<String?>>[];
+    
+    if (rate == -1) {
+      items.add(const DropdownMenuItem<String?>(
+        value: null,
+        child: Text('Sin género (Genderless)', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+      ));
+    } else {
+      if (rate == null || rate < 8) {
+        items.add(const DropdownMenuItem<String?>(
+          value: 'Male',
+          child: Row(
+            children: [
+              Icon(Icons.male, size: 16, color: Colors.blue),
+              SizedBox(width: 4),
+              Text('Macho (Male)', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+            ],
+          ),
+        ));
+      }
+      if (rate == null || rate > 0) {
+        items.add(const DropdownMenuItem<String?>(
+          value: 'Female',
+          child: Row(
+            children: [
+              Icon(Icons.female, size: 16, color: Colors.pink),
+              SizedBox(width: 4),
+              Text('Hembra (Female)', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+            ],
+          ),
+        ));
+      }
+    }
+
+    return DropdownButtonFormField<String?>(
+      initialValue: pkmn.gender,
+      isExpanded: true,
+      decoration: const InputDecoration(
+        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        border: OutlineInputBorder(),
+        isDense: true,
+      ),
+      items: items,
+      onChanged: (val) {
+        setState(() => pkmn.gender = val);
+      },
+    );
+  }
+
+
   Widget _buildStatsSlidersTable(_EditingPokemon pkmn) {
+
     final statKeys = ['hp', 'atk', 'def', 'sp_atk', 'sp_def', 'spd'];
     final statNames = {
       'hp': 'PS (HP)',
@@ -936,149 +1244,6 @@ class _TeamBuilderViewState extends State<TeamBuilderView> {
     );
   }
 
-  Widget _buildMovesGrid(_EditingPokemon pkmn, List<Map<String, dynamic>> moves) {
-    if (moves.isEmpty) {
-      return const Text(
-        'No hay movimientos disponibles para este Pokémon.',
-        style: TextStyle(color: Colors.grey, fontStyle: FontStyle.italic),
-      );
-    }
-
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final crossCount = constraints.maxWidth > 600 ? 3 : 2;
-        return GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: crossCount,
-            childAspectRatio: 2.7,
-            crossAxisSpacing: 8,
-            mainAxisSpacing: 8,
-          ),
-          itemCount: moves.length,
-          itemBuilder: (context, index) {
-            final move = moves[index];
-            final name = move['name'] ?? 'Movimiento';
-            final moveId = move['id'] as int;
-            final isSelected = pkmn.selectedMoves.contains(moveId);
-            final type = move['type'] as String? ?? 'Normal';
-            final power = move['power'] as int?;
-            final accuracy = move['accuracy'] as int?;
-            final pp = move['pp'] as int? ?? 0;
-            final category = move['category'] as String? ?? 'Physical';
-
-            final typeColor = PokemonTypeIcons.getColor(type);
-
-            return Material(
-              color: isSelected
-                  ? typeColor.withValues(alpha: 0.15)
-                  : AppColors.surfaceHigh,
-              shape: RoundedRectangleBorder(
-                side: BorderSide(
-                  color: isSelected ? typeColor : AppColors.outlineVariant,
-                  width: isSelected ? 2 : 1,
-                ),
-                borderRadius: BorderRadius.circular(AppRadius.sm),
-              ),
-              child: InkWell(
-                onTap: () => _toggleMoveSelection(_selectedSlotIndex!, move),
-                borderRadius: BorderRadius.circular(AppRadius.sm),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              name,
-                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          if (isSelected)
-                            Icon(Icons.check_circle, size: 14, color: typeColor),
-                        ],
-                      ),
-                      const SizedBox(height: 6),
-                      Row(
-                        children: [
-                          PokemonTypeIcons.buildTypeBadge(type, fontSize: 8),
-                          const SizedBox(width: 4),
-                          Text(
-                            category,
-                            style: TextStyle(
-                              color: AppColors.onSurfaceMuted,
-                              fontSize: 9,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 6),
-                      Row(
-                        children: [
-                          SvgPicture.string(
-                            _swordSvg,
-                            width: 8,
-                            height: 8,
-                            colorFilter: ColorFilter.mode(
-                              AppColors.onSurfaceMuted,
-                              BlendMode.srcIn,
-                            ),
-                          ),
-                          const SizedBox(width: 2),
-                          Text(
-                            power != null && power > 0 ? '$power' : '—',
-                            style: TextStyle(
-                              fontSize: 8.5,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.onSurfaceMuted,
-                            ),
-                          ),
-                          const SizedBox(width: 6),
-                          SvgPicture.string(
-                            _bullseyeSvg,
-                            width: 8,
-                            height: 8,
-                            colorFilter: ColorFilter.mode(
-                              AppColors.onSurfaceMuted,
-                              BlendMode.srcIn,
-                            ),
-                          ),
-                          const SizedBox(width: 2),
-                          Text(
-                            accuracy != null ? '$accuracy' : '—',
-                            style: TextStyle(
-                              fontSize: 8.5,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.onSurfaceMuted,
-                            ),
-                          ),
-                          const Spacer(),
-                          Text(
-                            'PP: $pp',
-                            style: TextStyle(
-                              fontSize: 8.5,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.onSurfaceMuted,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
 
   Widget _buildCombinedTypeBadge(List<String> types) {
     if (types.isEmpty) return const SizedBox.shrink();
@@ -1134,7 +1299,10 @@ class _EditingPokemon {
   final String? sprite;
   final Map<String, int> ivs;
   final Map<String, int> evs;
+  String nature;
   final List<int> selectedMoves; // List of selected move IDs
+  final int? genderRate;
+  String? gender;
 
   _EditingPokemon({
     required this.templateId,
@@ -1145,7 +1313,10 @@ class _EditingPokemon {
     this.sprite,
     required this.ivs,
     required this.evs,
+    this.nature = 'Hardy',
     required this.selectedMoves,
+    this.genderRate,
+    this.gender,
   });
 }
 
@@ -1316,3 +1487,132 @@ const String _bullseyeSvg = '''
 </svg>
 ''';
 
+/// Delegate for the pinned moves mini-bar inside the slot customizer's
+/// CustomScrollView. It renders the "Movimientos (x/4)" title and the
+/// 4-slot selected moves bar, sticking to the top when scrolled into view.
+class _MovesStickyBarDelegate extends SliverPersistentHeaderDelegate {
+  final _EditingPokemon pkmn;
+  final List<Map<String, dynamic>> allMoves;
+  final void Function(Map<String, dynamic> move) onToggle;
+  final TextTheme textTheme;
+
+  const _MovesStickyBarDelegate({
+    required this.pkmn,
+    required this.allMoves,
+    required this.onToggle,
+    required this.textTheme,
+  });
+
+  // Height = title row (~24) + spacing (6) + bar (34) + top/bottom padding (16)
+  static const double _height = 80.0;
+
+  @override
+  double get minExtent => _height;
+
+  @override
+  double get maxExtent => _height;
+
+  @override
+  bool shouldRebuild(_MovesStickyBarDelegate old) => true;
+
+  @override
+  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
+    final movesById = {for (final m in allMoves) m['id'] as int: m};
+
+    return Container(
+      color: AppColors.surface,
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Text(
+                'Movimientos (${pkmn.selectedMoves.length}/4)',
+                style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+              ),
+              if (pkmn.selectedMoves.isEmpty) ...[
+                const SizedBox(width: 8),
+                Text(
+                  '(Agrega al menos 1)',
+                  style: TextStyle(
+                    color: AppColors.danger,
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ],
+          ),
+          const SizedBox(height: 6),
+          Row(
+            children: List.generate(4, (i) {
+              final hasMove = i < pkmn.selectedMoves.length;
+              if (!hasMove) {
+                return Expanded(
+                  child: Container(
+                    height: 34,
+                    margin: EdgeInsets.only(right: i < 3 ? 6 : 0),
+                    decoration: BoxDecoration(
+                      color: AppColors.surfaceHigh,
+                      border: Border.all(color: AppColors.outlineVariant),
+                      borderRadius: BorderRadius.circular(AppRadius.sm),
+                    ),
+                    alignment: Alignment.center,
+                    child: Text('—', style: TextStyle(color: AppColors.onSurfaceMuted, fontSize: 13)),
+                  ),
+                );
+              }
+
+              final moveId = pkmn.selectedMoves[i];
+              final move = movesById[moveId];
+              final moveName = move?['name'] as String? ?? '?';
+              final type = move?['type'] as String? ?? 'Normal';
+              final secondaryType = move?['secondary_type'] as String?;
+              final primaryColor = PokemonTypeIcons.getColor(type);
+              final secondaryColor = secondaryType != null
+                  ? PokemonTypeIcons.getColor(secondaryType)
+                  : primaryColor;
+
+              return Expanded(
+                child: GestureDetector(
+                  onTap: move != null ? () => onToggle(move) : null,
+                  child: Container(
+                    height: 34,
+                    margin: EdgeInsets.only(right: i < 3 ? 6 : 0),
+                    decoration: BoxDecoration(
+                      gradient: secondaryType != null
+                          ? LinearGradient(colors: [
+                              primaryColor.withValues(alpha: 0.25),
+                              secondaryColor.withValues(alpha: 0.25),
+                            ])
+                          : null,
+                      color: secondaryType == null
+                          ? primaryColor.withValues(alpha: 0.2)
+                          : null,
+                      border: Border.all(color: primaryColor, width: 1.5),
+                      borderRadius: BorderRadius.circular(AppRadius.sm),
+                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 6),
+                    alignment: Alignment.center,
+                    child: Text(
+                      moveName,
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                        color: primaryColor,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
+              );
+            }),
+          ),
+        ],
+      ),
+    );
+  }
+}

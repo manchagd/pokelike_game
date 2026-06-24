@@ -27,6 +27,10 @@ module Contracts
             required(:pokemon_name).filled(:string)
             required(:types).array(:string)
             required(:sprite_url).maybe(:string)
+            optional(:field_position).maybe(:hash) do
+              required(:group).filled(:integer)
+              required(:side).filled(:string)
+            end
             required(:attacks).array(:hash) do
               required(:id).filled(:integer)
               required(:name).filled(:string)
@@ -35,6 +39,9 @@ module Contracts
               required(:pp).filled(:integer)
               required(:category).filled(:string)
               required(:types).array(:string)
+              optional(:meta).maybe(:hash) do
+                optional(:enforce_switch).filled(:bool)
+              end
             end
           end
         end

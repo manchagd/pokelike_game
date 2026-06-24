@@ -43,18 +43,35 @@ module Services
         ivs = DEFAULT_IVS.merge((pkmn_data[:ivs] || {}).transform_keys(&:to_s))
         evs = DEFAULT_EVS.merge((pkmn_data[:evs] || {}).transform_keys(&:to_s))
 
+        gender = pkmn_data[:gender].presence
+        if template.gender_rate.nil? || template.gender_rate == -1
+          gender = nil
+        elsif template.gender_rate == 0
+          gender = ::Pokemon::MALE
+        elsif template.gender_rate == 8
+          gender = ::Pokemon::FEMALE
+        elsif ![::Pokemon::MALE, ::Pokemon::FEMALE].include?(gender)
+          gender = determine_gender(template)
+        end
+
         ::Pokemon.create!(
           pokemon_template: template,
           team: team,
           nickname: nickname,
-          gender: [::Pokemon::MALE, ::Pokemon::FEMALE].sample,
-          nature: Nature::LIST.sample,
+          gender: gender,
+          nature: (Nature::LIST.include?(pkmn_data[:nature].to_s) ? pkmn_data[:nature].to_s : Nature::LIST.sample),
           weight: template.weight || rand(10.0..150.0).round(2),
           ivs: ivs,
           evs: evs,
           lvl: 50,
           teratype: template.types.first || Types::LIST.sample
         )
+      end
+
+      def determine_gender(template)
+        return nil if template.gender_rate.nil? || template.gender_rate == -1
+
+        rand(8) < template.gender_rate ? ::Pokemon::FEMALE : ::Pokemon::MALE
       end
     end
   end

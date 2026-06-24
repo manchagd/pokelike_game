@@ -1,0 +1,29 @@
+[
+  {
+    "name": "Scale Pulse",
+    "type": "Bug",
+    "secondary_type": "Dragon",
+    "category": "Special",
+    "handler": "damage",
+    "pp": 10,
+    "power": 95,
+    "priority": 0,
+    "accuracy": 100,
+    "meta": {
+      "ailment": {
+        "name": "none",
+        "chance": 0
+      },
+      "crit_rate": 1,
+      "flinch_chance": 0,
+      "drain": 0,
+      "healing": 0,
+      "max_hits": null,
+      "min_hits": null,
+      "max_turns": null,
+      "min_turns": null,
+      "stat_changes": []
+    },
+    "pokeapi_id": 99001
+  }
+]
