@@ -120,6 +120,25 @@ namespace :db do
 
   desc 'Setup database from scratch (create, migrate, seed)'
   task setup: %i[create migrate seed]
+
+  desc 'Purge all battles and their related models (positions, battle_players, snapshots, battles, fields)'
+  task :purge_battles do
+    BattleEngine.logger.info('[DB] Purging all battle data...')
+    ActiveRecord::Base.transaction do
+      deleted_positions = Position.delete_all
+      deleted_battle_players = BattlePlayer.delete_all
+      deleted_snapshots = PokemonBattleSnapshot.delete_all
+      deleted_battles = Battle.delete_all
+      deleted_fields = Field.delete_all
+
+      BattleEngine.logger.info("[DB] Purge complete:")
+      BattleEngine.logger.info("  - Positions: #{deleted_positions}")
+      BattleEngine.logger.info("  - BattlePlayers: #{deleted_battle_players}")
+      BattleEngine.logger.info("  - PokemonBattleSnapshots: #{deleted_snapshots}")
+      BattleEngine.logger.info("  - Battles: #{deleted_battles}")
+      BattleEngine.logger.info("  - Fields: #{deleted_fields}")
+    end
+  end
 end
 
 desc 'Start an interactive console (Pry)'

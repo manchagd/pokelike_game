@@ -2,6 +2,8 @@ defmodule BattleRealTime.BattleSession do
   use GenServer, restart: :transient
   require Logger
 
+  alias BattleRealTime.BattleSession.Supervisor, as: BattleSessionSupervisor
+
   @turn_timeout_seconds 300
 
   # --- Client API ---
@@ -301,13 +303,13 @@ defmodule BattleRealTime.BattleSession do
   # --- Helpers ---
 
   defp via_tuple(battle_id) do
-    {:via, Registry, {BattleRealTime.BattleRegistry, battle_id}}
+    {:via, Registry, {BattleSessionSupervisor.registry_name(), battle_id}}
   end
 
   defp get_pid(battle_id) do
-    case Registry.lookup(BattleRealTime.BattleRegistry, battle_id) do
-      [{pid, _value}] -> pid
-      [] -> nil
+    case BattleSessionSupervisor.find_session(battle_id) do
+      {:ok, pid} -> pid
+      {:error, :not_found} -> nil
     end
   end
 

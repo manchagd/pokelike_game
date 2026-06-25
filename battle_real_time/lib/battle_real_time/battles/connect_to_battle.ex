@@ -1,5 +1,6 @@
 defmodule BattleRealTime.Battles.ConnectToBattle do
   alias BattleRealTime.BattleSession
+  alias BattleRealTime.BattleSession.Supervisor, as: BattleSessionSupervisor
   require Logger
 
   def call(battle_id, player_id, username) do
@@ -13,20 +14,17 @@ defmodule BattleRealTime.Battles.ConnectToBattle do
   end
 
   defp ensure_session_started(battle_id) do
-    case Registry.lookup(BattleRealTime.BattleRegistry, battle_id) do
-      [] ->
+    case BattleSessionSupervisor.find_session(battle_id) do
+      {:error, :not_found} ->
         Logger.info("Starting new BattleSession for battle:#{battle_id}")
 
-        case DynamicSupervisor.start_child(
-               BattleRealTime.BattleSupervisor,
-               {BattleSession, battle_id}
-             ) do
+        case BattleSessionSupervisor.start_session(battle_id) do
           {:ok, _pid} -> :ok
           {:error, {:already_started, _pid}} -> :ok
           error -> error
         end
 
-      _ ->
+      {:ok, _pid} ->
         Logger.info("BattleSession for battle:#{battle_id} already exists")
         :ok
     end
