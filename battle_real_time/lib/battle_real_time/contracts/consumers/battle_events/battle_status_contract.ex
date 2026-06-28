@@ -52,13 +52,25 @@ defmodule BattleRealTime.Contracts.Consumers.BattleEvents.BattleStatusContract d
         end
       end
     end
+
+    embeds_many :battle_logs, BattleLog, primary_key: false do
+      field(:message, :string)
+      field(:created_at, :string)
+    end
   end
 
   def changeset(struct, params) do
     struct
     |> cast(params, [:external_id, :status, :turn, :timestamp])
     |> cast_embed(:players, required: false, with: &player_changeset/2)
+    |> cast_embed(:battle_logs, required: false, with: &battle_log_changeset/2)
     |> validate_required([:external_id, :status, :turn])
+  end
+
+  def battle_log_changeset(struct, params) do
+    struct
+    |> cast(params, [:message, :created_at])
+    |> validate_required([:message])
   end
 
   # --- Embedded Changesets ---

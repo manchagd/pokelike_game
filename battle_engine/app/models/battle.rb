@@ -8,6 +8,7 @@ class Battle < ApplicationRecord
   has_many :battle_players, dependent: :destroy
   has_many :players, through: :battle_players
   has_many :pokemon_battle_snapshots, dependent: :destroy
+  has_many :battle_logs, dependent: :destroy
 
   before_create :set_external_id
 

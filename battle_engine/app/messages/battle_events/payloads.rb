@@ -10,7 +10,8 @@ module Messages
           external_id: battle.external_id,
           status: battle.status,
           turn: battle.turn,
-          players: battle_players_data(battle)
+          players: battle_players_data(battle),
+          battle_logs: battle.battle_logs.order(:created_at).map { |log| { message: log.message, created_at: log.created_at.iso8601 } }
         }
       end
 

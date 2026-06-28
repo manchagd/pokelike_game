@@ -45,6 +45,10 @@ module Contracts
             end
           end
         end
+        optional(:battle_logs).array(:hash) do
+          required(:message).filled(:string)
+          required(:created_at).filled(:string)
+        end
       end
     end
   end
