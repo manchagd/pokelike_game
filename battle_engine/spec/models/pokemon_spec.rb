@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require 'pry'
 require 'spec_helper'
 
 RSpec.describe Pokemon, type: :model do
@@ -75,7 +76,15 @@ RSpec.describe Pokemon, type: :model do
 
   describe 'calculated stats' do
     context 'when Snorlax is at lvl 50 with Adamant nature, and 252 EV in HP and 252 EV in Attack' do
-      subject { create(:snorlax, lvl: 50, nature: Nature::ADAMANT, evs: { 'hp' => 252, 'atk' => 252, 'def' => 6 }, ivs: { 'hp' => 31, 'atk' => 31, 'def' => 31, 'sp_atk' => 31, 'sp_def' => 31, 'spd' => 31 }) }
+      subject do
+        create(
+          :snorlax,
+          lvl: 50,
+          nature: Nature::ADAMANT,
+          evs: { 'hp' => 252, 'atk' => 252, 'def' => 6 },
+          ivs: { 'hp' => 31, 'atk' => 31, 'def' => 31, 'sp_atk' => 31, 'sp_def' => 31, 'spd' => 31 }
+        )
+      end
 
       it_behaves_like(
         'pokemon_with_stats',
