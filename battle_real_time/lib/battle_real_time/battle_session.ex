@@ -78,7 +78,8 @@ defmodule BattleRealTime.BattleSession do
       actions: %{},
       timer_ref: nil,
       expires_at: nil,
-      logs: ["Sincronizando Batalla..."]
+      logs: ["Sincronizando Batalla..."],
+      battle_logs: []
     }
 
     # Publish battle_sync event instead of broadcasting
@@ -263,6 +264,7 @@ defmodule BattleRealTime.BattleSession do
         end
       end
 
+    new_battle_logs = Map.get(engine_state, "battle_logs", [])
     log_msg = "Estado sincronizado con el Engine. Turno #{new_turn}."
 
     new_state =
@@ -272,7 +274,8 @@ defmodule BattleRealTime.BattleSession do
           phase: new_phase,
           timer_ref: new_timer_ref,
           expires_at: new_expires_at,
-          players_data: new_players_data
+          players_data: new_players_data,
+          battle_logs: new_battle_logs
       }
       |> add_log(log_msg)
 
@@ -336,11 +339,20 @@ defmodule BattleRealTime.BattleSession do
     expected = expected_players_count(state.battle_format)
     current_count = MapSet.size(state.players)
 
-    payload_logs =
-      if state.phase in [:waiting_players, :waiting_actions] do
-        state.logs ++ [default_log_message(state)]
+    engine_logs = Enum.map(state.battle_logs, & &1["message"])
+
+    base_logs =
+      if Enum.any?(engine_logs) do
+        engine_logs
       else
         state.logs
+      end
+
+    payload_logs =
+      if state.phase in [:waiting_players, :waiting_actions] do
+        base_logs ++ [default_log_message(state)]
+      else
+        base_logs
       end
 
     clean_players =

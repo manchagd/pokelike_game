@@ -177,4 +177,33 @@ defmodule BattleRealTime.BattleSessionTest do
     {:ok, state} = BattleSession.get_state(battle_id)
     assert state.phase == :syncing
   end
+
+  test "sync_state registers battle_logs from engine and outputs them in payload", %{
+    battle_id: battle_id
+  } do
+    # Register 1 player to ensure we can transition
+    assert :ok = BattleSession.sync_state(battle_id, %{"turn" => 1, "status" => "in_progress"})
+
+    engine_state = %{
+      "turn" => 1,
+      "status" => "in_progress",
+      "players" => [],
+      "battle_logs" => [
+        %{"message" => "Pikachu uso Impactrueno", "created_at" => "2026-06-28T04:45:00Z"},
+        %{"message" => "Gyarados enemigo ha caido", "created_at" => "2026-06-28T04:45:05Z"}
+      ]
+    }
+
+    assert :ok = BattleSession.sync_state(battle_id, engine_state)
+
+    # Verify they are registered in the state
+    assert {:ok, state} = BattleSession.get_state(battle_id)
+    assert length(state.battle_logs) == 2
+    assert Enum.at(state.battle_logs, 0)["message"] == "Pikachu uso Impactrueno"
+
+    # Verify they are correctly output in the get_state_payload log field
+    assert {:ok, payload} = BattleSession.get_state_payload(battle_id)
+    assert "Pikachu uso Impactrueno" in payload["log"]
+    assert "Gyarados enemigo ha caido" in payload["log"]
+  end
 end
