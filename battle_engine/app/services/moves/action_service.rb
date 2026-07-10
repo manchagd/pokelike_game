@@ -20,12 +20,3 @@ module Services
     end
   end
 end
-# pokemon = PokemonBattleSnapshot.find(555)
-# target = PokemonBattleSnapshot.find(554)
-# move = Move.find(173)
-
-# Services::Moves::ActionService.call(pokemon, target, move)
-#
-# Agregar rspec para hacer pruebas unitarias a todos estos ataques
-# y no tener que depender de datos en consola,
-# incluira factory bot y crear trais adecuados
