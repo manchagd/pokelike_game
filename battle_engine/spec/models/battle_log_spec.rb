@@ -27,8 +27,8 @@ RSpec.describe BattleLog do
   describe 'payload serialization and contract validation' do
     it 'serializes battle_logs in battle_status and passes contract validation' do
       battle = create(:battle)
-      log1 = create(:battle_log, battle: battle, message: 'Log 1')
-      log2 = create(:battle_log, battle: battle, message: 'Log 2')
+      create(:battle_log, battle: battle, message: 'Log 1')
+      create(:battle_log, battle: battle, message: 'Log 2')
 
       payload = Messages::BattleEvents::Payloads.battle_status(battle)
       expect(payload[:battle_logs]).to be_an(Array)
