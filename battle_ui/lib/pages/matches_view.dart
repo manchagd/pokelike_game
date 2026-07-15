@@ -9,24 +9,24 @@ import '../theme.dart';
 import '../nav.dart';
 import '../utils/battle_socket_service.dart';
 import '../utils/pokemon_type_icons.dart';
-final _onlineBadgeContainerStyle = BoxStyler()
+BoxStyler get _onlineBadgeContainerStyle => BoxStyler()
   .padding(EdgeInsetsGeometryMix.symmetric(horizontal: 12, vertical: 6))
   .borderRadius(BorderRadiusGeometryMix.circular(20))
   .color(AppColors.success.withValues(alpha: 0.1))
   .border(BorderMix.all(BorderSideMix(color: AppColors.success.withValues(alpha: 0.3))));
 
-final _onlineIndicatorDotStyle = BoxStyler()
+BoxStyler get _onlineIndicatorDotStyle => BoxStyler()
   .width(8)
   .height(8)
   .color(AppColors.success)
   .borderRadius(BorderRadiusGeometryMix.circular(4));
 
-final _onlineBadgeTextStyle = TextStyler()
+TextStyler get _onlineBadgeTextStyle => TextStyler()
   .color(AppColors.success)
   .fontSize(12)
   .fontWeight(FontWeight.w700);
 
-final _shieldIconBackgroundStyle = BoxStyler()
+BoxStyler get _shieldIconBackgroundStyle => BoxStyler()
   .width(36)
   .height(36)
   .color(AppColors.secondary.withValues(alpha: 0.16))
@@ -62,28 +62,28 @@ BoxStyler _pokemonChipStyle(Color c1, Color c2) => BoxStyler()
     width: 1.0,
   )));
 
-final _pokemonChipTextStyle = TextStyler()
+TextStyler get _pokemonChipTextStyle => TextStyler()
   .fontSize(12)
   .fontWeight(FontWeight.w600);
 
-final _noTeamsAlertStyle = BoxStyler()
+BoxStyler get _noTeamsAlertStyle => BoxStyler()
   .padding(EdgeInsetsGeometryMix.all(12))
   .color(AppColors.danger.withValues(alpha: 0.12))
   .borderRadius(BorderRadiusGeometryMix.circular(AppRadius.md))
   .border(BorderMix.all(BorderSideMix(color: AppColors.danger.withValues(alpha: 0.4))));
 
-final _noTeamsAlertTextStyle = TextStyler()
+TextStyler get _noTeamsAlertTextStyle => TextStyler()
   .color(AppColors.danger)
   .fontSize(13)
   .fontWeight(FontWeight.w500);
 
-final _activeBattlesIconBackgroundStyle = BoxStyler()
+BoxStyler get _activeBattlesIconBackgroundStyle => BoxStyler()
   .width(36)
   .height(36)
   .color(AppColors.primary.withValues(alpha: 0.16))
   .borderRadius(BorderRadiusGeometryMix.circular(AppRadius.sm));
 
-final _noActiveBattlesContainerStyle = BoxStyler()
+BoxStyler get _noActiveBattlesContainerStyle => BoxStyler()
   .width(double.infinity)
   .padding(EdgeInsetsGeometryMix.symmetric(vertical: 28))
   .alignment(Alignment.center)
@@ -95,7 +95,7 @@ TextStyler _noActiveBattlesTextStyle(double fontSize) => TextStyler()
   .color(AppColors.onSurfaceMuted)
   .fontSize(fontSize);
 
-final _activeBattleRowStyle = BoxStyler()
+BoxStyler get _activeBattleRowStyle => BoxStyler()
   .padding(EdgeInsetsGeometryMix.symmetric(horizontal: 14, vertical: 12))
   .borderRadius(BorderRadiusGeometryMix.circular(AppRadius.md))
   .color(AppColors.surfaceHigh)
@@ -133,16 +133,16 @@ TextStyler _statValueStyle(Color color) => TextStyler()
   .fontSize(22)
   .fontWeight(FontWeight.w800);
 
-final _statLabelStyle = TextStyler()
+TextStyler get _statLabelStyle => TextStyler()
   .color(AppColors.onSurfaceMuted)
   .fontSize(12);
 
-final _dialogIconBackgroundStyle = BoxStyler()
+BoxStyler get _dialogIconBackgroundStyle => BoxStyler()
   .padding(EdgeInsetsGeometryMix.all(10))
   .color(AppColors.primary.withValues(alpha: 0.16))
   .borderRadius(BorderRadiusGeometryMix.circular(AppRadius.md));
 
-final _dialogCodeContainerStyle = BoxStyler()
+BoxStyler get _dialogCodeContainerStyle => BoxStyler()
   .padding(EdgeInsetsGeometryMix.symmetric(horizontal: 20, vertical: 14))
   .borderRadius(BorderRadiusGeometryMix.circular(AppRadius.md))
   .color(AppColors.surfaceHigh)
@@ -150,13 +150,13 @@ final _dialogCodeContainerStyle = BoxStyler()
   .onHovered(BoxStyler().color(AppColors.primary.withValues(alpha: 0.08)))
   .animate(AnimationConfig.ease(const Duration(milliseconds: 150)));
 
-final _dialogCodeTextStyle = TextStyler()
+TextStyler get _dialogCodeTextStyle => TextStyler()
   .fontSize(22)
   .fontWeight(FontWeight.w700)
   .letterSpacing(4)
   .color(AppColors.primary);
 
-final _joinDialogIconStyle = BoxStyler()
+BoxStyler get _joinDialogIconStyle => BoxStyler()
   .padding(EdgeInsetsGeometryMix.all(10))
   .color(AppColors.secondary.withValues(alpha: 0.16))
   .borderRadius(BorderRadiusGeometryMix.circular(AppRadius.md));

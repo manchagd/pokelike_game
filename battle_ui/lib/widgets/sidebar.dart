@@ -6,24 +6,24 @@ import '../utils/battle_socket_service.dart';
 import '../utils/pokemon_type_icons.dart';
 import '../utils/theme_provider.dart';
 
-final _sidebarStyle = BoxStyler()
+BoxStyler get _sidebarStyle => BoxStyler()
   .width(300)
   .color(AppColors.surface)
   .border(BorderMix.right(BorderSideMix(color: AppColors.outlineVariant, width: 1)));
 
-final _onlineStatusDotStyle = BoxStyler()
+BoxStyler get _onlineStatusDotStyle => BoxStyler()
   .width(8)
   .height(8)
   .borderRadius(BorderRadiusGeometryMix.circular(4))
   .color(AppColors.success);
 
-final _themeSelectorContainerStyle = BoxStyler()
+BoxStyler get _themeSelectorContainerStyle => BoxStyler()
   .padding(EdgeInsetsGeometryMix.all(4))
   .color(AppColors.surfaceHigh)
   .borderRadius(BorderRadiusGeometryMix.circular(AppRadius.md))
   .border(BorderMix.all(BorderSideMix(color: AppColors.outlineVariant)));
 
-final _logoBoxStyle = BoxStyler()
+BoxStyler get _logoBoxStyle => BoxStyler()
   .width(44)
   .height(44)
   .borderRadius(BorderRadiusGeometryMix.circular(AppRadius.md))

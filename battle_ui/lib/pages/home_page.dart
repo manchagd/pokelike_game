@@ -69,7 +69,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-final _welcomeCardStyle = BoxStyler()
+BoxStyler get _welcomeCardStyle => BoxStyler()
   .width(520)
   .margin(EdgeInsetsGeometryMix.all(32))
   .borderRadius(BorderRadiusGeometryMix.circular(AppRadius.lg))
@@ -93,7 +93,7 @@ final _welcomeCardStyle = BoxStyler()
   ))
   .padding(EdgeInsetsGeometryMix.all(40));
 
-final _circleIconStyle = BoxStyler()
+BoxStyler get _circleIconStyle => BoxStyler()
   .padding(EdgeInsetsGeometryMix.all(20))
   .borderRadius(BorderRadiusGeometryMix.circular(100))
   .color(AppColors.primary.withValues(alpha: 0.1))

@@ -150,4 +150,28 @@ RSpec.describe 'Teams Services', type: :service do
       expect(team.pokemons.first.pokemon_template).to eq(pikachu_template)
     end
   end
+
+  describe Services::Teams::DeleteTeamService do
+    subject(:service) { described_class.new }
+    let!(:team) { create(:team, player: player) }
+    let!(:pokemon_without_snapshots) { create(:pokemon, team: team, pokemon_template: snorlax_template) }
+    let!(:pokemon_with_snapshots) { create(:pokemon, team: team, pokemon_template: pikachu_template) }
+    let!(:snapshot) { create(:pokemon_battle_snapshot, pokemon: pokemon_with_snapshots, player: player) }
+    let!(:position) { create(:position, pokemon_snapshot: snapshot) }
+
+    before do
+      allow(Publishers::PlayerEventsPublisher).to receive(:publish)
+    end
+
+    it 'deletes the team and destroys pokemons without snapshots, but keeps pokemons with snapshots as teamless' do
+      expect do
+        service.call(player_id: player.id, team_id: team.id)
+      end.to change(Team, :count).by(-1)
+        .and change(Pokemon, :count).by(-1)
+
+      expect(Pokemon.exists?(pokemon_without_snapshots.id)).to be_falsey
+      expect(Pokemon.exists?(pokemon_with_snapshots.id)).to be_truthy
+      expect(pokemon_with_snapshots.reload.team_id).to be_nil
+    end
+  end
 end

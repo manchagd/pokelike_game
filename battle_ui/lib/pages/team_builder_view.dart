@@ -7,40 +7,40 @@ import '../theme.dart';
 import '../utils/battle_socket_service.dart';
 import '../utils/pokemon_type_icons.dart';
 
-final _teamCardContainerStyle = BoxStyler()
+BoxStyler get _teamCardContainerStyle => BoxStyler()
   .padding(EdgeInsetsGeometryMix.all(20))
   .borderRadius(BorderRadiusGeometryMix.circular(AppRadius.lg))
   .color(AppColors.surfaceHigh)
   .border(BorderMix.all(BorderSideMix(color: AppColors.outlineVariant, width: 1)));
 
-final _emptyTeamsCardStyle = BoxStyler()
+BoxStyler get _emptyTeamsCardStyle => BoxStyler()
   .width(480)
   .padding(EdgeInsetsGeometryMix.all(32))
   .color(AppColors.surfaceHigh)
   .borderRadius(BorderRadiusGeometryMix.circular(AppRadius.lg))
   .border(BorderMix.all(BorderSideMix(color: AppColors.outlineVariant)));
 
-final _emptyTeamsIconCircleStyle = BoxStyler()
+BoxStyler get _emptyTeamsIconCircleStyle => BoxStyler()
   .padding(EdgeInsetsGeometryMix.all(16))
   .color(AppColors.primary.withValues(alpha: 0.1))
   .borderRadius(BorderRadiusGeometryMix.circular(100));
 
-final _listTileBstBadgeStyle = BoxStyler()
+BoxStyler get _listTileBstBadgeStyle => BoxStyler()
   .padding(EdgeInsetsGeometryMix.symmetric(horizontal: 6, vertical: 1))
   .color(AppColors.primary.withValues(alpha: 0.15))
   .borderRadius(BorderRadiusGeometryMix.circular(4));
 
-final _listTileBstBadgeTextStyle = TextStyler()
+TextStyler get _listTileBstBadgeTextStyle => TextStyler()
   .color(AppColors.primary)
   .fontSize(10)
   .fontWeight(FontWeight.bold);
 
-final _slotCustomizerContainerStyle = BoxStyler()
+BoxStyler get _slotCustomizerContainerStyle => BoxStyler()
   .color(AppColors.surface)
   .border(BorderMix.all(BorderSideMix(color: AppColors.outlineVariant)))
   .borderRadius(BorderRadiusGeometryMix.circular(AppRadius.md));
 
-final _teamCardIconBackgroundStyle = BoxStyler()
+BoxStyler get _teamCardIconBackgroundStyle => BoxStyler()
   .width(40)
   .height(40)
   .color(AppColors.primary.withValues(alpha: 0.15))
@@ -92,7 +92,7 @@ TextStyler _equippedStickyMoveTextStyle(Color primaryColor) => TextStyler()
   .overflow(TextOverflow.ellipsis)
   .textAlign(TextAlign.center);
 
-final _emptyMoveSlotTextStyle = TextStyler()
+TextStyler get _emptyMoveSlotTextStyle => TextStyler()
   .color(AppColors.onSurfaceMuted)
   .fontSize(13);
 
@@ -133,7 +133,7 @@ BoxStyler _pokemonChipStyle(Color c1, Color c2) => BoxStyler()
     width: 1.0,
   )));
 
-final _pokemonChipTextStyle = TextStyler()
+TextStyler get _pokemonChipTextStyle => TextStyler()
   .fontSize(13)
   .fontWeight(FontWeight.w600);
 

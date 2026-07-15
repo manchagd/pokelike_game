@@ -14,18 +14,18 @@ import '../nav.dart';
 import '../utils/pokemon_type_icons.dart';
 import '../utils/battle_socket_service.dart';
 
-final _appBarVsContainerStyle = BoxStyler()
+BoxStyler get _appBarVsContainerStyle => BoxStyler()
   .padding(EdgeInsetsGeometryMix.symmetric(horizontal: 16, vertical: 6))
   .color(AppColors.surfaceHigh.withValues(alpha: 0.5))
   .borderRadius(BorderRadiusGeometryMix.circular(AppRadius.md))
   .border(BorderMix.all(BorderSideMix(color: AppColors.outlineVariant.withValues(alpha: 0.3))));
 
-final _appBarVsPlayerTextStyle = TextStyler()
+TextStyler get _appBarVsPlayerTextStyle => TextStyler()
   .fontSize(15)
   .fontWeight(FontWeight.w900)
   .color(AppColors.onSurface);
 
-final _appBarVsBadgeBackgroundStyle = BoxStyler()
+BoxStyler get _appBarVsBadgeBackgroundStyle => BoxStyler()
   .margin(EdgeInsetsGeometryMix.symmetric(horizontal: 12))
   .padding(EdgeInsetsGeometryMix.symmetric(horizontal: 8, vertical: 2))
   .linearGradient(
@@ -33,12 +33,12 @@ final _appBarVsBadgeBackgroundStyle = BoxStyler()
   )
   .borderRadius(BorderRadiusGeometryMix.circular(4));
 
-final _appBarVsBadgeTextStyle = TextStyler()
+TextStyler get _appBarVsBadgeTextStyle => TextStyler()
   .fontSize(10)
   .fontWeight(FontWeight.w900)
   .color(Colors.white);
 
-final _noConnectionBannerStyle = BoxStyler()
+BoxStyler get _noConnectionBannerStyle => BoxStyler()
   .padding(EdgeInsetsGeometryMix.symmetric(horizontal: 16, vertical: 14))
   .color(AppColors.danger.withValues(alpha: 0.15))
   .borderRadius(BorderRadiusGeometryMix.circular(AppRadius.md))
@@ -52,7 +52,7 @@ final _noConnectionBannerStyle = BoxStyler()
     offset: const Offset(0, 4),
   ));
 
-final _loadingIndicatorCircleStyle = BoxStyler()
+BoxStyler get _loadingIndicatorCircleStyle => BoxStyler()
   .width(80)
   .height(80)
   .padding(EdgeInsetsGeometryMix.all(16))
@@ -84,7 +84,7 @@ BoxStyler _lobbyCardWithBorderColorStyle(Color borderColor) => BoxStyler()
   ))
   .padding(EdgeInsetsGeometryMix.all(28));
 
-final _errorIconCircleStyle = BoxStyler()
+BoxStyler get _errorIconCircleStyle => BoxStyler()
   .width(80)
   .height(80)
   .borderRadius(BorderRadiusGeometryMix.circular(100))
@@ -94,12 +94,12 @@ final _errorIconCircleStyle = BoxStyler()
     width: 2,
   )));
 
-final _primaryIconCircleStyle = BoxStyler()
+BoxStyler get _primaryIconCircleStyle => BoxStyler()
   .padding(EdgeInsetsGeometryMix.all(10))
   .borderRadius(BorderRadiusGeometryMix.circular(100))
   .color(AppColors.primary.withValues(alpha: 0.15));
 
-final _lobbyHeaderIconStyle = BoxStyler()
+BoxStyler get _lobbyHeaderIconStyle => BoxStyler()
   .padding(EdgeInsetsGeometryMix.all(16))
   .borderRadius(BorderRadiusGeometryMix.circular(100))
   .linearGradient(
@@ -113,7 +113,7 @@ final _lobbyHeaderIconStyle = BoxStyler()
     width: 2.0,
   )));
 
-final _lobbyFormatBadgeStyle = BoxStyler()
+BoxStyler get _lobbyFormatBadgeStyle => BoxStyler()
   .padding(EdgeInsetsGeometryMix.symmetric(horizontal: 16, vertical: 8))
   .color(AppColors.primary.withValues(alpha: 0.05))
   .borderRadius(BorderRadiusGeometryMix.circular(100))
@@ -121,7 +121,7 @@ final _lobbyFormatBadgeStyle = BoxStyler()
     color: AppColors.primary.withValues(alpha: 0.15),
   )));
 
-final _lobbyTipsBannerStyle = BoxStyler()
+BoxStyler get _lobbyTipsBannerStyle => BoxStyler()
   .padding(EdgeInsetsGeometryMix.all(12))
   .color(AppColors.background.withValues(alpha: 0.3))
   .borderRadius(BorderRadiusGeometryMix.circular(AppRadius.md))
@@ -129,7 +129,7 @@ final _lobbyTipsBannerStyle = BoxStyler()
     color: AppColors.outlineVariant.withValues(alpha: 0.3),
   )));
 
-final _teamPreviewFooterBannerStyle = BoxStyler()
+BoxStyler get _teamPreviewFooterBannerStyle => BoxStyler()
   .padding(EdgeInsetsGeometryMix.symmetric(vertical: 12))
   .color(AppColors.primary.withValues(alpha: 0.05))
   .borderRadius(BorderRadiusGeometryMix.circular(AppRadius.md))
@@ -185,7 +185,7 @@ BoxStyler _lobbyPlayerStatusDotStyle(Color color) => BoxStyler()
   .borderRadius(BorderRadiusGeometryMix.circular(5))
   .color(color);
 
-final _crossedSwordsBadgeStyle = BoxStyler()
+BoxStyler get _crossedSwordsBadgeStyle => BoxStyler()
   .width(30)
   .height(30)
   .alignment(Alignment.center)
@@ -236,7 +236,7 @@ BoxStyler _typeIconCircleStyle(Color typeColor) => BoxStyler()
   .borderRadius(BorderRadiusGeometryMix.circular(50))
   .color(typeColor);
 
-final _battleLogConsoleStyle = BoxStyler()
+BoxStyler get _battleLogConsoleStyle => BoxStyler()
   .padding(EdgeInsetsGeometryMix.all(14))
   .color(AppColors.background)
   .borderRadius(BorderRadiusGeometryMix.circular(AppRadius.md))
@@ -257,7 +257,7 @@ BoxStyler _switchSlotStyle({
     width: isSelected ? 2.0 : (isLead ? 1.5 : 1.0),
   )));
 
-final _chatConsoleStyle = BoxStyler()
+BoxStyler get _chatConsoleStyle => BoxStyler()
   .padding(EdgeInsetsGeometryMix.only(right: 4))
   .color(AppColors.background)
   .borderRadius(BorderRadiusGeometryMix.circular(AppRadius.md))
@@ -280,7 +280,7 @@ BoxStyler _chatBubbleStyle(bool isMe) => BoxStyler()
         : AppColors.outlineVariant,
   )));
 
-final _compactTopTurnBannerStyle = BoxStyler()
+BoxStyler get _compactTopTurnBannerStyle => BoxStyler()
   .padding(EdgeInsetsGeometryMix.symmetric(horizontal: 10, vertical: 6))
   .color(AppColors.background.withValues(alpha: 0.6))
   .borderRadius(BorderRadiusGeometryMix.circular(AppRadius.sm))
@@ -360,7 +360,7 @@ class _BattleViewState extends State<BattleView> {
   ];
 
   final List<String> _battleFeedback = [];
-  final List<Map<String, String>> _chatMessages = [];
+  final List<Map<String, dynamic>> _chatMessages = [];
 
   List<Map<String, dynamic>> _myMonsters = [];
   Map<String, dynamic> _myActive = {};
@@ -432,6 +432,7 @@ class _BattleViewState extends State<BattleView> {
     _chatMessages.add({
       'sender': 'Sistema',
       'message': 'Te has unido al chat del combate.',
+      'isMe': false,
     });
 
     _myMonsters = [];
@@ -574,6 +575,7 @@ class _BattleViewState extends State<BattleView> {
       _chatMessages.add({
         'sender': isMe ? 'Tú' : username,
         'message': body,
+        'isMe': isMe,
       });
     });
 
@@ -662,7 +664,7 @@ class _BattleViewState extends State<BattleView> {
         }
       }
 
-      String myName = myPlayer?['name'] != null ? "${myPlayer!['name']} (Tú)" : 'Tú';
+      String myName = myPlayer?['name'] ?? _socketService.currentPlayer?['name'] ?? 'Tú';
       String oppName = oppPlayer?['name'] ?? 'Oponente';
 
       setState(() {
@@ -971,7 +973,7 @@ class _BattleViewState extends State<BattleView> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         StyledText(
-                          _myName.replaceAll(' (Tú)', ''),
+                          _myName,
                           style: _appBarVsPlayerTextStyle,
                         ),
                         Box(
@@ -1547,14 +1549,14 @@ class _BattleViewState extends State<BattleView> {
                   name: player1Connected ? _myName : 'Buscando Entrenador...',
                   isConnected: player1Connected,
                   role: 'Jugador 1',
-                  isMe: player1Connected && _myName.contains('(Tú)'),
+                  isMe: player1Connected,
                 ),
                 const SizedBox(height: 12),
                 _buildLobbyPlayerTile(
                   name: player2Connected ? _oppName : 'Esperando Oponente...',
                   isConnected: player2Connected,
                   role: 'Jugador 2',
-                  isMe: player2Connected && _oppName.contains('(Tú)'),
+                  isMe: false,
                 ),
               ],
             ),
@@ -2549,7 +2551,7 @@ class _BattleViewState extends State<BattleView> {
                   itemCount: _chatMessages.length,
                   itemBuilder: (context, i) {
                     final m = _chatMessages[i];
-                    final isMe = m['sender'] == 'Tú';
+                    final isMe = m['isMe'] as bool? ?? false;
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 8),
                       child: Row(

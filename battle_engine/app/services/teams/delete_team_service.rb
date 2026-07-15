@@ -8,11 +8,17 @@ module Services
         team = player.teams.find(team_id)
 
         ActiveRecord::Base.transaction do
-          team.pokemons.each do |pokemon|
-            pokemon.destroy!
-          rescue ActiveRecord::InvalidForeignKey
-            pokemon.update!(team: nil)
+          pokemons = team.pokemons.to_a
+
+          pokemons.each do |pokemon|
+            if pokemon.pokemon_battle_snapshots.exists?
+              pokemon.update!(team: nil)
+            else
+              pokemon.destroy!
+            end
           end
+
+          team.pokemons.reload
           team.destroy!
         end
 
