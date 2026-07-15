@@ -8,10 +8,310 @@ import 'package:provider/provider.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:mix/mix.dart';
 import '../theme.dart';
 import '../nav.dart';
 import '../utils/pokemon_type_icons.dart';
 import '../utils/battle_socket_service.dart';
+
+final _appBarVsContainerStyle = BoxStyler()
+  .padding(EdgeInsetsGeometryMix.symmetric(horizontal: 16, vertical: 6))
+  .color(AppColors.surfaceHigh.withValues(alpha: 0.5))
+  .borderRadius(BorderRadiusGeometryMix.circular(AppRadius.md))
+  .border(BorderMix.all(BorderSideMix(color: AppColors.outlineVariant.withValues(alpha: 0.3))));
+
+final _appBarVsPlayerTextStyle = TextStyler()
+  .fontSize(15)
+  .fontWeight(FontWeight.w900)
+  .color(AppColors.onSurface);
+
+final _appBarVsBadgeBackgroundStyle = BoxStyler()
+  .margin(EdgeInsetsGeometryMix.symmetric(horizontal: 12))
+  .padding(EdgeInsetsGeometryMix.symmetric(horizontal: 8, vertical: 2))
+  .linearGradient(
+    colors: [AppColors.primary, AppColors.secondary],
+  )
+  .borderRadius(BorderRadiusGeometryMix.circular(4));
+
+final _appBarVsBadgeTextStyle = TextStyler()
+  .fontSize(10)
+  .fontWeight(FontWeight.w900)
+  .color(Colors.white);
+
+final _noConnectionBannerStyle = BoxStyler()
+  .padding(EdgeInsetsGeometryMix.symmetric(horizontal: 16, vertical: 14))
+  .color(AppColors.danger.withValues(alpha: 0.15))
+  .borderRadius(BorderRadiusGeometryMix.circular(AppRadius.md))
+  .border(BorderMix.all(BorderSideMix(
+    color: AppColors.danger.withValues(alpha: 0.6),
+    width: 1.5,
+  )))
+  .shadow(BoxShadowMix(
+    color: AppColors.danger.withValues(alpha: 0.2),
+    blurRadius: 12,
+    offset: const Offset(0, 4),
+  ));
+
+final _loadingIndicatorCircleStyle = BoxStyler()
+  .width(80)
+  .height(80)
+  .padding(EdgeInsetsGeometryMix.all(16))
+  .borderRadius(BorderRadiusGeometryMix.circular(100))
+  .color(AppColors.primary.withValues(alpha: 0.1))
+  .border(BorderMix.all(BorderSideMix(
+    color: AppColors.primary.withValues(alpha: 0.2),
+    width: 2,
+  )));
+
+BoxStyler _lobbyCardWithBorderColorStyle(Color borderColor) => BoxStyler()
+  .borderRadius(BorderRadiusGeometryMix.circular(AppRadius.lg))
+  .linearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [
+      AppColors.surfaceHigh.withValues(alpha: 0.95),
+      AppColors.surface.withValues(alpha: 0.98),
+    ],
+  )
+  .border(BorderMix.all(BorderSideMix(
+    color: borderColor,
+    width: 1.5,
+  )))
+  .shadow(BoxShadowMix(
+    color: Colors.black.withValues(alpha: 0.1),
+    blurRadius: 8,
+    offset: const Offset(0, 4),
+  ))
+  .padding(EdgeInsetsGeometryMix.all(28));
+
+final _errorIconCircleStyle = BoxStyler()
+  .width(80)
+  .height(80)
+  .borderRadius(BorderRadiusGeometryMix.circular(100))
+  .color(AppColors.danger.withValues(alpha: 0.1))
+  .border(BorderMix.all(BorderSideMix(
+    color: AppColors.danger.withValues(alpha: 0.3),
+    width: 2,
+  )));
+
+final _primaryIconCircleStyle = BoxStyler()
+  .padding(EdgeInsetsGeometryMix.all(10))
+  .borderRadius(BorderRadiusGeometryMix.circular(100))
+  .color(AppColors.primary.withValues(alpha: 0.15));
+
+final _lobbyHeaderIconStyle = BoxStyler()
+  .padding(EdgeInsetsGeometryMix.all(16))
+  .borderRadius(BorderRadiusGeometryMix.circular(100))
+  .linearGradient(
+    colors: [
+      AppColors.accent.withValues(alpha: 0.2),
+      AppColors.primary.withValues(alpha: 0.1),
+    ],
+  )
+  .border(BorderMix.all(BorderSideMix(
+    color: AppColors.accent.withValues(alpha: 0.3),
+    width: 2.0,
+  )));
+
+final _lobbyFormatBadgeStyle = BoxStyler()
+  .padding(EdgeInsetsGeometryMix.symmetric(horizontal: 16, vertical: 8))
+  .color(AppColors.primary.withValues(alpha: 0.05))
+  .borderRadius(BorderRadiusGeometryMix.circular(100))
+  .border(BorderMix.all(BorderSideMix(
+    color: AppColors.primary.withValues(alpha: 0.15),
+  )));
+
+final _lobbyTipsBannerStyle = BoxStyler()
+  .padding(EdgeInsetsGeometryMix.all(12))
+  .color(AppColors.background.withValues(alpha: 0.3))
+  .borderRadius(BorderRadiusGeometryMix.circular(AppRadius.md))
+  .border(BorderMix.all(BorderSideMix(
+    color: AppColors.outlineVariant.withValues(alpha: 0.3),
+  )));
+
+final _teamPreviewFooterBannerStyle = BoxStyler()
+  .padding(EdgeInsetsGeometryMix.symmetric(vertical: 12))
+  .color(AppColors.primary.withValues(alpha: 0.05))
+  .borderRadius(BorderRadiusGeometryMix.circular(AppRadius.md))
+  .border(BorderMix.all(BorderSideMix(
+    color: AppColors.primary.withValues(alpha: 0.15),
+  )));
+
+BoxStyler _lobbyPlayerTileStyle(bool isConnected) => BoxStyler()
+  .padding(EdgeInsetsGeometryMix.symmetric(horizontal: 16, vertical: 14))
+  .color(isConnected
+      ? AppColors.surface.withValues(alpha: 0.4)
+      : AppColors.background.withValues(alpha: 0.1))
+  .borderRadius(BorderRadiusGeometryMix.circular(AppRadius.md))
+  .border(BorderMix.all(BorderSideMix(
+    color: isConnected
+        ? AppColors.success.withValues(alpha: 0.2)
+        : AppColors.outlineVariant.withValues(alpha: 0.3),
+    width: 1,
+  )));
+
+BoxStyler _lobbyPlayerStatusBadgeStyle(bool isConnected) => BoxStyler()
+  .padding(EdgeInsetsGeometryMix.symmetric(horizontal: 10, vertical: 4))
+  .color(isConnected
+      ? AppColors.success.withValues(alpha: 0.15)
+      : AppColors.background.withValues(alpha: 0.2))
+  .borderRadius(BorderRadiusGeometryMix.circular(AppRadius.sm));
+
+BoxStyler _leadSelectionSlotStyle(bool isSelected) {
+  var style = BoxStyler()
+    .borderRadius(BorderRadiusGeometryMix.circular(AppRadius.md))
+    .color(isSelected
+        ? (AppColors.isDark
+            ? AppColors.primary.withValues(alpha: 0.15)
+            : const Color(0xFFEDE7F6))
+        : AppColors.surfaceHighest)
+    .border(BorderMix.all(BorderSideMix(
+      color: isSelected ? AppColors.primary : AppColors.outlineVariant.withValues(alpha: 0.4),
+      width: isSelected ? 2.0 : 1.0,
+    )));
+
+  if (isSelected) {
+    style = style.shadow(BoxShadowMix(
+      color: AppColors.primary.withValues(alpha: 0.2),
+      blurRadius: 10,
+    ));
+  }
+  return style;
+}
+
+BoxStyler _lobbyPlayerStatusDotStyle(Color color) => BoxStyler()
+  .width(10)
+  .height(10)
+  .borderRadius(BorderRadiusGeometryMix.circular(5))
+  .color(color);
+
+final _crossedSwordsBadgeStyle = BoxStyler()
+  .width(30)
+  .height(30)
+  .alignment(Alignment.center)
+  .borderRadius(BorderRadiusGeometryMix.circular(15))
+  .color(AppColors.surfaceHighest)
+  .border(BorderMix.all(BorderSideMix(color: AppColors.accent, width: 1.5)))
+  .shadow(BoxShadowMix(
+    color: AppColors.accent.withValues(alpha: 0.15),
+    blurRadius: 4,
+    offset: const Offset(0, 2),
+  ));
+
+BoxStyler _actionSubmittedBadgeStyle(bool isActionSubmitted) => BoxStyler()
+  .padding(EdgeInsetsGeometryMix.symmetric(horizontal: 8, vertical: 2))
+  .color(isActionSubmitted
+      ? AppColors.success.withValues(alpha: 0.12)
+      : AppColors.info.withValues(alpha: 0.12))
+  .borderRadius(BorderRadiusGeometryMix.circular(4))
+  .border(BorderMix.all(BorderSideMix(
+    color: isActionSubmitted
+        ? AppColors.success.withValues(alpha: 0.35)
+        : AppColors.info.withValues(alpha: 0.35),
+    width: 0.5,
+  )));
+
+BoxStyler _attackCardStyle(bool isSelected, Color accentColor) {
+  var style = BoxStyler()
+    .color(AppColors.surfaceHigh)
+    .borderRadius(BorderRadiusGeometryMix.circular(AppRadius.md))
+    .border(BorderMix.all(BorderSideMix(
+      color: isSelected ? AppColors.primary.withValues(alpha: 0.8) : accentColor.withValues(alpha: 0.45),
+      width: isSelected ? 1.8 : 1.0,
+    )))
+    .padding(EdgeInsetsGeometryMix.symmetric(horizontal: 6, vertical: 5));
+
+  if (isSelected) {
+    style = style.shadow(BoxShadowMix(
+      color: AppColors.primary.withValues(alpha: 0.15),
+      blurRadius: 8,
+      offset: const Offset(0, 2),
+    ));
+  }
+  return style;
+}
+
+BoxStyler _typeIconCircleStyle(Color typeColor) => BoxStyler()
+  .padding(EdgeInsetsGeometryMix.all(2.5))
+  .borderRadius(BorderRadiusGeometryMix.circular(50))
+  .color(typeColor);
+
+final _battleLogConsoleStyle = BoxStyler()
+  .padding(EdgeInsetsGeometryMix.all(14))
+  .color(AppColors.background)
+  .borderRadius(BorderRadiusGeometryMix.circular(AppRadius.md))
+  .border(BorderMix.all(BorderSideMix(color: AppColors.outlineVariant)));
+
+BoxStyler _switchSlotStyle({
+  required bool isSelected,
+  required bool isLead,
+}) => BoxStyler()
+  .color(AppColors.surfaceHigh)
+  .borderRadius(BorderRadiusGeometryMix.circular(AppRadius.md))
+  .border(BorderMix.all(BorderSideMix(
+    color: isSelected
+        ? AppColors.success.withValues(alpha: 0.9)
+        : (isLead
+            ? AppColors.info.withValues(alpha: 0.7)
+            : AppColors.outlineVariant.withValues(alpha: 0.35)),
+    width: isSelected ? 2.0 : (isLead ? 1.5 : 1.0),
+  )));
+
+final _chatConsoleStyle = BoxStyler()
+  .padding(EdgeInsetsGeometryMix.only(right: 4))
+  .color(AppColors.background)
+  .borderRadius(BorderRadiusGeometryMix.circular(AppRadius.md))
+  .border(BorderMix.all(BorderSideMix(color: AppColors.outlineVariant)));
+
+BoxStyler _chatBubbleStyle(bool isMe) => BoxStyler()
+  .padding(EdgeInsetsGeometryMix.symmetric(horizontal: 16, vertical: 10))
+  .color(isMe
+      ? AppColors.primary.withValues(alpha: 0.18)
+      : AppColors.surfaceHigh)
+  .borderRadius(BorderRadiusGeometryMix.only(
+    topLeft: const Radius.circular(12),
+    topRight: const Radius.circular(12),
+    bottomLeft: Radius.circular(isMe ? 12 : 4),
+    bottomRight: Radius.circular(isMe ? 4 : 12),
+  ))
+  .border(BorderMix.all(BorderSideMix(
+    color: isMe
+        ? AppColors.primary.withValues(alpha: 0.35)
+        : AppColors.outlineVariant,
+  )));
+
+final _compactTopTurnBannerStyle = BoxStyler()
+  .padding(EdgeInsetsGeometryMix.symmetric(horizontal: 10, vertical: 6))
+  .color(AppColors.background.withValues(alpha: 0.6))
+  .borderRadius(BorderRadiusGeometryMix.circular(AppRadius.sm))
+  .border(BorderMix.all(BorderSideMix(color: AppColors.outlineVariant.withValues(alpha: 0.3))));
+
+BoxStyler _statusBadgeStyle(Color badgeColor) => BoxStyler()
+  .padding(EdgeInsetsGeometryMix.symmetric(horizontal: 6, vertical: 1.5))
+  .color(badgeColor)
+  .borderRadius(BorderRadiusGeometryMix.circular(4));
+
+BoxStyler _participantTileStyle({
+  required Color color,
+  required bool isLead,
+}) => BoxStyler()
+  .padding(EdgeInsetsGeometryMix.all(8))
+  .color(AppColors.surfaceHighest)
+  .borderRadius(BorderRadiusGeometryMix.circular(AppRadius.md))
+  .border(BorderMix.all(BorderSideMix(
+    color: isLead ? color.withValues(alpha: 0.8) : color.withValues(alpha: 0.35),
+    width: isLead ? 1.8 : 1.0,
+  )));
+
+BoxStyler _pulsingIndicatorStyle(Color color) => BoxStyler()
+  .width(10)
+  .height(10)
+  .borderRadius(BorderRadiusGeometryMix.circular(5))
+  .color(color)
+  .shadow(BoxShadowMix(
+    color: color.withValues(alpha: 0.6),
+    blurRadius: 6,
+  ));
 
 class BattleView extends StatefulWidget {
   final String? battleCode;
@@ -665,49 +965,25 @@ class _BattleViewState extends State<BattleView> {
             if (!_phase.isWaitingPlayers) ...[
               Expanded(
                 child: Center(
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: AppColors.surfaceHigh.withValues(alpha: 0.5),
-                      borderRadius: BorderRadius.circular(AppRadius.md),
-                      border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.3)),
-                    ),
+                  child: Box(
+                    style: _appBarVsContainerStyle,
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Text(
+                        StyledText(
                           _myName.replaceAll(' (Tú)', ''),
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w900,
-                            color: AppColors.onSurface,
-                          ),
+                          style: _appBarVsPlayerTextStyle,
                         ),
-                        Container(
-                          margin: const EdgeInsets.symmetric(horizontal: 12),
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [AppColors.primary, AppColors.secondary],
-                            ),
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: const Text(
+                        Box(
+                          style: _appBarVsBadgeBackgroundStyle,
+                          child: StyledText(
                             'VS',
-                            style: TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w900,
-                              color: Colors.white,
-                            ),
+                            style: _appBarVsBadgeTextStyle,
                           ),
                         ),
-                        Text(
+                        StyledText(
                           _oppName,
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w900,
-                            color: AppColors.onSurface,
-                          ),
+                          style: _appBarVsPlayerTextStyle,
                         ),
                       ],
                     ),
@@ -1030,23 +1306,8 @@ class _BattleViewState extends State<BattleView> {
       borderRadius: BorderRadius.circular(AppRadius.md),
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          decoration: BoxDecoration(
-            color: AppColors.danger.withValues(alpha: 0.15),
-            borderRadius: BorderRadius.circular(AppRadius.md),
-            border: Border.all(
-              color: AppColors.danger.withValues(alpha: 0.6),
-              width: 1.5,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.danger.withValues(alpha: 0.2),
-                blurRadius: 12,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
+        child: Box(
+          style: _noConnectionBannerStyle,
           child: Row(
             children: [
               _PulsingIcon(
@@ -1095,44 +1356,14 @@ class _BattleViewState extends State<BattleView> {
 
   Widget _buildSyncingPanel() {
     final text = Theme.of(context).textTheme;
-    return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppRadius.lg),
-        side: BorderSide(
-          color: AppColors.outlineVariant.withValues(alpha: 0.4),
-          width: 1.5,
-        ),
-      ),
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(AppRadius.lg),
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              AppColors.surfaceHigh.withValues(alpha: 0.95),
-              AppColors.surface.withValues(alpha: 0.98),
-            ],
-          ),
-        ),
-        padding: const EdgeInsets.all(28),
-        child: Center(
+    return Box(
+      style: _lobbyCardWithBorderColorStyle(AppColors.outlineVariant.withValues(alpha: 0.4)),
+      child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Container(
-                width: 80,
-                height: 80,
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: AppColors.primary.withValues(alpha: 0.1),
-                  border: Border.all(
-                    color: AppColors.primary.withValues(alpha: 0.2),
-                    width: 2,
-                  ),
-                ),
+              Box(
+                style: _loadingIndicatorCircleStyle,
                 child: CircularProgressIndicator(
                   strokeWidth: 3,
                   valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
@@ -1169,49 +1400,19 @@ class _BattleViewState extends State<BattleView> {
             ],
           ),
         ),
-      ),
     );
   }
 
   Widget _buildErrorPanel() {
     final text = Theme.of(context).textTheme;
-    return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppRadius.lg),
-        side: BorderSide(
-          color: AppColors.danger.withValues(alpha: 0.4),
-          width: 1.5,
-        ),
-      ),
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(AppRadius.lg),
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              AppColors.surfaceHigh.withValues(alpha: 0.95),
-              AppColors.surface.withValues(alpha: 0.98),
-            ],
-          ),
-        ),
-        padding: const EdgeInsets.all(28),
-        child: Center(
+    return Box(
+      style: _lobbyCardWithBorderColorStyle(AppColors.danger.withValues(alpha: 0.4)),
+      child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Container(
-                width: 80,
-                height: 80,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: AppColors.danger.withValues(alpha: 0.1),
-                  border: Border.all(
-                    color: AppColors.danger.withValues(alpha: 0.3),
-                    width: 2,
-                  ),
-                ),
+              Box(
+                style: _errorIconCircleStyle,
                 child: Icon(
                   Icons.error_outline_rounded,
                   color: AppColors.danger,
@@ -1278,7 +1479,6 @@ class _BattleViewState extends State<BattleView> {
             ],
           ),
         ),
-      ),
     );
   }
 
@@ -1291,47 +1491,14 @@ class _BattleViewState extends State<BattleView> {
     final player1Connected = _connectedPlayers >= 1;
     final player2Connected = _connectedPlayers >= 2;
 
-    return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppRadius.lg),
-        side: BorderSide(
-          color: AppColors.outlineVariant.withValues(alpha: 0.4),
-          width: 1.5,
-        ),
-      ),
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(AppRadius.lg),
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              AppColors.surfaceHigh.withValues(alpha: 0.95),
-              AppColors.surface.withValues(alpha: 0.98),
-            ],
-          ),
-        ),
-        padding: const EdgeInsets.all(28),
-        child: Column(
+    return Box(
+      style: _lobbyCardWithBorderColorStyle(AppColors.outlineVariant.withValues(alpha: 0.4)),
+      child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             // Icon header
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: LinearGradient(
-                  colors: [
-                    AppColors.accent.withValues(alpha: 0.2),
-                    AppColors.primary.withValues(alpha: 0.1),
-                  ],
-                ),
-                border: Border.all(
-                  color: AppColors.accent.withValues(alpha: 0.3),
-                  width: 2,
-                ),
-              ),
+            Box(
+              style: _lobbyHeaderIconStyle,
               child: Icon(
                 Icons.people_alt_rounded,
                 color: AppColors.accent,
@@ -1360,15 +1527,8 @@ class _BattleViewState extends State<BattleView> {
             const SizedBox(height: 28),
 
             // Format and progress badge
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              decoration: BoxDecoration(
-                color: AppColors.primary.withValues(alpha: 0.05),
-                borderRadius: BorderRadius.circular(100),
-                border: Border.all(
-                  color: AppColors.primary.withValues(alpha: 0.15),
-                ),
-              ),
+            Box(
+              style: _lobbyFormatBadgeStyle,
               child: Text(
                 'Formato: $_battleFormat • Conectados: $_connectedPlayers / $_expectedPlayers',
                 style: text.bodySmall?.copyWith(
@@ -1401,15 +1561,8 @@ class _BattleViewState extends State<BattleView> {
 
             const SizedBox(height: 24),
             // Tips banner
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: AppColors.background.withValues(alpha: 0.3),
-                borderRadius: BorderRadius.circular(AppRadius.md),
-                border: Border.all(
-                  color: AppColors.outlineVariant.withValues(alpha: 0.3),
-                ),
-              ),
+            Box(
+              style: _lobbyTipsBannerStyle,
               child: Row(
                 children: [
                   Icon(
@@ -1433,47 +1586,22 @@ class _BattleViewState extends State<BattleView> {
             ),
           ],
         ),
-      ),
     );
   }
 
   Widget _buildLeadSelectionPanel() {
     final text = Theme.of(context).textTheme;
 
-    return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppRadius.lg),
-        side: BorderSide(
-          color: AppColors.outlineVariant.withValues(alpha: 0.4),
-          width: 1.5,
-        ),
-      ),
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(AppRadius.lg),
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              AppColors.surfaceHigh.withValues(alpha: 0.95),
-              AppColors.surface.withValues(alpha: 0.98),
-            ],
-          ),
-        ),
-        padding: const EdgeInsets.all(28),
-        child: Column(
+    return Box(
+      style: _lobbyCardWithBorderColorStyle(AppColors.outlineVariant.withValues(alpha: 0.4)),
+      child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             // Header
             Row(
               children: [
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: AppColors.primary.withValues(alpha: 0.15),
-                  ),
+                Box(
+                  style: _primaryIconCircleStyle,
                   child: Icon(
                     Icons.catching_pokemon,
                     color: AppColors.primary,
@@ -1546,43 +1674,16 @@ class _BattleViewState extends State<BattleView> {
                         if (pct < 0.5) hpColor = AppColors.accent;
                         if (pct < 0.25) hpColor = AppColors.danger;
 
-                        return Container(
-                          decoration: BoxDecoration(
-                            color: isSelected
-                                ? (AppColors.isDark
-                                    ? AppColors.primary.withValues(alpha: 0.15)
-                                    : const Color(0xFFEDE7F6))
-                                : AppColors.surfaceHighest,
-                            borderRadius: BorderRadius.circular(AppRadius.md),
-                            border: Border.all(
-                              color: isSelected
-                                  ? AppColors.primary
-                                  : AppColors.outlineVariant.withValues(alpha: 0.4),
-                              width: isSelected ? 2.0 : 1.0,
-                            ),
-                            boxShadow: isSelected
-                                ? [
-                                    BoxShadow(
-                                      color: AppColors.primary.withValues(alpha: 0.2),
-                                      blurRadius: 10,
-                                      spreadRadius: 0,
-                                    )
-                                  ]
-                                : null,
-                          ),
-                          child: Material(
-                            color: Colors.transparent,
-                            borderRadius: BorderRadius.circular(AppRadius.md),
-                            child: InkWell(
-                              borderRadius: BorderRadius.circular(AppRadius.md),
-                              onTap: _leadSubmitted
-                                  ? null
-                                  : () {
-                                      setState(() {
-                                        _selectedLeadId = id;
-                                      });
-                                    },
-                              child: Padding(
+                        return PressableBox(
+                          onPress: _leadSubmitted
+                              ? null
+                              : () {
+                                  setState(() {
+                                    _selectedLeadId = id;
+                                  });
+                                },
+                          style: _leadSelectionSlotStyle(isSelected),
+                          child: Padding(
                                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                                 child: Row(
                                   children: [
@@ -1661,8 +1762,6 @@ class _BattleViewState extends State<BattleView> {
                                     ],
                                   ],
                                 ),
-                              ),
-                            ),
                           ),
                         );
                       },
@@ -1672,15 +1771,8 @@ class _BattleViewState extends State<BattleView> {
 
             // Footer / Button
             if (_leadSubmitted)
-              Container(
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                decoration: BoxDecoration(
-                  color: AppColors.primary.withValues(alpha: 0.05),
-                  borderRadius: BorderRadius.circular(AppRadius.md),
-                  border: Border.all(
-                    color: AppColors.primary.withValues(alpha: 0.15),
-                  ),
-                ),
+              Box(
+                style: _teamPreviewFooterBannerStyle,
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -1716,7 +1808,6 @@ class _BattleViewState extends State<BattleView> {
               ),
           ],
         ),
-      ),
     );
   }
 
@@ -1729,33 +1820,16 @@ class _BattleViewState extends State<BattleView> {
     final text = Theme.of(context).textTheme;
     final dotColor = isConnected ? AppColors.success : AppColors.onSurfaceMuted.withValues(alpha: 0.3);
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      decoration: BoxDecoration(
-        color: isConnected
-            ? AppColors.surface.withValues(alpha: 0.4)
-            : AppColors.background.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(AppRadius.md),
-        border: Border.all(
-          color: isConnected
-              ? AppColors.success.withValues(alpha: 0.2)
-              : AppColors.outlineVariant.withValues(alpha: 0.3),
-          width: 1,
-        ),
-      ),
+    return Box(
+      style: _lobbyPlayerTileStyle(isConnected),
       child: Row(
         children: [
           // Connection status dot/indicator
           if (isConnected)
             _PulsingIndicator(color: AppColors.success)
           else
-            Container(
-              width: 10,
-              height: 10,
-              decoration: BoxDecoration(
-                color: dotColor,
-                shape: BoxShape.circle,
-              ),
+            Box(
+              style: _lobbyPlayerStatusDotStyle(dotColor),
             ),
           const SizedBox(width: 14),
 
@@ -1785,14 +1859,8 @@ class _BattleViewState extends State<BattleView> {
           ),
 
           // Right status label
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-            decoration: BoxDecoration(
-              color: isConnected
-                  ? AppColors.success.withValues(alpha: 0.15)
-                  : AppColors.background.withValues(alpha: 0.2),
-              borderRadius: BorderRadius.circular(AppRadius.sm),
-            ),
+          Box(
+            style: _lobbyPlayerStatusBadgeStyle(isConnected),
             child: Text(
               isConnected ? 'Listo' : 'Pendiente',
               style: TextStyle(
@@ -1869,25 +1937,8 @@ class _BattleViewState extends State<BattleView> {
                   ),
                 ),
                 const SizedBox(width: 8),
-                Container(
-                  width: 30,
-                  height: 30,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: AppColors.surfaceHighest,
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: AppColors.accent,
-                      width: 1.5,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.accent.withValues(alpha: 0.15),
-                        blurRadius: 4,
-                        offset: const Offset(0, 2),
-                      )
-                    ],
-                  ),
+                Box(
+                  style: _crossedSwordsBadgeStyle,
                   child: SvgPicture.string(
                     _crossedSwordsSvg,
                     width: 16,
@@ -1945,20 +1996,8 @@ class _BattleViewState extends State<BattleView> {
                 ),
                 if (isAnyAttackSelected) ...[
                   const Spacer(),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: isActionSubmitted
-                          ? AppColors.success.withValues(alpha: 0.12)
-                          : AppColors.info.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(4),
-                      border: Border.all(
-                        color: isActionSubmitted
-                            ? AppColors.success.withValues(alpha: 0.35)
-                            : AppColors.info.withValues(alpha: 0.35),
-                        width: 0.5,
-                      ),
-                    ),
+                  Box(
+                    style: _actionSubmittedBadgeStyle(isActionSubmitted),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -2041,25 +2080,8 @@ class _BattleViewState extends State<BattleView> {
         (_pendingEnforceSwitch && _pendingAttack != null && _pendingAttack!['id'] == attack['id']);
     final enforceSwitch = (attack['meta'] as Map<String, dynamic>?)?['enforce_switch'] as bool? ?? false;
 
-    final cardContent = Container(
-      decoration: BoxDecoration(
-        color: AppColors.surfaceHigh,
-        borderRadius: BorderRadius.circular(AppRadius.md),
-        border: Border.all(
-          color: isSelected ? AppColors.primary.withValues(alpha: 0.8) : accentColor.withValues(alpha: 0.45),
-          width: isSelected ? 1.8 : 1.0,
-        ),
-        boxShadow: isSelected
-            ? [
-                BoxShadow(
-                  color: AppColors.primary.withValues(alpha: 0.15),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                )
-              ]
-            : null,
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 5),
+    final cardContent = Box(
+      style: _attackCardStyle(isSelected, accentColor),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
@@ -2152,12 +2174,8 @@ class _BattleViewState extends State<BattleView> {
                   mainAxisSize: MainAxisSize.min,
                   children: types.take(2).map((t) => Padding(
                     padding: const EdgeInsets.only(left: 2),
-                    child: Container(
-                      padding: const EdgeInsets.all(2.5),
-                      decoration: BoxDecoration(
-                        color: PokemonTypeIcons.getColor(t),
-                        shape: BoxShape.circle,
-                      ),
+                    child: Box(
+                      style: _typeIconCircleStyle(PokemonTypeIcons.getColor(t)),
                       child: PokemonTypeIcons.buildSvgIcon(
                         t,
                         size: 8,
@@ -2244,13 +2262,8 @@ class _BattleViewState extends State<BattleView> {
           ),
           const SizedBox(height: 12),
           Expanded(
-            child: Container(
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: AppColors.background,
-                borderRadius: BorderRadius.circular(AppRadius.md),
-                border: Border.all(color: AppColors.outlineVariant),
-              ),
+            child: Box(
+              style: _battleLogConsoleStyle,
               child: ListView.builder(
                 controller: _feedbackScroll,
                 itemCount: _battleFeedback.length,
@@ -2322,13 +2335,8 @@ class _BattleViewState extends State<BattleView> {
                 ),
                 if (isAnySwitchSelected && switchTargetId != null) ...[
                   const Spacer(),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: AppColors.success.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(4),
-                      border: Border.all(color: AppColors.success.withValues(alpha: 0.35), width: 0.5),
-                    ),
+                  Box(
+                    style: _actionSubmittedBadgeStyle(true),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -2476,46 +2484,28 @@ class _BattleViewState extends State<BattleView> {
                   ),
                 );
 
-                return DecoratedBox(
-                  decoration: BoxDecoration(
-                    color: AppColors.surfaceHigh,
-                    borderRadius: BorderRadius.circular(AppRadius.md),
-                    border: Border.all(
-                      color: isSelected
-                          ? AppColors.success.withValues(alpha: 0.9)
-                          : (isLead
-                              ? AppColors.info.withValues(alpha: 0.7)
-                              : AppColors.outlineVariant.withValues(alpha: 0.35)),
-                      width: isSelected ? 2.0 : (isLead ? 1.5 : 1.0),
-                    ),
-                  ),
-                  child: Material(
-                    color: Colors.transparent,
-                    borderRadius: BorderRadius.circular(AppRadius.md),
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(AppRadius.md),
-                      onTap: isFainted || isLead
-                          ? null
-                          : () {
-                        if (_pendingEnforceSwitch) {
-                          _submitAttackSwitch(m['id'] as int);
-                        } else {
-                          setState(() {
-                            _submittedActionType = 'switch';
-                            _submittedActionTargetId = m['id'];
-                            _submittedActionSwitchTargetId = null;
-                            _pendingEnforceSwitch = false;
-                            _battleFeedback.add('Enviando acción: Cambiar a ${m['name']}...');
-                          });
-                          _scrollToFeedbackBottom();
-                          _socketService.sendAction('switch', {
-                            'pokemon_id': m['id'] as int,
-                          });
-                        }
-                      },
-                      child: isDimmed ? Opacity(opacity: 0.45, child: cardContent) : cardContent,
-                    ),
-                  ),
+                return PressableBox(
+                  onPress: isFainted || isLead
+                      ? null
+                      : () {
+                    if (_pendingEnforceSwitch) {
+                      _submitAttackSwitch(m['id'] as int);
+                    } else {
+                      setState(() {
+                        _submittedActionType = 'switch';
+                        _submittedActionTargetId = m['id'];
+                        _submittedActionSwitchTargetId = null;
+                        _pendingEnforceSwitch = false;
+                        _battleFeedback.add('Enviando acción: Cambiar a ${m['name']}...');
+                      });
+                      _scrollToFeedbackBottom();
+                      _socketService.sendAction('switch', {
+                        'pokemon_id': m['id'] as int,
+                      });
+                    }
+                  },
+                  style: _switchSlotStyle(isSelected: isSelected, isLead: isLead),
+                  child: isDimmed ? Opacity(opacity: 0.45, child: cardContent) : cardContent,
                 );
               },
             ),
@@ -2551,13 +2541,8 @@ class _BattleViewState extends State<BattleView> {
             ),
             const SizedBox(height: 12),
             Expanded(
-              child: Container(
-                padding: const EdgeInsets.only(right: 4),
-                decoration: BoxDecoration(
-                  color: AppColors.background,
-                  borderRadius: BorderRadius.circular(AppRadius.md),
-                  border: Border.all(color: AppColors.outlineVariant),
-                ),
+              child: Box(
+                style: _chatConsoleStyle,
                 child: ListView.builder(
                   controller: _chatScroll,
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -2574,33 +2559,8 @@ class _BattleViewState extends State<BattleView> {
                                 : MainAxisAlignment.start,
                         children: [
                           Flexible(
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 10,
-                              ),
-                              decoration: BoxDecoration(
-                                color:
-                                    isMe
-                                        ? AppColors.primary.withValues(
-                                          alpha: 0.18,
-                                        )
-                                        : AppColors.surfaceHigh,
-                                borderRadius: BorderRadius.only(
-                                  topLeft: const Radius.circular(12),
-                                  topRight: const Radius.circular(12),
-                                  bottomLeft: Radius.circular(isMe ? 12 : 4),
-                                  bottomRight: Radius.circular(isMe ? 4 : 12),
-                                ),
-                                border: Border.all(
-                                  color:
-                                      isMe
-                                          ? AppColors.primary.withValues(
-                                            alpha: 0.35,
-                                          )
-                                          : AppColors.outlineVariant,
-                                ),
-                              ),
+                            child: Box(
+                              style: _chatBubbleStyle(isMe),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 mainAxisSize: MainAxisSize.min,
@@ -2661,13 +2621,8 @@ class _BattleViewState extends State<BattleView> {
     final isWaitingPlayers = _phase.isWaitingPlayers;
     final isWaiting = _phase.isWaitingActions;
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: AppColors.background.withValues(alpha: 0.6),
-        borderRadius: BorderRadius.circular(AppRadius.sm),
-        border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.3)),
-      ),
+    return Box(
+      style: _compactTopTurnBannerStyle,
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -2810,12 +2765,8 @@ class _ParticipantTile extends StatelessWidget {
       badgeColor = const Color(0xFF3498DB);
     }
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
-      decoration: BoxDecoration(
-        color: badgeColor,
-        borderRadius: BorderRadius.circular(4),
-      ),
+    return Box(
+      style: _statusBadgeStyle(badgeColor),
       child: Text(
         label,
         style: const TextStyle(
@@ -2960,16 +2911,8 @@ class _ParticipantTile extends StatelessWidget {
           )
         : const SizedBox(width: 70, height: 70);
 
-    return Container(
-      padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        color: AppColors.surfaceHighest,
-        borderRadius: BorderRadius.circular(AppRadius.md),
-        border: Border.all(
-          color: isLead ? color.withValues(alpha: 0.8) : color.withValues(alpha: 0.35),
-          width: isLead ? 1.8 : 1.0,
-        ),
-      ),
+    return Box(
+      style: _participantTileStyle(color: color, isLead: isLead),
       child: Row(
         children: mirror
             ? [
@@ -3018,20 +2961,8 @@ class _PulsingIndicatorState extends State<_PulsingIndicator>
   Widget build(BuildContext context) {
     return FadeTransition(
       opacity: _controller,
-      child: Container(
-        width: 10,
-        height: 10,
-        decoration: BoxDecoration(
-          color: widget.color,
-          shape: BoxShape.circle,
-          boxShadow: [
-            BoxShadow(
-              color: widget.color.withValues(alpha: 0.6),
-              blurRadius: 6,
-              spreadRadius: 2,
-            ),
-          ],
-        ),
+      child: Box(
+        style: _pulsingIndicatorStyle(widget.color),
       ),
     );
   }

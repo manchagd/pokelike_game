@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:mix/mix.dart';
 import 'theme.dart';
 import 'nav.dart';
 import 'utils/battle_socket_service.dart';
@@ -30,13 +31,15 @@ class MyApp extends StatelessWidget {
               (themeProvider.themeMode == ThemeMode.system &&
                   MediaQuery.platformBrightnessOf(context) == Brightness.dark);
           AppColors.isDark = isDark;
-          return MaterialApp.router(
-            title: 'Pixel Clash',
-            debugShowCheckedModeBanner: false,
-            theme: buildAppTheme(isDark: false),
-            darkTheme: buildAppTheme(isDark: true),
-            themeMode: themeProvider.themeMode,
-            routerConfig: AppRouter.router,
+          return MixScope(
+            child: MaterialApp.router(
+              title: 'Pixel Clash',
+              debugShowCheckedModeBanner: false,
+              theme: buildAppTheme(isDark: false),
+              darkTheme: buildAppTheme(isDark: true),
+              themeMode: themeProvider.themeMode,
+              routerConfig: AppRouter.router,
+            ),
           );
         },
       ),
