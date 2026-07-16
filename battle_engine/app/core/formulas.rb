@@ -73,3 +73,5 @@ module Formulas
     (move.accuracy * modifier * adjusted_accuracy * micle_berry) - affection
   end
 end
+
+# implementar formula para determinar golpe critico

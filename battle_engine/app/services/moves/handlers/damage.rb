@@ -27,3 +27,5 @@ module Services
     end
   end
 end
+
+# implementar specs para acción de daño

@@ -29,6 +29,7 @@ class Move < ApplicationRecord
     damage_lower: 'DamageLower',
     ohko: 'Ohko',
     force_switch: 'ForceSwitch',
+    damage_recoil: 'DamageRecoil',
     damage_raise: 'DamageRaise',
     damage_heal: 'DamageHeal',
     whole_field_effect: 'WholeFieldEffect',
@@ -56,5 +57,3 @@ class Move < ApplicationRecord
     errors.add(:type, "#{unkonwn_types} must exist")
   end
 end
-
-# Agregar nuevo handler para damage_recoil (ej: double edge, high jump kick, rock smash, etc)
