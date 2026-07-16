@@ -4,10 +4,163 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:mix/mix.dart';
 import '../theme.dart';
 import '../nav.dart';
 import '../utils/battle_socket_service.dart';
 import '../utils/pokemon_type_icons.dart';
+BoxStyler get _onlineBadgeContainerStyle => BoxStyler()
+  .padding(EdgeInsetsGeometryMix.symmetric(horizontal: 12, vertical: 6))
+  .borderRadius(BorderRadiusGeometryMix.circular(20))
+  .color(AppColors.success.withValues(alpha: 0.1))
+  .border(BorderMix.all(BorderSideMix(color: AppColors.success.withValues(alpha: 0.3))));
+
+BoxStyler get _onlineIndicatorDotStyle => BoxStyler()
+  .width(8)
+  .height(8)
+  .color(AppColors.success)
+  .borderRadius(BorderRadiusGeometryMix.circular(4));
+
+TextStyler get _onlineBadgeTextStyle => TextStyler()
+  .color(AppColors.success)
+  .fontSize(12)
+  .fontWeight(FontWeight.w700);
+
+BoxStyler get _shieldIconBackgroundStyle => BoxStyler()
+  .width(36)
+  .height(36)
+  .color(AppColors.secondary.withValues(alpha: 0.16))
+  .borderRadius(BorderRadiusGeometryMix.circular(AppRadius.sm));
+
+BoxStyler _teamRowStyle(bool selected) => BoxStyler()
+  .padding(EdgeInsetsGeometryMix.symmetric(horizontal: 16, vertical: 14))
+  .borderRadius(BorderRadiusGeometryMix.circular(AppRadius.md))
+  .color(selected ? AppColors.primary.withValues(alpha: 0.10) : AppColors.surfaceHigh)
+  .border(BorderMix.all(BorderSideMix(
+    color: selected ? AppColors.primary : AppColors.outlineVariant,
+    width: selected ? 1.5 : 1.0,
+  )))
+  .onHovered(BoxStyler().color(selected ? AppColors.primary.withValues(alpha: 0.15) : AppColors.outlineVariant.withValues(alpha: 0.1)))
+  .animate(AnimationConfig.ease(const Duration(milliseconds: 150)));
+
+TextStyler _teamRowTextStyle(bool selected) => TextStyler()
+  .fontWeight(selected ? FontWeight.w700 : FontWeight.w500)
+  .color(selected ? AppColors.onSurface : AppColors.onSurfaceMuted)
+  .fontSize(15);
+
+BoxStyler _pokemonChipStyle(Color c1, Color c2) => BoxStyler()
+  .padding(EdgeInsetsGeometryMix.symmetric(horizontal: 10, vertical: 5))
+  .borderRadius(BorderRadiusGeometryMix.circular(16))
+  .linearGradient(
+    colors: [
+      c1.withValues(alpha: 0.14),
+      c2.withValues(alpha: 0.14),
+    ],
+  )
+  .border(BorderMix.all(BorderSideMix(
+    color: Color.lerp(c1, c2, 0.5)!.withValues(alpha: 0.4),
+    width: 1.0,
+  )));
+
+TextStyler get _pokemonChipTextStyle => TextStyler()
+  .fontSize(12)
+  .fontWeight(FontWeight.w600);
+
+BoxStyler get _noTeamsAlertStyle => BoxStyler()
+  .padding(EdgeInsetsGeometryMix.all(12))
+  .color(AppColors.danger.withValues(alpha: 0.12))
+  .borderRadius(BorderRadiusGeometryMix.circular(AppRadius.md))
+  .border(BorderMix.all(BorderSideMix(color: AppColors.danger.withValues(alpha: 0.4))));
+
+TextStyler get _noTeamsAlertTextStyle => TextStyler()
+  .color(AppColors.danger)
+  .fontSize(13)
+  .fontWeight(FontWeight.w500);
+
+BoxStyler get _activeBattlesIconBackgroundStyle => BoxStyler()
+  .width(36)
+  .height(36)
+  .color(AppColors.primary.withValues(alpha: 0.16))
+  .borderRadius(BorderRadiusGeometryMix.circular(AppRadius.sm));
+
+BoxStyler get _noActiveBattlesContainerStyle => BoxStyler()
+  .width(double.infinity)
+  .padding(EdgeInsetsGeometryMix.symmetric(vertical: 28))
+  .alignment(Alignment.center)
+  .color(AppColors.surfaceHigh)
+  .borderRadius(BorderRadiusGeometryMix.circular(AppRadius.md))
+  .border(BorderMix.all(BorderSideMix(color: AppColors.outlineVariant)));
+
+TextStyler _noActiveBattlesTextStyle(double fontSize) => TextStyler()
+  .color(AppColors.onSurfaceMuted)
+  .fontSize(fontSize);
+
+BoxStyler get _activeBattleRowStyle => BoxStyler()
+  .padding(EdgeInsetsGeometryMix.symmetric(horizontal: 14, vertical: 12))
+  .borderRadius(BorderRadiusGeometryMix.circular(AppRadius.md))
+  .color(AppColors.surfaceHigh)
+  .border(BorderMix.all(BorderSideMix(color: AppColors.outlineVariant)))
+  .onHovered(BoxStyler().color(AppColors.outlineVariant.withValues(alpha: 0.1)))
+  .animate(AnimationConfig.ease(const Duration(milliseconds: 150)));
+
+TextStyler _activeBattleRowIdStyle(double fontSize) => TextStyler()
+  .fontSize(fontSize)
+  .color(AppColors.primary)
+  .fontWeight(FontWeight.w700)
+  .letterSpacing(0.5);
+
+BoxStyler _resultBadgeStyle(Color c) => BoxStyler()
+  .width(28)
+  .height(28)
+  .alignment(Alignment.center)
+  .color(c.withValues(alpha: 0.18))
+  .borderRadius(BorderRadiusGeometryMix.circular(AppRadius.sm))
+  .border(BorderMix.all(BorderSideMix(color: c.withValues(alpha: 0.5))));
+
+TextStyler _resultBadgeTextStyle(Color c) => TextStyler()
+  .color(c)
+  .fontWeight(FontWeight.w800)
+  .fontSize(12);
+
+BoxStyler _statChipStyle(Color color) => BoxStyler()
+  .padding(EdgeInsetsGeometryMix.symmetric(horizontal: 14, vertical: 12))
+  .color(color.withValues(alpha: 0.12))
+  .borderRadius(BorderRadiusGeometryMix.circular(AppRadius.md))
+  .border(BorderMix.all(BorderSideMix(color: color.withValues(alpha: 0.4))));
+
+TextStyler _statValueStyle(Color color) => TextStyler()
+  .color(color)
+  .fontSize(22)
+  .fontWeight(FontWeight.w800);
+
+TextStyler get _statLabelStyle => TextStyler()
+  .color(AppColors.onSurfaceMuted)
+  .fontSize(12);
+
+BoxStyler get _dialogIconBackgroundStyle => BoxStyler()
+  .padding(EdgeInsetsGeometryMix.all(10))
+  .color(AppColors.primary.withValues(alpha: 0.16))
+  .borderRadius(BorderRadiusGeometryMix.circular(AppRadius.md));
+
+BoxStyler get _dialogCodeContainerStyle => BoxStyler()
+  .padding(EdgeInsetsGeometryMix.symmetric(horizontal: 20, vertical: 14))
+  .borderRadius(BorderRadiusGeometryMix.circular(AppRadius.md))
+  .color(AppColors.surfaceHigh)
+  .border(BorderMix.all(BorderSideMix(color: AppColors.primary.withValues(alpha: 0.4))))
+  .onHovered(BoxStyler().color(AppColors.primary.withValues(alpha: 0.08)))
+  .animate(AnimationConfig.ease(const Duration(milliseconds: 150)));
+
+TextStyler get _dialogCodeTextStyle => TextStyler()
+  .fontSize(22)
+  .fontWeight(FontWeight.w700)
+  .letterSpacing(4)
+  .color(AppColors.primary);
+
+BoxStyler get _joinDialogIconStyle => BoxStyler()
+  .padding(EdgeInsetsGeometryMix.all(10))
+  .color(AppColors.secondary.withValues(alpha: 0.16))
+  .borderRadius(BorderRadiusGeometryMix.circular(AppRadius.md));
+
 class MatchesView extends StatefulWidget {
   const MatchesView({super.key});
 
@@ -145,32 +298,16 @@ class _MatchesViewState extends State<MatchesView> {
                 'Arena de batalla',
                 style: text.headlineMedium?.copyWith(fontWeight: FontWeight.w800),
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: AppColors.success.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: AppColors.success.withValues(alpha: 0.3)),
-                ),
+              Box(
+                style: _onlineBadgeContainerStyle,
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Container(
-                      width: 8,
-                      height: 8,
-                      decoration: BoxDecoration(
-                        color: AppColors.success,
-                        shape: BoxShape.circle,
-                      ),
-                    ),
+                    Box(style: _onlineIndicatorDotStyle),
                     const SizedBox(width: 8),
-                    Text(
+                    StyledText(
                       '$activeUsers en línea',
-                      style: TextStyle(
-                        color: AppColors.success,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                      ),
+                      style: _onlineBadgeTextStyle,
                     ),
                   ],
                 ),
@@ -246,12 +383,8 @@ class _MatchesViewState extends State<MatchesView> {
           children: [
             Row(
               children: [
-                Container(
-                  width: 36, height: 36,
-                  decoration: BoxDecoration(
-                    color: AppColors.secondary.withValues(alpha: 0.16),
-                    borderRadius: BorderRadius.circular(AppRadius.sm),
-                  ),
+                Box(
+                  style: _shieldIconBackgroundStyle,
                   child: Icon(Icons.shield_outlined, color: AppColors.secondary, size: 20),
                 ),
                 const SizedBox(width: 12),
@@ -266,114 +399,80 @@ class _MatchesViewState extends State<MatchesView> {
               final rawPokemons = t['pokemons'] as List? ?? [];
               final pokemons = rawPokemons.map((p) => Map<String, dynamic>.from(p as Map)).toList();
 
+
+
               return Padding(
                 padding: const EdgeInsets.only(bottom: 10),
-                child: Material(
-                  color: selected
-                      ? AppColors.primary.withValues(alpha: 0.10)
-                      : AppColors.surfaceHigh,
-                  borderRadius: BorderRadius.circular(AppRadius.md),
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(AppRadius.md),
-                    onTap: () => setState(() => _selectedTeamId = id),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(AppRadius.md),
-                        border: Border.all(
-                          color: selected ? AppColors.primary : AppColors.outlineVariant,
-                          width: selected ? 1.5 : 1,
+                child: PressableBox(
+                  onPress: () => setState(() => _selectedTeamId = id),
+                  style: _teamRowStyle(selected),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(top: 2),
+                        child: Icon(
+                          selected ? Icons.shield : Icons.shield_outlined,
+                          color: selected ? AppColors.primary : AppColors.onSurfaceMuted,
                         ),
                       ),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.only(top: 2),
-                            child: Icon(
-                              selected ? Icons.shield : Icons.shield_outlined,
-                              color: selected ? AppColors.primary : AppColors.onSurfaceMuted,
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            StyledText(
+                              name,
+                              style: _teamRowTextStyle(selected),
                             ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  name,
-                                  style: TextStyle(
-                                    fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-                                    color: selected ? AppColors.onSurface : AppColors.onSurfaceMuted,
-                                    fontSize: 15,
-                                  ),
-                                ),
-                                if (pokemons.isNotEmpty) ...[
-                                  const SizedBox(height: 8),
-                                  Wrap(
-                                    spacing: 6,
-                                    runSpacing: 6,
-                                    children: pokemons.map((p) {
-                                      final rawTypes = p['types'] as List? ?? [];
-                                      final types = rawTypes.cast<String>();
-                                      final colors = types.isEmpty
-                                          ? [AppColors.primary]
-                                          : types.map((t) => PokemonTypeIcons.getColor(t)).toList();
-                                      final c1 = colors[0];
-                                      final c2 = colors.length > 1 ? colors[1] : c1;
+                            if (pokemons.isNotEmpty) ...[
+                              const SizedBox(height: 8),
+                              Wrap(
+                                spacing: 6,
+                                runSpacing: 6,
+                                children: pokemons.map((p) {
+                                  final rawTypes = p['types'] as List? ?? [];
+                                  final types = rawTypes.cast<String>();
+                                  final colors = types.isEmpty
+                                      ? [AppColors.primary]
+                                      : types.map((t) => PokemonTypeIcons.getColor(t)).toList();
+                                  final c1 = colors[0];
+                                  final c2 = colors.length > 1 ? colors[1] : c1;
 
-                                      return Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                                        decoration: BoxDecoration(
-                                          gradient: LinearGradient(
-                                            colors: [
-                                              c1.withValues(alpha: 0.14),
-                                              c2.withValues(alpha: 0.14),
-                                            ],
-                                          ),
-                                          borderRadius: BorderRadius.circular(16),
-                                          border: Border.all(
-                                            color: Color.lerp(c1, c2, 0.5)!.withValues(alpha: 0.4),
-                                            width: 1,
-                                          ),
-                                        ),
-                                        child: Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            if (types.isNotEmpty) ...[
-                                              PokemonTypeIcons.buildSvgIcon(types[0], color: c1, size: 12),
-                                              if (types.length > 1) ...[
-                                                const SizedBox(width: 3),
-                                                PokemonTypeIcons.buildSvgIcon(types[1], color: c2, size: 12),
-                                              ],
-                                            ] else ...[
-                                              Icon(Icons.catching_pokemon, color: c1, size: 12),
-                                            ],
-                                            const SizedBox(width: 6),
-                                            Text(
-                                              p['name'] ?? '',
-                                              style: const TextStyle(
-                                                fontSize: 12,
-                                                fontWeight: FontWeight.w600,
-                                              ),
-                                            ),
+                                  return Box(
+                                    style: _pokemonChipStyle(c1, c2),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        if (types.isNotEmpty) ...[
+                                          PokemonTypeIcons.buildSvgIcon(types[0], color: c1, size: 12),
+                                          if (types.length > 1) ...[
+                                            const SizedBox(width: 3),
+                                            PokemonTypeIcons.buildSvgIcon(types[1], color: c2, size: 12),
                                           ],
+                                        ] else ...[
+                                          Icon(Icons.catching_pokemon, color: c1, size: 12),
+                                        ],
+                                        const SizedBox(width: 6),
+                                        StyledText(
+                                          p['name'] ?? '',
+                                          style: _pokemonChipTextStyle,
                                         ),
-                                      );
-                                    }).toList(),
-                                  ),
-                                ],
-                              ],
-                            ),
-                          ),
-                          if (selected)
-                            Padding(
-                              padding: EdgeInsets.only(top: 2),
-                              child: Icon(Icons.check_circle, color: AppColors.primary, size: 20),
-                            ),
-                        ],
+                                      ],
+                                    ),
+                                  );
+                                }).toList(),
+                              ),
+                            ],
+                          ],
+                        ),
                       ),
-                    ),
+                      if (selected)
+                        Padding(
+                          padding: EdgeInsets.only(top: 2),
+                          child: Icon(Icons.check_circle, color: AppColors.primary, size: 20),
+                        ),
+                    ],
                   ),
                 ),
               );
@@ -410,25 +509,16 @@ class _MatchesViewState extends State<MatchesView> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             if (hasNoTeams) ...[
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: AppColors.danger.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(AppRadius.md),
-                  border: Border.all(color: AppColors.danger.withValues(alpha: 0.4)),
-                ),
+              Box(
+                style: _noTeamsAlertStyle,
                 child: Row(
                   children: [
                     Icon(Icons.warning_amber_rounded, color: AppColors.danger),
-                    SizedBox(width: 10),
+                    const SizedBox(width: 10),
                     Expanded(
-                      child: Text(
+                      child: StyledText(
                         'Debes registrar al menos un equipo en el Constructor de Equipos para poder combatir.',
-                        style: TextStyle(
-                          color: AppColors.danger,
-                          fontSize: 13,
-                          fontWeight: FontWeight.w500,
-                        ),
+                        style: _noTeamsAlertTextStyle,
                       ),
                     ),
                   ],
@@ -484,12 +574,8 @@ class _MatchesViewState extends State<MatchesView> {
           children: [
             Row(
               children: [
-                Container(
-                  width: 36, height: 36,
-                  decoration: BoxDecoration(
-                    color: AppColors.primary.withValues(alpha: 0.16),
-                    borderRadius: BorderRadius.circular(AppRadius.sm),
-                  ),
+                Box(
+                  style: _activeBattlesIconBackgroundStyle,
                   child: Icon(Icons.bolt, color: AppColors.primary, size: 20),
                 ),
                 const SizedBox(width: 12),
@@ -498,23 +584,16 @@ class _MatchesViewState extends State<MatchesView> {
             ),
             const SizedBox(height: 16),
             if (activeBattles.isEmpty)
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 28),
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: AppColors.surfaceHigh,
-                  borderRadius: BorderRadius.circular(AppRadius.md),
-                  border: Border.all(color: AppColors.outlineVariant),
-                ),
+              Box(
+                style: _noActiveBattlesContainerStyle,
                 child: Column(
                   children: [
                     Icon(Icons.sports_esports_outlined,
                         color: AppColors.onSurfaceMuted, size: 32),
                     const SizedBox(height: 10),
-                    Text(
+                    StyledText(
                       'No tienes combates activos',
-                      style: text.bodyMedium?.copyWith(color: AppColors.onSurfaceMuted),
+                      style: _noActiveBattlesTextStyle(text.bodyMedium?.fontSize ?? 14.0),
                     ),
                   ],
                 ),
@@ -524,54 +603,35 @@ class _MatchesViewState extends State<MatchesView> {
                 final code = b['id'] as String?;
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 10),
-                  child: Material(
-                    color: AppColors.surfaceHigh,
-                    borderRadius: BorderRadius.circular(AppRadius.md),
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(AppRadius.md),
-                      onTap: () {
-                        if (code != null) {
-                          context.push('${AppRoutes.battle}?code=$code');
-                        }
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(AppRadius.md),
-                          border: Border.all(color: AppColors.outlineVariant),
-                        ),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'ID #${code ?? '---'}',
-                                    style: text.labelMedium?.copyWith(
-                                      color: AppColors.primary,
-                                      fontWeight: FontWeight.w700,
-                                      letterSpacing: 0.5,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  _buildVSHeader(
-                                    b,
-                                    profile['name'] ?? 'Tú',
-                                    text.labelSmall?.copyWith(
-                                      color: AppColors.onSurfaceMuted,
-                                      fontWeight: FontWeight.w700,
-                                    ),
-                                  ),
-                                ],
+                  child: PressableBox(
+                    onPress: () {
+                      if (code != null) {
+                        context.push('${AppRoutes.battle}?code=$code');
+                      }
+                    },
+                    style: _activeBattleRowStyle,
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              StyledText(
+                                'ID #${code ?? '---'}',
+                                style: _activeBattleRowIdStyle(text.labelMedium?.fontSize ?? 12.0),
                               ),
-                            ),
-                            const SizedBox(width: 8),
-                            Icon(Icons.arrow_forward_ios,
-                                size: 14, color: AppColors.onSurfaceMuted),
-                          ],
+                              const SizedBox(height: 4),
+                              _buildVSHeader(
+                                b,
+                                profile['name'] ?? 'Tú',
+                                text.bodyMedium,
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
+                        Icon(Icons.arrow_forward_ios,
+                            size: 14, color: AppColors.onSurfaceMuted),
+                      ],
                     ),
                   ),
                 );
@@ -625,17 +685,11 @@ class _MatchesViewState extends State<MatchesView> {
                 final isV = result == 'V' || result == 'win' || result == 'W';
                 final displayChar = (result.isNotEmpty) ? result[0].toUpperCase() : 'V';
                 final c = isV ? AppColors.success : AppColors.danger;
-                return Container(
-                  width: 28, height: 28,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: c.withValues(alpha: 0.18),
-                    borderRadius: BorderRadius.circular(AppRadius.sm),
-                    border: Border.all(color: c.withValues(alpha: 0.5)),
-                  ),
-                  child: Text(
+                return Box(
+                  style: _resultBadgeStyle(c),
+                  child: StyledText(
                     displayChar,
-                    style: TextStyle(color: c, fontWeight: FontWeight.w800, fontSize: 12),
+                    style: _resultBadgeTextStyle(c),
                   ),
                 );
               }).toList(),
@@ -655,24 +709,19 @@ class _StatChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(AppRadius.md),
-        border: Border.all(color: color.withValues(alpha: 0.4)),
-      ),
+    return Box(
+      style: _statChipStyle(color),
       child: Row(
         children: [
-          Text(
+          StyledText(
             '$value',
-            style: TextStyle(color: color, fontSize: 22, fontWeight: FontWeight.w800),
+            style: _statValueStyle(color),
           ),
           const SizedBox(width: 10),
           Expanded(
-            child: Text(
+            child: StyledText(
               label,
-              style: TextStyle(color: AppColors.onSurfaceMuted, fontSize: 12),
+              style: _statLabelStyle,
             ),
           ),
         ],
@@ -777,12 +826,8 @@ class _CreateBattleDialogState extends State<_CreateBattleDialog> {
     }
 
     return AlertDialog(
-      icon: Container(
-        padding: const EdgeInsets.all(10),
-        decoration: BoxDecoration(
-          color: AppColors.primary.withValues(alpha: 0.16),
-          borderRadius: BorderRadius.circular(AppRadius.md),
-        ),
+      icon: Box(
+        style: _dialogIconBackgroundStyle,
         child: Icon(Icons.celebration, color: AppColors.primary),
       ),
       title: const Text('Combate creado'),
@@ -796,37 +841,24 @@ class _CreateBattleDialogState extends State<_CreateBattleDialog> {
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.onSurfaceMuted),
             ),
             const SizedBox(height: 16),
-            InkWell(
-              onTap: () {
+            PressableBox(
+              onPress: () {
                 Clipboard.setData(ClipboardData(text: code));
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(content: Text('Código copiado al portapapeles')),
                 );
               },
-              borderRadius: BorderRadius.circular(AppRadius.md),
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-                decoration: BoxDecoration(
-                  color: AppColors.surfaceHigh,
-                  borderRadius: BorderRadius.circular(AppRadius.md),
-                  border: Border.all(color: AppColors.primary.withValues(alpha: 0.4)),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      code,
-                      style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 4,
-                        color: AppColors.primary,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Icon(Icons.copy, color: AppColors.primary, size: 18),
-                  ],
-                ),
+              style: _dialogCodeContainerStyle,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  StyledText(
+                    code,
+                    style: _dialogCodeTextStyle,
+                  ),
+                  const SizedBox(width: 12),
+                  Icon(Icons.copy, color: AppColors.primary, size: 18),
+                ],
               ),
             ),
             const SizedBox(height: 8),
@@ -942,12 +974,8 @@ class _JoinBattleDialogState extends State<_JoinBattleDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      icon: Container(
-        padding: const EdgeInsets.all(10),
-        decoration: BoxDecoration(
-          color: AppColors.secondary.withValues(alpha: 0.16),
-          borderRadius: BorderRadius.circular(AppRadius.md),
-        ),
+      icon: Box(
+        style: _joinDialogIconStyle,
         child: Icon(
           _isConnecting ? Icons.sync : Icons.link,
           color: AppColors.secondary,

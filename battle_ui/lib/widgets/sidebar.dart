@@ -1,9 +1,42 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:mix/mix.dart';
 import '../theme.dart';
 import '../utils/battle_socket_service.dart';
 import '../utils/pokemon_type_icons.dart';
 import '../utils/theme_provider.dart';
+
+BoxStyler get _sidebarStyle => BoxStyler()
+  .width(300)
+  .color(AppColors.surface)
+  .border(BorderMix.right(BorderSideMix(color: AppColors.outlineVariant, width: 1)));
+
+BoxStyler get _onlineStatusDotStyle => BoxStyler()
+  .width(8)
+  .height(8)
+  .borderRadius(BorderRadiusGeometryMix.circular(4))
+  .color(AppColors.success);
+
+BoxStyler get _themeSelectorContainerStyle => BoxStyler()
+  .padding(EdgeInsetsGeometryMix.all(4))
+  .color(AppColors.surfaceHigh)
+  .borderRadius(BorderRadiusGeometryMix.circular(AppRadius.md))
+  .border(BorderMix.all(BorderSideMix(color: AppColors.outlineVariant)));
+
+BoxStyler get _logoBoxStyle => BoxStyler()
+  .width(44)
+  .height(44)
+  .borderRadius(BorderRadiusGeometryMix.circular(AppRadius.md))
+  .linearGradient(
+    colors: AppColors.logoGradient,
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  )
+  .shadow(BoxShadowMix(
+    color: AppColors.primary.withValues(alpha: 0.45),
+    blurRadius: 16,
+    offset: const Offset(0, 6),
+  ));
 
 class Sidebar extends StatefulWidget {
   final int selectedIndex;
@@ -60,14 +93,8 @@ class _SidebarState extends State<Sidebar> {
     final socketService = context.watch<BattleSocketService>();
     final profile = socketService.currentPlayer;
 
-    return Container(
-      width: 300,
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        border: Border(
-          right: BorderSide(color: colors.outlineVariant, width: 1),
-        ),
-      ),
+    return Box(
+      style: _sidebarStyle,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -76,24 +103,8 @@ class _SidebarState extends State<Sidebar> {
             padding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
             child: Row(
               children: [
-                Container(
-                  width: 44,
-                  height: 44,
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: AppColors.logoGradient,
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    borderRadius: BorderRadius.circular(AppRadius.md),
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.primary.withValues(alpha: 0.45),
-                        blurRadius: 16,
-                        offset: const Offset(0, 6),
-                      ),
-                    ],
-                  ),
+                Box(
+                  style: _logoBoxStyle,
                   child: const Icon(Icons.catching_pokemon, color: Colors.white, size: 24),
                 ),
                 const SizedBox(width: 12),
@@ -273,10 +284,8 @@ class _SidebarState extends State<Sidebar> {
               const SizedBox(height: 2),
               Row(
                 children: [
-                  Container(
-                    width: 8,
-                    height: 8,
-                    decoration: BoxDecoration(color: AppColors.success, shape: BoxShape.circle),
+                  Box(
+                    style: _onlineStatusDotStyle,
                   ),
                   const SizedBox(width: 6),
                   Text('En línea', style: text.bodySmall?.copyWith(color: AppColors.onSurfaceMuted)),
@@ -319,13 +328,8 @@ class _SidebarState extends State<Sidebar> {
             ),
           ),
           const SizedBox(height: 10),
-          Container(
-            padding: const EdgeInsets.all(4),
-            decoration: BoxDecoration(
-              color: AppColors.surfaceHigh,
-              borderRadius: BorderRadius.circular(AppRadius.md),
-              border: Border.all(color: colors.outlineVariant),
-            ),
+          Box(
+            style: _themeSelectorContainerStyle,
             child: Row(
               children: [
                 Expanded(
@@ -361,6 +365,30 @@ class _SidebarState extends State<Sidebar> {
   }
 }
 
+BoxStyler _navItemStyle(bool selected) => BoxStyler()
+  .padding(EdgeInsetsGeometryMix.symmetric(horizontal: 14, vertical: 12))
+  .borderRadius(BorderRadiusGeometryMix.circular(AppRadius.md))
+  .color(selected ? AppColors.primary.withValues(alpha: 0.14) : Colors.transparent)
+  .onHovered(BoxStyler().color(selected ? AppColors.primary.withValues(alpha: 0.20) : AppColors.primary.withValues(alpha: 0.08)))
+  .animate(AnimationConfig.ease(const Duration(milliseconds: 150)));
+
+TextStyler _navItemTextStyle(bool selected) => TextStyler()
+  .color(selected ? AppColors.onSurface : AppColors.onSurfaceMuted)
+  .fontWeight(selected ? FontWeight.w700 : FontWeight.w500)
+  .overflow(TextOverflow.ellipsis);
+
+BoxStyler _themeOptionStyle(bool isSelected) => BoxStyler()
+  .padding(EdgeInsetsGeometryMix.symmetric(vertical: 8))
+  .borderRadius(BorderRadiusGeometryMix.circular(AppRadius.sm))
+  .color(isSelected ? AppColors.primary.withValues(alpha: 0.15) : Colors.transparent)
+  .onHovered(BoxStyler().color(isSelected ? AppColors.primary.withValues(alpha: 0.20) : AppColors.primary.withValues(alpha: 0.08)))
+  .animate(AnimationConfig.ease(const Duration(milliseconds: 150)));
+
+TextStyler _themeOptionTextStyle(bool isSelected) => TextStyler()
+  .fontSize(10)
+  .color(isSelected ? AppColors.primary : AppColors.onSurfaceMuted)
+  .fontWeight(isSelected ? FontWeight.w700 : FontWeight.w500);
+
 class _NavItem extends StatelessWidget {
   final IconData icon;
   final String title;
@@ -376,39 +404,34 @@ class _NavItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final text = Theme.of(context).textTheme;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
-      child: Material(
-        color: selected ? AppColors.primary.withValues(alpha: 0.14) : Colors.transparent,
-        borderRadius: BorderRadius.circular(AppRadius.md),
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(AppRadius.md),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-            child: Row(
-              children: [
-                Icon(icon, size: 20, color: selected ? AppColors.primary : AppColors.onSurfaceMuted),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    title,
-                    style: text.bodyMedium?.copyWith(
-                      color: selected ? AppColors.onSurface : AppColors.onSurfaceMuted,
-                      fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                if (selected)
-                  Container(
-                    width: 6, height: 6,
-                    decoration: BoxDecoration(color: AppColors.primary, shape: BoxShape.circle),
-                  ),
-              ],
+      child: PressableBox(
+        onPress: onTap,
+        style: _navItemStyle(selected),
+        child: Row(
+          children: [
+            Icon(
+              icon,
+              size: 20,
+              color: selected ? AppColors.primary : AppColors.onSurfaceMuted,
             ),
-          ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: StyledText(
+                title,
+                style: _navItemTextStyle(selected),
+              ),
+            ),
+            if (selected)
+              Box(
+                style: BoxStyler()
+                  .width(6)
+                  .height(6)
+                  .color(AppColors.primary)
+                  .borderRadius(BorderRadiusGeometryMix.circular(3)),
+              ),
+          ],
         ),
       ),
     );
@@ -431,36 +454,24 @@ class _ThemeOptionButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
-    final text = Theme.of(context).textTheme;
 
-    return Material(
-      color: isSelected ? colors.primary.withValues(alpha: 0.15) : Colors.transparent,
-      borderRadius: BorderRadius.circular(AppRadius.sm),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(AppRadius.sm),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                icon,
-                size: 18,
-                color: isSelected ? colors.primary : AppColors.onSurfaceMuted,
-              ),
-              const SizedBox(height: 4),
-              Text(
-                label,
-                style: text.bodySmall?.copyWith(
-                  fontSize: 10,
-                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                  color: isSelected ? colors.primary : AppColors.onSurfaceMuted,
-                ),
-              ),
-            ],
+    return PressableBox(
+      onPress: onTap,
+      style: _themeOptionStyle(isSelected),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            icon,
+            size: 18,
+            color: isSelected ? colors.primary : AppColors.onSurfaceMuted,
           ),
-        ),
+          const SizedBox(height: 4),
+          StyledText(
+            label,
+            style: _themeOptionTextStyle(isSelected),
+          ),
+        ],
       ),
     );
   }
