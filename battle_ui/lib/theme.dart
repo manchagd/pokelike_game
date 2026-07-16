@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:mix/mix.dart';
 
 /// Spacing tokens
 class AppSpacing {
@@ -404,4 +405,12 @@ ThemeData buildAppTheme({bool isDark = true}) {
       textStyle: textTheme.bodySmall,
     ),
   );
+}
+
+/// Global reusable Mix styles
+class AppStyles {
+  static final card = BoxStyler()
+    .color(AppColors.surface)
+    .borderRadius(BorderRadiusGeometryMix.circular(AppRadius.lg))
+    .border(BorderMix.all(BorderSideMix(color: AppColors.outlineVariant, width: 1)));
 }

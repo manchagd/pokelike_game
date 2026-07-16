@@ -2,9 +2,161 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
+import 'package:mix/mix.dart';
 import '../theme.dart';
 import '../utils/battle_socket_service.dart';
 import '../utils/pokemon_type_icons.dart';
+
+BoxStyler get _teamCardContainerStyle => BoxStyler()
+  .padding(EdgeInsetsGeometryMix.all(20))
+  .borderRadius(BorderRadiusGeometryMix.circular(AppRadius.lg))
+  .color(AppColors.surfaceHigh)
+  .border(BorderMix.all(BorderSideMix(color: AppColors.outlineVariant, width: 1)));
+
+BoxStyler get _emptyTeamsCardStyle => BoxStyler()
+  .width(480)
+  .padding(EdgeInsetsGeometryMix.all(32))
+  .color(AppColors.surfaceHigh)
+  .borderRadius(BorderRadiusGeometryMix.circular(AppRadius.lg))
+  .border(BorderMix.all(BorderSideMix(color: AppColors.outlineVariant)));
+
+BoxStyler get _emptyTeamsIconCircleStyle => BoxStyler()
+  .padding(EdgeInsetsGeometryMix.all(16))
+  .color(AppColors.primary.withValues(alpha: 0.1))
+  .borderRadius(BorderRadiusGeometryMix.circular(100));
+
+BoxStyler get _listTileBstBadgeStyle => BoxStyler()
+  .padding(EdgeInsetsGeometryMix.symmetric(horizontal: 6, vertical: 1))
+  .color(AppColors.primary.withValues(alpha: 0.15))
+  .borderRadius(BorderRadiusGeometryMix.circular(4));
+
+TextStyler get _listTileBstBadgeTextStyle => TextStyler()
+  .color(AppColors.primary)
+  .fontSize(10)
+  .fontWeight(FontWeight.bold);
+
+BoxStyler get _slotCustomizerContainerStyle => BoxStyler()
+  .color(AppColors.surface)
+  .border(BorderMix.all(BorderSideMix(color: AppColors.outlineVariant)))
+  .borderRadius(BorderRadiusGeometryMix.circular(AppRadius.md));
+
+BoxStyler get _teamCardIconBackgroundStyle => BoxStyler()
+  .width(40)
+  .height(40)
+  .color(AppColors.primary.withValues(alpha: 0.15))
+  .borderRadius(BorderRadiusGeometryMix.circular(AppRadius.sm));
+
+TextStyler _teamCardTitleStyle(double fontSize) => TextStyler()
+  .fontSize(fontSize)
+  .fontWeight(FontWeight.w700);
+
+TextStyler _teamCardDescStyle(double fontSize) => TextStyler()
+  .fontSize(fontSize)
+  .color(AppColors.onSurfaceMuted)
+  .overflow(TextOverflow.ellipsis);
+
+BoxStyler _emptyStickyMoveStyle(int index) => BoxStyler()
+  .height(34)
+  .margin(EdgeInsetsGeometryMix.only(right: index < 3 ? 6.0 : 0.0))
+  .color(AppColors.surfaceHigh)
+  .border(BorderMix.all(BorderSideMix(color: AppColors.outlineVariant)))
+  .borderRadius(BorderRadiusGeometryMix.circular(AppRadius.sm))
+  .alignment(Alignment.center);
+
+BoxStyler _equippedStickyMoveStyle(int index, Color primaryColor, Color secondaryColor, bool hasSecondary) {
+  var style = BoxStyler()
+    .height(34)
+    .margin(EdgeInsetsGeometryMix.only(right: index < 3 ? 6.0 : 0.0))
+    .border(BorderMix.all(BorderSideMix(color: primaryColor, width: 1.5)))
+    .borderRadius(BorderRadiusGeometryMix.circular(AppRadius.sm))
+    .padding(EdgeInsetsGeometryMix.symmetric(horizontal: 6))
+    .alignment(Alignment.center);
+
+  if (hasSecondary) {
+    style = style.linearGradient(
+      colors: [
+        primaryColor.withValues(alpha: 0.25),
+        secondaryColor.withValues(alpha: 0.25),
+      ],
+    );
+  } else {
+    style = style.color(primaryColor.withValues(alpha: 0.2));
+  }
+  return style;
+}
+
+TextStyler _equippedStickyMoveTextStyle(Color primaryColor) => TextStyler()
+  .fontSize(10)
+  .fontWeight(FontWeight.bold)
+  .color(primaryColor)
+  .overflow(TextOverflow.ellipsis)
+  .textAlign(TextAlign.center);
+
+TextStyler get _emptyMoveSlotTextStyle => TextStyler()
+  .color(AppColors.onSurfaceMuted)
+  .fontSize(13);
+
+BoxStyler _pokemonSlotContainerStyle(bool isSelected, bool hasPokemon) {
+  var style = BoxStyler()
+    .padding(EdgeInsetsGeometryMix.all(12))
+    .borderRadius(BorderRadiusGeometryMix.circular(AppRadius.md))
+    .color(isSelected
+        ? (AppColors.isDark
+            ? AppColors.primary.withValues(alpha: 0.15)
+            : const Color(0xFFEDE7F6))
+        : (hasPokemon ? AppColors.surfaceHigh : AppColors.surface))
+    .border(BorderMix.all(BorderSideMix(
+      color: isSelected ? AppColors.primary : AppColors.outlineVariant.withValues(alpha: 0.4),
+      width: isSelected ? 2.0 : 1.0,
+    )));
+
+  if (isSelected) {
+    style = style.shadow(BoxShadowMix(
+      color: AppColors.primary.withValues(alpha: 0.2),
+      blurRadius: 10,
+    ));
+  }
+  return style;
+}
+
+BoxStyler _pokemonChipStyle(Color c1, Color c2) => BoxStyler()
+  .padding(EdgeInsetsGeometryMix.symmetric(horizontal: 12, vertical: 6))
+  .borderRadius(BorderRadiusGeometryMix.circular(20))
+  .linearGradient(
+    colors: [
+      c1.withValues(alpha: 0.14),
+      c2.withValues(alpha: 0.14),
+    ],
+  )
+  .border(BorderMix.all(BorderSideMix(
+    color: Color.lerp(c1, c2, 0.5)!.withValues(alpha: 0.4),
+    width: 1.0,
+  )));
+
+TextStyler get _pokemonChipTextStyle => TextStyler()
+  .fontSize(13)
+  .fontWeight(FontWeight.w600);
+
+TextStyler _pokemonSlotNameStyle(bool isSelected, bool hasPokemon) => TextStyler()
+  .fontSize(14)
+  .fontWeight(isSelected || hasPokemon ? FontWeight.w800 : FontWeight.w500)
+  .color(isSelected
+      ? AppColors.primary
+      : (hasPokemon ? AppColors.onSurface : AppColors.onSurfaceMuted));
+
+BoxStyler _combinedTypeBadgeStyle(Color c1, Color c2) => BoxStyler()
+  .padding(EdgeInsetsGeometryMix.symmetric(horizontal: 14, vertical: 8))
+  .borderRadius(BorderRadiusGeometryMix.circular(30))
+  .linearGradient(
+    colors: [
+      c1.withValues(alpha: 0.16),
+      c2.withValues(alpha: 0.16),
+    ],
+  )
+  .border(BorderMix.all(BorderSideMix(
+    color: Color.lerp(c1, c2, 0.5)!.withValues(alpha: 0.4),
+    width: 1.5,
+  )));
 
 // Maps each nature to its boosted and reduced stat labels.
 // Neutral natures (Hardy, Docile, Serious, Bashful, Quirky) are absent.
@@ -318,24 +470,14 @@ class _TeamBuilderViewState extends State<TeamBuilderView> {
           Expanded(
             child: teams.isEmpty
                 ? Center(
-                    child: Container(
-                      constraints: const BoxConstraints(maxWidth: 480),
-                      padding: const EdgeInsets.all(32),
-                      decoration: BoxDecoration(
-                        color: AppColors.surfaceHigh,
-                        borderRadius: BorderRadius.circular(AppRadius.lg),
-                        border: Border.all(color: AppColors.outlineVariant),
-                      ),
+                    child: Box(
+                      style: _emptyTeamsCardStyle,
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Container(
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: AppColors.primary.withValues(alpha: 0.1),
-                              shape: BoxShape.circle,
-                            ),
+                          Box(
+                            style: _emptyTeamsIconCircleStyle,
                             child: Icon(
                               Icons.shield_outlined,
                               color: AppColors.primary,
@@ -444,22 +586,10 @@ class _TeamBuilderViewState extends State<TeamBuilderView> {
                           final pkmn = _editingPokemons[idx];
                           final isSelected = _selectedSlotIndex == idx;
 
-                          return GestureDetector(
-                            onTap: () => _selectSlot(idx),
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: isSelected
-                                    ? AppColors.primary.withValues(alpha: 0.1)
-                                    : AppColors.surface,
-                                border: Border.all(
-                                  color: isSelected
-                                      ? AppColors.primary
-                                      : AppColors.outlineVariant,
-                                  width: isSelected ? 2 : 1,
-                                ),
-                                borderRadius: BorderRadius.circular(AppRadius.md),
-                              ),
-                              child: Stack(
+                          return PressableBox(
+                            onPress: () => _selectSlot(idx),
+                            style: _pokemonSlotContainerStyle(isSelected, pkmn != null),
+                            child: Stack(
                                 children: [
                                   if (pkmn == null)
                                     Center(
@@ -468,13 +598,9 @@ class _TeamBuilderViewState extends State<TeamBuilderView> {
                                         children: [
                                           Icon(Icons.add, color: AppColors.onSurfaceMuted, size: 20),
                                           const SizedBox(height: 4),
-                                          Text(
+                                          StyledText(
                                             'Espacio ${idx + 1}',
-                                            style: TextStyle(
-                                              color: AppColors.onSurfaceMuted,
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.w600,
-                                            ),
+                                            style: _pokemonSlotNameStyle(isSelected, false),
                                           ),
                                         ],
                                       ),
@@ -508,13 +634,9 @@ class _TeamBuilderViewState extends State<TeamBuilderView> {
                                               crossAxisAlignment: CrossAxisAlignment.start,
                                               mainAxisAlignment: MainAxisAlignment.center,
                                               children: [
-                                                Text(
+                                                StyledText(
                                                   pkmn.nickname,
-                                                  style: const TextStyle(
-                                                    fontWeight: FontWeight.bold,
-                                                    fontSize: 13,
-                                                  ),
-                                                  overflow: TextOverflow.ellipsis,
+                                                  style: _pokemonSlotNameStyle(isSelected, true),
                                                 ),
                                                 const SizedBox(height: 4),
                                                 FittedBox(
@@ -541,7 +663,6 @@ class _TeamBuilderViewState extends State<TeamBuilderView> {
                                     ),
                                 ],
                               ),
-                            ),
                           );
                         },
                       ),
@@ -557,12 +678,11 @@ class _TeamBuilderViewState extends State<TeamBuilderView> {
                 // Right Panel: Search Bar, Type Filters, and Templates List
                 Expanded(
                   flex: 2,
-                  child: Material(
-                    color: AppColors.surface,
-                    shape: RoundedRectangleBorder(
-                      side: BorderSide(color: AppColors.outlineVariant),
-                      borderRadius: BorderRadius.circular(AppRadius.lg),
-                    ),
+                  child: Box(
+                    style: BoxStyler()
+                      .color(AppColors.surface)
+                      .border(BorderMix.all(BorderSideMix(color: AppColors.outlineVariant)))
+                      .borderRadius(BorderRadiusGeometryMix.circular(AppRadius.lg)),
                     child: Column(
                       children: [
                         // Search text box
@@ -759,19 +879,11 @@ class _TeamBuilderViewState extends State<TeamBuilderView> {
                   style: TextStyle(color: AppColors.onSurfaceMuted, fontSize: 11),
                 ),
                 const Spacer(),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-                  decoration: BoxDecoration(
-                    color: AppColors.primary.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Text(
+                Box(
+                  style: _listTileBstBadgeStyle,
+                  child: StyledText(
                     'BST: $bst',
-                    style: TextStyle(
-                      color: AppColors.primary,
-                      fontSize: 10,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: _listTileBstBadgeTextStyle,
                   ),
                 ),
               ],
@@ -816,12 +928,8 @@ class _TeamBuilderViewState extends State<TeamBuilderView> {
     final moves = socketService.templateMoves[pkmn.templateId] ?? [];
     final allMoves = socketService.templateMoves[pkmn.templateId] ?? [];
 
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        border: Border.all(color: AppColors.outlineVariant),
-        borderRadius: BorderRadius.circular(AppRadius.md),
-      ),
+    return Box(
+      style: _slotCustomizerContainerStyle,
       child: CustomScrollView(
         slivers: [
           // ── Top content: Nickname / Nature / IVs&EVs ──
@@ -1251,21 +1359,10 @@ class _TeamBuilderViewState extends State<TeamBuilderView> {
     final c1 = PokemonTypeIcons.getColor(types[0]);
     final c2 = types.length > 1 ? PokemonTypeIcons.getColor(types[1]) : c1;
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            c1.withValues(alpha: 0.15),
-            c2.withValues(alpha: 0.15),
-          ],
-        ),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: Color.lerp(c1, c2, 0.5)!.withValues(alpha: 0.5),
-          width: 1,
-        ),
-      ),
+    final badgeStyle = _combinedTypeBadgeStyle(c1, c2);
+
+    return Box(
+      style: badgeStyle,
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -1339,132 +1436,114 @@ class _TeamCard extends StatelessWidget {
         ? rawPokemons.map((p) => Map<String, dynamic>.from(p as Map)).toList()
         : const <Map<String, dynamic>>[];
 
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: AppColors.primary.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(AppRadius.sm),
-                  ),
-                  child: Icon(Icons.shield, color: AppColors.primary, size: 22),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(team['name'] ?? 'Equipo', style: text.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
-                      Text(
-                        team['description'] ?? '',
-                        style: text.bodySmall?.copyWith(color: AppColors.onSurfaceMuted),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ),
-                ),
-                IconButton(
-                  onPressed: () {
-                    final socket = context.read<BattleSocketService>();
-                    final id = team['id'] as int?;
-                    if (id != null) {
-                      socket.getTeamDetails(id);
-                    }
-                  },
-                  icon: const Icon(Icons.edit_outlined, size: 18),
-                ),
-                IconButton(
-                  onPressed: () {
-                    final id = team['id'] as int?;
-                    if (id == null) return;
-                    showDialog(
-                      context: context,
-                      builder: (dialogCtx) => AlertDialog(
-                        title: const Text('¿Eliminar equipo?'),
-                        content: Text('¿Estás seguro de que deseas eliminar el equipo "${team['name']}"? Esta acción no se puede deshacer.'),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Navigator.pop(dialogCtx),
-                            child: const Text('Cancelar'),
-                          ),
-                          TextButton(
-                            onPressed: () {
-                              Navigator.pop(dialogCtx);
-                              context.read<BattleSocketService>().deleteTeam(id);
-                            },
-                            child: Text('Eliminar', style: TextStyle(color: AppColors.danger)),
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                  icon: Icon(Icons.delete_outline, size: 18, color: AppColors.danger),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            const Divider(),
-            const SizedBox(height: 16),
-            Expanded(
-              child: SingleChildScrollView(
-                child: Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: pokemons.map((p) {
-                    final rawTypes = p['types'] as List? ?? [];
-                    final types = rawTypes.cast<String>();
-                    final colors = _getPokemonColors(types);
-                    final c1 = colors[0];
-                    final c2 = colors.length > 1 ? colors[1] : c1;
-
-                    return Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            c1.withValues(alpha: 0.14),
-                            c2.withValues(alpha: 0.14),
-                          ],
-                        ),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                          color: Color.lerp(c1, c2, 0.5)!.withValues(alpha: 0.4),
-                          width: 1,
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          if (types.isNotEmpty) ...[
-                            PokemonTypeIcons.buildSvgIcon(types[0], color: c1, size: 14),
-                            if (types.length > 1) ...[
-                              const SizedBox(width: 4),
-                              PokemonTypeIcons.buildSvgIcon(types[1], color: c2, size: 14),
-                            ],
-                          ] else ...[
-                            Icon(Icons.catching_pokemon, color: c1, size: 14),
-                          ],
-                          const SizedBox(width: 8),
-                          Text(
-                            p['name'] ?? 'Pokémon',
-                            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
-                          ),
-                        ],
-                      ),
-                    );
-                  }).toList(),
+    return Box(
+      style: _teamCardContainerStyle,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Box(
+                style: _teamCardIconBackgroundStyle,
+                child: Icon(Icons.shield, color: AppColors.primary, size: 22),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    StyledText(
+                      team['name'] ?? 'Equipo',
+                      style: _teamCardTitleStyle(text.titleMedium?.fontSize ?? 16.0),
+                    ),
+                    StyledText(
+                      team['description'] ?? '',
+                      style: _teamCardDescStyle(text.bodySmall?.fontSize ?? 12.0),
+                    ),
+                  ],
                 ),
               ),
+              IconButton(
+                onPressed: () {
+                  final socket = context.read<BattleSocketService>();
+                  final id = team['id'] as int?;
+                  if (id != null) {
+                    socket.getTeamDetails(id);
+                  }
+                },
+                icon: const Icon(Icons.edit_outlined, size: 18),
+              ),
+              IconButton(
+                onPressed: () {
+                  final id = team['id'] as int?;
+                  if (id == null) return;
+                  showDialog(
+                    context: context,
+                    builder: (dialogCtx) => AlertDialog(
+                      title: const Text('¿Eliminar equipo?'),
+                      content: Text('¿Estás seguro de que deseas eliminar el equipo "${team['name']}"? Esta acción no se puede deshacer.'),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(dialogCtx),
+                          child: const Text('Cancelar'),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            Navigator.pop(dialogCtx);
+                            context.read<BattleSocketService>().deleteTeam(id);
+                          },
+                          child: Text('Eliminar', style: TextStyle(color: AppColors.danger)),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+                icon: Icon(Icons.delete_outline, size: 18, color: AppColors.danger),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          const Divider(),
+          const SizedBox(height: 16),
+          Expanded(
+            child: SingleChildScrollView(
+              child: Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: pokemons.map((p) {
+                  final rawTypes = p['types'] as List? ?? [];
+                  final types = rawTypes.cast<String>();
+                  final colors = _getPokemonColors(types);
+                  final c1 = colors[0];
+                  final c2 = colors.length > 1 ? colors[1] : c1;
+
+                  return Box(
+                    style: _pokemonChipStyle(c1, c2),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (types.isNotEmpty) ...[
+                          PokemonTypeIcons.buildSvgIcon(types[0], color: c1, size: 14),
+                          if (types.length > 1) ...[
+                            const SizedBox(width: 4),
+                            PokemonTypeIcons.buildSvgIcon(types[1], color: c2, size: 14),
+                          ],
+                        ] else ...[
+                          Icon(Icons.catching_pokemon, color: c1, size: 14),
+                        ],
+                        const SizedBox(width: 8),
+                        StyledText(
+                          p['name'] ?? 'Pokémon',
+                          style: _pokemonChipTextStyle,
+                        ),
+                      ],
+                    ),
+                  );
+                }).toList(),
+              ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -1551,16 +1630,9 @@ class _MovesStickyBarDelegate extends SliverPersistentHeaderDelegate {
               final hasMove = i < pkmn.selectedMoves.length;
               if (!hasMove) {
                 return Expanded(
-                  child: Container(
-                    height: 34,
-                    margin: EdgeInsets.only(right: i < 3 ? 6 : 0),
-                    decoration: BoxDecoration(
-                      color: AppColors.surfaceHigh,
-                      border: Border.all(color: AppColors.outlineVariant),
-                      borderRadius: BorderRadius.circular(AppRadius.sm),
-                    ),
-                    alignment: Alignment.center,
-                    child: Text('—', style: TextStyle(color: AppColors.onSurfaceMuted, fontSize: 13)),
+                  child: Box(
+                    style: _emptyStickyMoveStyle(i),
+                    child: StyledText('—', style: _emptyMoveSlotTextStyle),
                   ),
                 );
               }
@@ -1576,36 +1648,12 @@ class _MovesStickyBarDelegate extends SliverPersistentHeaderDelegate {
                   : primaryColor;
 
               return Expanded(
-                child: GestureDetector(
-                  onTap: move != null ? () => onToggle(move) : null,
-                  child: Container(
-                    height: 34,
-                    margin: EdgeInsets.only(right: i < 3 ? 6 : 0),
-                    decoration: BoxDecoration(
-                      gradient: secondaryType != null
-                          ? LinearGradient(colors: [
-                              primaryColor.withValues(alpha: 0.25),
-                              secondaryColor.withValues(alpha: 0.25),
-                            ])
-                          : null,
-                      color: secondaryType == null
-                          ? primaryColor.withValues(alpha: 0.2)
-                          : null,
-                      border: Border.all(color: primaryColor, width: 1.5),
-                      borderRadius: BorderRadius.circular(AppRadius.sm),
-                    ),
-                    padding: const EdgeInsets.symmetric(horizontal: 6),
-                    alignment: Alignment.center,
-                    child: Text(
-                      moveName,
-                      style: TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
-                        color: primaryColor,
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                      textAlign: TextAlign.center,
-                    ),
+                child: PressableBox(
+                  onPress: move != null ? () => onToggle(move) : null,
+                  style: _equippedStickyMoveStyle(i, primaryColor, secondaryColor, secondaryType != null),
+                  child: StyledText(
+                    moveName,
+                    style: _equippedStickyMoveTextStyle(primaryColor),
                   ),
                 ),
               );

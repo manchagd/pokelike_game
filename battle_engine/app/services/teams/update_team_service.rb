@@ -3,13 +3,7 @@
 module Services
   module Teams
     class UpdateTeamService
-      DEFAULT_IVS = {
-        'hp' => 31, 'atk' => 31, 'def' => 31, 'sp_atk' => 31, 'sp_def' => 31, 'spd' => 31
-      }.freeze
-
-      DEFAULT_EVS = {
-        'hp' => 0, 'atk' => 0, 'def' => 0, 'sp_atk' => 0, 'sp_def' => 0, 'spd' => 0
-      }.freeze
+      include Helpers::Teams::PokemonBuilderHelper
 
       def call(player:, team_id:, name:, pokemons:)
         final_name = resolve_name(player, team_id, name)
@@ -48,23 +42,13 @@ module Services
       end
 
       def update_pokemon(pokemon, template, pkmn_data)
-        nickname = (pkmn_data[:nickname].presence || template.name)[0...10]
-        ivs = DEFAULT_IVS.merge((pkmn_data[:ivs] || {}).transform_keys(&:to_s))
-        evs = DEFAULT_EVS.merge((pkmn_data[:evs] || {}).transform_keys(&:to_s))
-
-        gender = pkmn_data[:gender].presence
-        if template.gender_rate.nil? || template.gender_rate == -1
-          gender = nil
-        elsif template.gender_rate == 0
-          gender = ::Pokemon::MALE
-        elsif template.gender_rate == 8
-          gender = ::Pokemon::FEMALE
-        elsif ![::Pokemon::MALE, ::Pokemon::FEMALE].include?(gender)
-          gender = pokemon.gender || determine_gender(template)
-        end
-
-        nature = pkmn_data[:nature].presence
-        nature = pokemon.nature unless Nature::LIST.include?(nature)
+        nickname = determine_nickname(pkmn_data:, template:)
+        ivs = determine_ivs(pkmn_data:)
+        evs = determine_evs(pkmn_data:)
+        gender = determine_gender(pkmn_data:, template:)
+        nature = determine_nature(pkmn_data:, fallback_nature: pokemon.nature)
+        weight = determine_weight(template:)
+        teratype = determine_teratype(template:)
 
         pokemon.update!(
           pokemon_template: template,
@@ -73,38 +57,8 @@ module Services
           nature: nature,
           ivs: ivs,
           evs: evs,
-          weight: template.weight || rand(10.0..150.0).round(2),
-          teratype: template.types.first || Types::LIST.sample
-        )
-      end
-
-      def build_and_create_pokemon(team, template, pkmn_data)
-        nickname = (pkmn_data[:nickname].presence || template.name)[0...10]
-        ivs = DEFAULT_IVS.merge((pkmn_data[:ivs] || {}).transform_keys(&:to_s))
-        evs = DEFAULT_EVS.merge((pkmn_data[:evs] || {}).transform_keys(&:to_s))
-
-        gender = pkmn_data[:gender].presence
-        if template.gender_rate.nil? || template.gender_rate == -1
-          gender = nil
-        elsif template.gender_rate == 0
-          gender = ::Pokemon::MALE
-        elsif template.gender_rate == 8
-          gender = ::Pokemon::FEMALE
-        elsif ![::Pokemon::MALE, ::Pokemon::FEMALE].include?(gender)
-          gender = determine_gender(template)
-        end
-
-        ::Pokemon.create!(
-          pokemon_template: template,
-          team: team,
-          nickname: nickname,
-          gender: gender,
-          nature: (Nature::LIST.include?(pkmn_data[:nature].to_s) ? pkmn_data[:nature].to_s : Nature::LIST.sample),
-          weight: template.weight || rand(10.0..150.0).round(2),
-          ivs: ivs,
-          evs: evs,
-          lvl: 50,
-          teratype: template.types.first || Types::LIST.sample
+          weight: weight,
+          teratype: teratype
         )
       end
 
@@ -121,12 +75,6 @@ module Services
         rescue ActiveRecord::InvalidForeignKey
           extra_pkmn.update!(team: nil)
         end
-      end
-
-      def determine_gender(template)
-        return nil if template.gender_rate.nil? || template.gender_rate == -1
-
-        rand(8) < template.gender_rate ? ::Pokemon::FEMALE : ::Pokemon::MALE
       end
     end
   end

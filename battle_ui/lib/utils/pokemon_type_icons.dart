@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:mix/mix.dart';
 
 /// Helper class para obtener íconos representativos de cada tipo de Pokémon
 class PokemonTypeIcons {
@@ -218,12 +219,13 @@ class PokemonTypeIcons {
 
   /// Widget helper para mostrar el ícono del tipo con su color (usando SVG)
   static Widget buildTypeIcon(String type, {double size = 20}) {
-    return Container(
-      padding: EdgeInsets.all(size * 0.2),
-      decoration: BoxDecoration(
-        color: getColor(type).withValues(alpha: 0.2),
-        borderRadius: BorderRadius.circular(size * 0.3),
-      ),
+    final iconStyle = BoxStyler()
+      .padding(EdgeInsetsGeometryMix.all(size * 0.2))
+      .color(getColor(type).withValues(alpha: 0.2))
+      .borderRadius(BorderRadiusGeometryMix.circular(size * 0.3));
+
+    return Box(
+      style: iconStyle,
       child: buildSvgIcon(
         type,
         size: size,
@@ -234,15 +236,16 @@ class PokemonTypeIcons {
 
   /// Badge de tipo con ícono y nombre (usando SVG)
   static Widget buildTypeBadge(String type, {double fontSize = 10}) {
-    return Container(
-      padding: EdgeInsets.symmetric(
+    final badgeStyle = BoxStyler()
+      .padding(EdgeInsetsGeometryMix.symmetric(
         horizontal: fontSize * 0.8,
         vertical: fontSize * 0.4,
-      ),
-      decoration: BoxDecoration(
-        color: getColor(type),
-        borderRadius: BorderRadius.circular(fontSize * 1.2),
-      ),
+      ))
+      .color(getColor(type))
+      .borderRadius(BorderRadiusGeometryMix.circular(fontSize * 1.2));
+
+    return Box(
+      style: badgeStyle,
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [

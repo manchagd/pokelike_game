@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:mix/mix.dart';
 import '../theme.dart';
 import '../widgets/sidebar.dart';
 import '../utils/battle_socket_service.dart';
@@ -68,75 +69,77 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+BoxStyler get _welcomeCardStyle => BoxStyler()
+  .width(520)
+  .margin(EdgeInsetsGeometryMix.all(32))
+  .borderRadius(BorderRadiusGeometryMix.circular(AppRadius.lg))
+  .linearGradient(
+    colors: [
+      AppColors.surface,
+      AppColors.surfaceHigh.withValues(alpha: 0.95),
+      AppColors.background,
+    ],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  )
+  .border(BorderMix.all(BorderSideMix(
+    color: AppColors.primary.withValues(alpha: 0.2),
+    width: 1.5,
+  )))
+  .shadow(BoxShadowMix(
+    color: AppColors.primary.withValues(alpha: 0.08),
+    blurRadius: 40.0,
+    spreadRadius: 2.0,
+  ))
+  .padding(EdgeInsetsGeometryMix.all(40));
+
+BoxStyler get _circleIconStyle => BoxStyler()
+  .padding(EdgeInsetsGeometryMix.all(20))
+  .borderRadius(BorderRadiusGeometryMix.circular(100))
+  .color(AppColors.primary.withValues(alpha: 0.1))
+  .border(BorderMix.all(BorderSideMix(
+    color: AppColors.primary.withValues(alpha: 0.3),
+  )));
+
+TextStyler _titleStyle(TextTheme text) => TextStyler()
+  .fontSize(text.headlineSmall?.fontSize ?? 24.0)
+  .fontWeight(FontWeight.w800)
+  .letterSpacing(0.5)
+  .textAlign(TextAlign.center);
+
+TextStyler _descStyle(TextTheme text) => TextStyler()
+  .fontSize(text.bodyMedium?.fontSize ?? 14.0)
+  .color(AppColors.onSurfaceMuted)
+  .height(1.5)
+  .textAlign(TextAlign.center);
+
   Widget _buildWelcomeScreen(TextTheme text) {
     return Center(
       child: SingleChildScrollView(
-        child: Container(
-          width: 520,
-          margin: const EdgeInsets.all(32),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(AppRadius.lg),
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                AppColors.surface,
-                AppColors.surfaceHigh.withValues(alpha: 0.95),
-                AppColors.background,
-              ],
-            ),
-            border: Border.all(
-              color: AppColors.primary.withValues(alpha: 0.2),
-              width: 1.5,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.primary.withValues(alpha: 0.08),
-                blurRadius: 40,
-                spreadRadius: 2,
+        child: Box(
+          style: _welcomeCardStyle,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Box(
+                style: _circleIconStyle,
+                child: Icon(
+                  Icons.catching_pokemon,
+                  color: AppColors.primary,
+                  size: 48,
+                ),
+              ),
+              const SizedBox(height: 32),
+              StyledText(
+                '¡Bienvenido a Pixel Clash!',
+                style: _titleStyle(text),
+              ),
+              const SizedBox(height: 12),
+              StyledText(
+                'Para unirte a la arena de combate y empezar a desafiar oponentes, por favor ingresa tu nombre de entrenador en el panel lateral.',
+                style: _descStyle(text),
               ),
             ],
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(40),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: AppColors.primary.withValues(alpha: 0.1),
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: AppColors.primary.withValues(alpha: 0.3),
-                    ),
-                  ),
-                  child: Icon(
-                    Icons.catching_pokemon,
-                    color: AppColors.primary,
-                    size: 48,
-                  ),
-                ),
-                const SizedBox(height: 32),
-                Text(
-                  '¡Bienvenido a Pixel Clash!',
-                  style: text.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 0.5,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  'Para unirte a la arena de combate y empezar a desafiar oponentes, por favor ingresa tu nombre de entrenador en el panel lateral.',
-                  style: text.bodyMedium?.copyWith(
-                    color: AppColors.onSurfaceMuted,
-                    height: 1.5,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ),
           ),
         ),
       ),

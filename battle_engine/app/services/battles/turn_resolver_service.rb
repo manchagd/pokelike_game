@@ -24,14 +24,14 @@ module Services
       def call(actions:)
         BattleEngine.logger.info("[TurnResolverService] Resolving #{actions.size} action(s): #{actions}")
 
-        actions_by_priority = assign_actions_by_priority(actions)
+        actions_by_priority = parse_actions(actions)
 
-        resolve_actions_in_order(actions_by_priority)
+        resolve_actions(actions_by_priority)
       end
 
       private
 
-      def actions_by_priority
+      def priority_queue
         {
           8 => [],
           7 => [],
@@ -52,22 +52,20 @@ module Services
         }
       end
 
-      def assign_actions_by_priority(actions)
-        # actions: [{action: "attack", player_id: 1, attack_id: 801, pokemon_id: 42, targets: ["B1"]}, {action: "switch", player_id: 3, pokemon_id: 584}]
-        actions.each_with_object(actions_by_priority) do |action, actions_by_priority|
+      def parse_actions(actions)
+        actions.each_with_object(priority_queue) do |action, priority_queue|
           case action
           in { action: 'attack', player_id:, attack_id:, pokemon_id:, targets: }
             priority = move_priority(attack_id)
 
-            actions_by_priority[priority] << incomming_attack(player_id:, pokemon_id:, attack_id:, targets:)
+            parse_action(priority_queue, priority, incomming_attack(player_id:, pokemon_id:, attack_id:, targets:))
+          in { action: 'switch', player_id:, pokemon_id: }
+            parse_action(priority_queue, switch_priority, incomming_switch(player_id:, pokemon_id:))
           in { action: 'attack_switch', player_id:, attack_id:, pokemon_id:, targets:, pokemon_switched_id: }
             priority = move_priority(attack_id)
 
-            actions_by_priority[priority] << incomming_attack_switch(player_id:, pokemon_id:, attack_id:, targets:, pokemon_switched_id:)
-          in { action: 'switch', player_id:, pokemon_id: }
-            priority = switch_priority
-
-            actions_by_priority[priority] << incomming_switch(player_id:, pokemon_id:)
+            parse_action(priority_queue, priority, incomming_attack(player_id:, pokemon_id:, attack_id:, targets:))
+            parse_action(priority_queue, priority, incomming_switch(player_id:, pokemon_id: pokemon_switched_id))
           end
         end
       end
@@ -79,6 +77,10 @@ module Services
 
       def switch_priority
         6
+      end
+
+      def parse_action(priority_queue, priority, action)
+        priority_queue[priority] << action
       end
 
       def incomming_attack(player_id:, pokemon_id:, attack_id:, targets:)
@@ -93,7 +95,7 @@ module Services
         { player_id:, pokemon_id: }
       end
 
-      def resolve_actions_in_order(actions_by_priority)
+      def resolve_actions(actions_by_priority)
         actions_by_priority.compact_blank.each do |priority, actions|
           BattleEngine.logger.info("[TurnResolverService] Resolving #{priority} priority: #{actions}")
         end

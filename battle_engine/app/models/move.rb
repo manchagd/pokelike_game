@@ -29,6 +29,7 @@ class Move < ApplicationRecord
     damage_lower: 'DamageLower',
     ohko: 'Ohko',
     force_switch: 'ForceSwitch',
+    damage_recoil: 'DamageRecoil',
     damage_raise: 'DamageRaise',
     damage_heal: 'DamageHeal',
     whole_field_effect: 'WholeFieldEffect',
