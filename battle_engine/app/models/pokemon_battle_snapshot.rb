@@ -5,6 +5,55 @@ class PokemonBattleSnapshot < ApplicationRecord
   belongs_to :battle
   belongs_to :player
 
+  before_validation :set_default_stat_stages, on: :create
+
+  def lvl
+    pokemon.lvl
+  end
+
+  def atk_stat
+    pokemon.atk_stat * Formulas.stage_multiplier(stat_stages[:atk_stage])
+  end
+
+  def def_stat
+    pokemon.def_stat * Formulas.stage_multiplier(stat_stages[:def_stage])
+  end
+
+  def sp_atk_stat
+    pokemon.sp_atk_stat * Formulas.stage_multiplier(stat_stages[:sp_atk_stage])
+  end
+
+  def sp_def_stat
+    pokemon.sp_def_stat * Formulas.stage_multiplier(stat_stages[:sp_def_stage])
+  end
+
+  def spd_stat
+    pokemon.spd_stat * Formulas.stage_multiplier(stat_stages[:spd_stage])
+  end
+
+  def accuracy_stage
+    stat_stages[:accuracy_stage].to_i
+  end
+
+  def evasion_stage
+    stat_stages[:evasion_stage].to_i
+  end
+
+  private
+
+  def set_default_stat_stages
+    self.stat_stages = {
+      atk_stage: 0,
+      def_stage: 0,
+      sp_atk_stage: 0,
+      sp_def_stage: 0,
+      spd_stage: 0,
+      crit_stage: 0,
+      accuracy_stage: 0,
+      evasion_stage: 0
+    }
+  end
+
   # =========================================================================
   # DOCUMENTACIÓN DE CAMPOS JSONB (Estructura y posibles valores)
   # =========================================================================

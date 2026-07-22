@@ -15,6 +15,7 @@ class Move < ApplicationRecord
   validates :name, presence: true, uniqueness: true
   validates :pp, :category, :type, :handler, presence: true
   validates :power, numericality: { only_integer: true }, allow_nil: true
+  validates :accuracy, numericality: { only_integer: true }
   validates :category, inclusion: { in: CATEGORIES }
   validates :pokeapi_id, uniqueness: { allow_nil: true }
 
@@ -28,6 +29,7 @@ class Move < ApplicationRecord
     damage_lower: 'DamageLower',
     ohko: 'Ohko',
     force_switch: 'ForceSwitch',
+    damage_recoil: 'DamageRecoil',
     damage_raise: 'DamageRaise',
     damage_heal: 'DamageHeal',
     whole_field_effect: 'WholeFieldEffect',
@@ -41,6 +43,10 @@ class Move < ApplicationRecord
     self.class.handlers[super] || super
   end
 
+  def handler_service
+    "Services::Moves::Handlers::#{handler}".safe_constantize
+  end
+
   private
 
   def types_exists?
@@ -51,3 +57,5 @@ class Move < ApplicationRecord
     errors.add(:type, "#{unkonwn_types} must exist")
   end
 end
+
+# Agregar nuevo handler para damage_recoil (ej: double edge, high jump kick, rock smash, etc)

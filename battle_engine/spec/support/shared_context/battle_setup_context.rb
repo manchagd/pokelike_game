@@ -45,41 +45,41 @@ RSpec.shared_context 'single_battle_setup' do
   let(:player_2_lead_symbol) { player_2_lead || player_2_pokemon.first }
 
   let!(:player_1_lead_snapshot) do
-    return nil if player_1_lead_symbol.nil?
-
-    clean_lead_name = Spec::Support::LocalDataHelper.clean_factory_name(player_1_lead_symbol)
-    player_1_snapshots.find do |snap|
-      Spec::Support::LocalDataHelper.clean_factory_name(snap.pokemon.pokemon_template.name) == clean_lead_name
+    if player_1_lead_symbol.present?
+      clean_lead_name = Spec::Support::LocalDataHelper.clean_factory_name(player_1_lead_symbol)
+      player_1_snapshots.find do |snap|
+        Spec::Support::LocalDataHelper.clean_factory_name(snap.pokemon.pokemon_template.name) == clean_lead_name
+      end
     end
   end
 
   let!(:player_2_lead_snapshot) do
-    return nil if player_2_lead_symbol.nil?
-
-    clean_lead_name = Spec::Support::LocalDataHelper.clean_factory_name(player_2_lead_symbol)
-    player_2_snapshots.find do |snap|
-      Spec::Support::LocalDataHelper.clean_factory_name(snap.pokemon.pokemon_template.name) == clean_lead_name
+    if player_2_lead_symbol.present?
+      clean_lead_name = Spec::Support::LocalDataHelper.clean_factory_name(player_2_lead_symbol)
+      player_2_snapshots.find do |snap|
+        Spec::Support::LocalDataHelper.clean_factory_name(snap.pokemon.pokemon_template.name) == clean_lead_name
+      end
     end
   end
 
   # Position the leads on the field
   let!(:player_1_position) do
-    return nil if player_1_lead_snapshot.nil?
-
-    create(:position,
-           field: battle.field,
-           group: 1,
-           side: battle_player_1.group,
-           pokemon_snapshot: player_1_lead_snapshot)
+    if player_1_lead_snapshot.present?
+      create(:position,
+             field: battle.field,
+             group: 1,
+             side: battle_player_1.group,
+             pokemon_snapshot: player_1_lead_snapshot)
+    end
   end
 
   let!(:player_2_position) do
-    return nil if player_2_lead_snapshot.nil?
-
-    create(:position,
-           field: battle.field,
-           group: 1,
-           side: battle_player_2.group,
-           pokemon_snapshot: player_2_lead_snapshot)
+    if player_2_lead_snapshot.present?
+      create(:position,
+             field: battle.field,
+             group: 1,
+             side: battle_player_2.group,
+             pokemon_snapshot: player_2_lead_snapshot)
+    end
   end
 end

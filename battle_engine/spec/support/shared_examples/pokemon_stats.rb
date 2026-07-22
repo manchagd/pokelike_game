@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 RSpec.shared_examples 'pokemon_with_stats' do |expected|
+  # expected example: { hp: 100, atk: 10, def: 10, sp_atk: 10, sp_def: 10, spd: 10 }
   it 'has the correct calculated stats' do
     aggregate_failures do
       expect(subject.hp_stat).to eq(expected[:hp]) if expected.key?(:hp)
