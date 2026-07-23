@@ -12,16 +12,19 @@ module Services
             attack = pokemon.sp_atk_stat
             defense = target.sp_def_stat
           end
-
+          p attack
+          p defense
+          stab = Formulas.calculate_stab(pokemon, move)
           damage = Formulas.damage_formula(
             attack: attack,
             defense: defense,
             lvl: pokemon.lvl,
-            power: move.power
+            power: move.power,
+            stab: stab
           )
 
           target.update!(hp: target.hp - damage)
-          BattleEngine.logger.info("#{target.pokemon_template.name} took #{damage} damage")
+          BattleEngine.logger.info("#{target.pokemon.pokemon_template.name} took #{damage} damage")
         end
       end
     end

@@ -26,12 +26,12 @@ module Formulas
     defense:,
     lvl:,
     power:,
+    stab:,
     targets: 1,
     pb: 1,
     weather: 1,
     glaive_rush: 1,
     critical: 1,
-    stab: 1,
     type: 1,
     burn: 1,
     other: 1,
@@ -47,14 +47,24 @@ module Formulas
     weather = weather.to_i
     glaive_rush = glaive_rush.to_i
     critical = critical.to_i
-    stab = stab.to_i
+    stab = stab
     type = type.to_i
     burn = burn.to_i
     other = other.to_i
     z_move = z_move.to_i
     terashield = terashield.to_i
+    random = random_factor
 
-    (((((2 * lvl) / 5).floor + 2) * power * (attack / defense) / 50) + 2) * targets * pb * weather * glaive_rush * critical * stab * type * burn * other * z_move * terashield
+    damage = ((((((2 * lvl) / 5).round + 2) * power * (attack / defense).round) / 50).round + 2) * targets * pb * weather * glaive_rush * critical * stab * type * burn * other * z_move * terashield * random
+    damage.round
+  end
+
+  def self.calculate_stab(pokemon, move)
+    pokemon.pokemon.pokemon_template.types.include?(move.type) ? 1.5 : 1
+  end
+
+  def self.random_factor
+    rand(0.85..1.0)
   end
 
   def self.stage_multiplier(stage, step = 2)

@@ -5,6 +5,10 @@ RSpec.shared_context 'single_battle_setup' do
   let(:player_1_pokemon) { [] }
   let(:player_2_pokemon) { [] }
 
+  # Override moves as a hash mapping pokemon symbol/string/clean_name to an array of move symbols
+  let(:player_1_pokemon_moves) { {} }
+  let(:player_2_pokemon_moves) { {} }
+
   # Override leads as symbols (e.g. `let(:player_1_lead) { :scaledart }`), defaults to player_1_pokemon.first
   let(:player_1_lead) { nil }
   let(:player_2_lead) { nil }
@@ -21,11 +25,17 @@ RSpec.shared_context 'single_battle_setup' do
   let!(:team_2) { create(:team, player: player_2, name: 'Team 2') }
 
   let!(:player_1_pokemons) do
-    player_1_pokemon.map { |sym| create(sym, team: team_1) }
+    player_1_pokemon.map do |sym|
+      moves_to_assign = (player_1_pokemon_moves[sym] || []).map { |m| create(m) }
+      create(sym, team: team_1, moves: moves_to_assign)
+    end
   end
 
   let!(:player_2_pokemons) do
-    player_2_pokemon.map { |sym| create(sym, team: team_2) }
+    player_2_pokemon.map do |sym|
+      moves_to_assign = (player_2_pokemon_moves[sym] || []).map { |m| create(m) }
+      create(sym, team: team_2, moves: moves_to_assign)
+    end
   end
 
   let!(:player_1_snapshots) do
