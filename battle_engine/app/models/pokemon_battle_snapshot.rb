@@ -12,23 +12,43 @@ class PokemonBattleSnapshot < ApplicationRecord
   end
 
   def atk_stat
-    pokemon.atk_stat * Formulas.stage_multiplier(stat_stages[:atk_stage])
+    pokemon.atk_stat
   end
 
   def def_stat
-    pokemon.def_stat * Formulas.stage_multiplier(stat_stages[:def_stage])
+    pokemon.def_stat
   end
 
   def sp_atk_stat
-    pokemon.sp_atk_stat * Formulas.stage_multiplier(stat_stages[:sp_atk_stage])
+    pokemon.sp_atk_stat
   end
 
   def sp_def_stat
-    pokemon.sp_def_stat * Formulas.stage_multiplier(stat_stages[:sp_def_stage])
+    pokemon.sp_def_stat
   end
 
   def spd_stat
-    pokemon.spd_stat * Formulas.stage_multiplier(stat_stages[:spd_stage])
+    pokemon.spd_stat
+  end
+
+  def atk_stage
+    stat_stages[:atk_stage].to_i
+  end
+
+  def def_stage
+    stat_stages[:def_stage].to_i
+  end
+
+  def sp_atk_stage
+    stat_stages[:sp_atk_stage].to_i
+  end
+
+  def sp_def_stage
+    stat_stages[:sp_def_stage].to_i
+  end
+
+  def spd_stage
+    stat_stages[:spd_stage].to_i
   end
 
   def accuracy_stage
@@ -53,6 +73,8 @@ class PokemonBattleSnapshot < ApplicationRecord
       evasion_stage: 0
     }
   end
+
+
 
   # =========================================================================
   # DOCUMENTACIÓN DE CAMPOS JSONB (Estructura y posibles valores)
