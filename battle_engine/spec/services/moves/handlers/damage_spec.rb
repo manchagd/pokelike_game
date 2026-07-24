@@ -4,23 +4,26 @@ require 'spec_helper'
 
 RSpec.describe Services::Moves::Handlers::Damage, type: :service do
   include_context 'single_battle_setup'
+
   describe 'Milotic VS Metagross' do
-    let(:player_1_pokemon) { [:milotic] }
-    let(:player_2_pokemon) { [:metagross] }
-    let(:player_1_pokemon_moves) do
-      {
-        milotic: %i[surf tackle flamethrower]
-      }
-    end
-    let(:player_2_pokemon_moves) do
-      {
-        metagross: %i[meteor_mash earthquake]
-      }
+    let(:player_1_pokemon_config) do
+      [
+        {
+          pokemon: :milotic,
+          moves: %i[surf tackle flamethrower]
+        }
+      ]
     end
 
-    # Pensar en refactorizar el shared context para recibir la lista de los pokemon y sus posibles variaciones
-    # no solamente la lista de ataque sino sus naturalezas, EVs e Ivs, en un json
-    # y construir los pokemons con base en estos parametros
+    let(:player_2_pokemon_config) do
+      [
+        {
+          pokemon: :metagross,
+          moves: %i[meteor_mash earthquake]
+        }
+      ]
+    end
+
     let(:move_name) { '' }
     let(:milotic) { player_1_snapshots.first }
     let(:metagross) { player_2_snapshots.first }
@@ -116,17 +119,22 @@ RSpec.describe Services::Moves::Handlers::Damage, type: :service do
   end
 
   describe 'Togekiss VS Tyranitar' do
-    let(:player_1_pokemon) { [:togekiss] }
-    let(:player_2_pokemon) { [:tyranitar] }
-    let(:player_1_pokemon_moves) do
-      {
-        togekiss: %i[air_slash aura_sphere liquidation ice_beam]
-      }
+    let(:player_1_pokemon_config) do
+      [
+        {
+          pokemon: :togekiss,
+          moves: %i[air_slash aura_sphere liquidation ice_beam]
+        }
+      ]
     end
-    let(:player_2_pokemon_moves) do
-      {
-        tyranitar: %i[stone_edge earthquake]
-      }
+
+    let(:player_2_pokemon_config) do
+      [
+        {
+          pokemon: :tyranitar,
+          moves: %i[stone_edge earthquake]
+        }
+      ]
     end
 
     let(:move_name) { '' }

@@ -86,8 +86,8 @@ module Formulas
     (move.accuracy * modifier * adjusted_accuracy * micle_berry) - affection
   end
 
-  def critical_chance(pokemon, move)
-    critical_factor = pokemon.crit_stage + move.meta.crit_rate
+  def self.critical_chance(pokemon, move)
+    critical_factor = pokemon.crit_stage + move.meta.fetch('crit_rate', 0)
 
     case critical_factor
     when 0

@@ -3,11 +3,11 @@
 require 'spec_helper'
 
 RSpec.describe 'BattleSetup' do
-  describe 'shared context battle_setup with default leads', :aggregate_failures do
+  describe 'shared context battle_setup with simple pokemon config (default lead)', :aggregate_failures do
     include_context 'single_battle_setup'
 
-    let(:player_1_pokemon) { %i[snorlax scaledart] }
-    let(:player_2_pokemon) { %i[dracocoon dracanfly] }
+    let(:player_1_pokemon_config) { %i[snorlax scaledart] }
+    let(:player_2_pokemon_config) { %i[dracocoon dracanfly] }
 
     it 'correctly initializes the battle with players, teams, and snapshots' do
       aggregate_failures do
@@ -61,14 +61,24 @@ RSpec.describe 'BattleSetup' do
     end
   end
 
-  describe 'shared context battle_setup with overridden leads', :aggregate_failures do
+  describe 'shared context battle_setup with explicit lead: true flag', :aggregate_failures do
     include_context 'single_battle_setup'
-    let(:player_1_pokemon) { %i[snorlax scaledart] }
-    let(:player_2_pokemon) { %i[dracocoon dracanfly] }
-    let(:player_1_lead) { :scaledart }
-    let(:player_2_lead) { :dracanfly }
 
-    it 'positions the custom specified lead pokemons on the field' do
+    let(:player_1_pokemon_config) do
+      [
+        { pokemon: :snorlax },
+        { pokemon: :scaledart, lead: true }
+      ]
+    end
+
+    let(:player_2_pokemon_config) do
+      [
+        { pokemon: :dracocoon },
+        { pokemon: :dracanfly, lead: true }
+      ]
+    end
+
+    it 'positions the pokemon with lead: true on the field' do
       aggregate_failures do
         expect(player_1_position.pokemon_snapshot.pokemon.pokemon_template.name).to eq('Scaledart')
         expect(player_2_position.pokemon_snapshot.pokemon.pokemon_template.name).to eq('Dracanfly')
@@ -76,41 +86,59 @@ RSpec.describe 'BattleSetup' do
     end
   end
 
-  describe 'shared context battle_setup with explicit pokemon moves', :aggregate_failures do
+  describe 'shared context battle_setup with multiple lead: true flags', :aggregate_failures do
     include_context 'single_battle_setup'
 
-    let(:player_1_pokemon) { %i[snorlax scaledart] }
-    let(:player_2_pokemon) { %i[dracocoon dracanfly] }
-
-    let(:player_1_pokemon_moves) do
-      {
-        snorlax: %i[tackle surf],
-        scaledart: %i[surf tackle]
-      }
+    let(:player_1_pokemon_config) do
+      [
+        { pokemon: :snorlax, lead: true },
+        { pokemon: :scaledart, lead: true }
+      ]
     end
 
-    let(:player_2_pokemon_moves) do
-      {
-        dracocoon: %i[tackle surf],
-        dracanfly: %i[surf tackle]
-      }
+    it 'picks the first lead: true pokemon in the list' do
+      expect(player_1_position.pokemon_snapshot.pokemon.pokemon_template.name).to eq('Snorlax')
+    end
+  end
+
+  describe 'shared context battle_setup with custom object configuration', :aggregate_failures do
+    include_context 'single_battle_setup'
+
+    let(:player_1_pokemon_config) do
+      [
+        {
+          pokemon: :milotic,
+          moves: %i[surf tackle],
+          nature: Nature::MODEST,
+          lvl: 70,
+          ivs: { hp: 31, sp_atk: 31 },
+          evs: { hp: 252, sp_atk: 252 }
+        }
+      ]
     end
 
-    it 'assigns the multiple specified moves to the respective pokemons' do
+    let(:player_2_pokemon_config) do
+      [
+        {
+          pokemon: :metagross,
+          moves: %i[meteor_mash earthquake]
+        }
+      ]
+    end
+
+    it 'assigns specified moves, nature, level, IVs, and EVs correctly' do
       aggregate_failures do
-        # Verificar movimientos de Player 1
-        snorlax = player_1_pokemons.find { |p| p.pokemon_template.name == 'Snorlax' }
-        expect(snorlax.moves.map(&:name)).to contain_exactly('Tackle', 'Surf')
+        milotic = player_1_pokemons.first
+        expect(milotic.pokemon_template.name).to eq('Milotic')
+        expect(milotic.moves.map(&:name)).to contain_exactly('Surf', 'Tackle')
+        expect(milotic.nature).to eq('Modest')
+        expect(milotic.lvl).to eq(70)
+        expect(milotic.ivs['hp']).to eq(31)
+        expect(milotic.evs['sp_atk']).to eq(252)
 
-        scaledart = player_1_pokemons.find { |p| p.pokemon_template.name == 'Scaledart' }
-        expect(scaledart.moves.map(&:name)).to contain_exactly('Surf', 'Tackle')
-
-        # Verificar movimientos de Player 2
-        dracocoon = player_2_pokemons.find { |p| p.pokemon_template.name == 'Dracocoon' }
-        expect(dracocoon.moves.map(&:name)).to contain_exactly('Tackle', 'Surf')
-
-        dracanfly = player_2_pokemons.find { |p| p.pokemon_template.name == 'Dracanfly' }
-        expect(dracanfly.moves.map(&:name)).to contain_exactly('Surf', 'Tackle')
+        metagross = player_2_pokemons.first
+        expect(metagross.pokemon_template.name).to eq('Metagross')
+        expect(metagross.moves.map(&:name)).to contain_exactly('Meteor Mash', 'Earthquake')
       end
     end
   end

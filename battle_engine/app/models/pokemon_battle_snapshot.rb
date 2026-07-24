@@ -59,6 +59,10 @@ class PokemonBattleSnapshot < ApplicationRecord
     stat_stages[:evasion_stage].to_i
   end
 
+  def crit_stage
+    stat_stages[:crit_stage].to_i
+  end
+
   private
 
   def set_default_stat_stages

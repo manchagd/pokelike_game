@@ -6,7 +6,7 @@ module Services
       class Damage
         def self.call(pokemon, target, move)
           critical = Formulas.critical_chance(pokemon, move) > rand(0.0..1.0) ? 1.5 : 1
-          attack, defense = attack_and_defense_assignation(pokemon, target, critical)
+          attack, defense = attack_and_defense_assignation(pokemon, target, move, critical)
 
           stab = Formulas.calculate_stab(pokemon, move)
           type_multiplier = Types.calc_multiplier(move.type, target.pokemon.pokemon_template.types)
@@ -24,7 +24,7 @@ module Services
           BattleEngine.logger.info("#{target.pokemon.pokemon_template.name} took #{damage} damage")
         end
 
-        def self.attack_and_defense_assignation(pokemon, target, critical)
+        def self.attack_and_defense_assignation(pokemon, target, move, critical)
           if move.category == Move::PHYSICAL
             attack_stat = pokemon.atk_stat
             attack_stage = pokemon.atk_stage
