@@ -28,11 +28,11 @@ module Formulas
     power:,
     stab:,
     type:,
+    critical:,
     targets: 1,
     pb: 1,
     weather: 1,
     glaive_rush: 1,
-    critical: 1,
     burn: 1,
     other: 1,
     z_move: 1,
@@ -86,8 +86,19 @@ module Formulas
     (move.accuracy * modifier * adjusted_accuracy * micle_berry) - affection
   end
 
-  def critical_factor(pokemon, move)
-    pokemon.crit_stage + move.meta.crit_rate
+  def critical_chance(pokemon, move)
+    critical_factor = pokemon.crit_stage + move.meta.crit_rate
+
+    case critical_factor
+    when 0
+      1.0 / 24.0
+    when 1
+      1.0 / 8.0
+    when 2
+      1.0 / 2.0
+    else
+      1.0
+    end
   end
 end
 
