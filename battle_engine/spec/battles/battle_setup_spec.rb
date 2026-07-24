@@ -7,7 +7,7 @@ RSpec.describe 'BattleSetup' do
     include_context 'single_battle_setup'
 
     let(:player_1_pokemon_config) { %i[snorlax scaledart] }
-    let(:player_2_pokemon_config) { %i[dracocoon dracanfly] }
+    let(:player_2_pokemon_config) { [:dracocoon, { pokemon: :dracanfly }] }
 
     it 'correctly initializes the battle with players, teams, and snapshots' do
       aggregate_failures do
