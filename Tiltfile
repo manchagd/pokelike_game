@@ -24,10 +24,10 @@ dc_resource(
     links=['http://localhost:4000']
 )
 
-# 4. Motor de Batalla (Ruby Background Workers)
+# 4. Motor de Batalla (Ruby)
 dc_resource(
     'battle_engine',
-    labels=['workers']
+    labels=['backend']
 )
 
 # 5. Rutinas de Base de Datos (Tareas bajo demanda en Tilt Dashboard)
