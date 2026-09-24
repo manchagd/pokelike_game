@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
 class Types
-  EFFECTIVE = 1
-  SUPER_EFFECTIVE = 2
+  EFFECTIVE = 1.0
+  SUPER_EFFECTIVE = 2.0
   NOT_EFFECTIVE = 0.5
   IMMUNE = 0
 
@@ -186,9 +186,12 @@ class Types
       }
     }
 
+    attacking_types = Array(attacking_types)
+    defending_types = Array(defending_types)
+
     defending_types.inject(1.0) do |multiplier, defending_type|
       attacking_types.inject(multiplier) do |multiplier, attacking_type|
-        multiplier * chart[attacking_type].fetch(defending_type, EFFECTIVE)
+        multiplier * (chart[attacking_type]&.fetch(defending_type, EFFECTIVE) || EFFECTIVE)
       end
     end
   end

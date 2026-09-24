@@ -167,7 +167,7 @@ RSpec.describe 'Teams Services', type: :service do
       expect do
         service.call(player_id: player.id, team_id: team.id)
       end.to change(Team, :count).by(-1)
-        .and change(Pokemon, :count).by(-1)
+                                 .and change(Pokemon, :count).by(-1)
 
       expect(Pokemon.exists?(pokemon_without_snapshots.id)).to be_falsey
       expect(Pokemon.exists?(pokemon_with_snapshots.id)).to be_truthy

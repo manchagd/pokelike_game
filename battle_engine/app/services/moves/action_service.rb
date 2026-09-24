@@ -9,10 +9,12 @@ module Services
           return
         end
 
-        final_accuracy = Formulas.accuracy_formula(pokemon, target, move)
-        if final_accuracy < rand(1..100)
-          BattleEngine.logger.info("#{pokemon.pokemon.pokemon_template.name} missed")
-          return
+        if move.accuracy.present?
+          final_accuracy = Formulas.accuracy_formula(pokemon, target, move)
+          if final_accuracy < rand(1..100)
+            BattleEngine.logger.info("#{pokemon.pokemon.pokemon_template.name} missed")
+            return
+          end
         end
 
         move.handler_service.call(pokemon, target, move)

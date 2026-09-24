@@ -131,7 +131,7 @@ namespace :db do
       deleted_battles = Battle.delete_all
       deleted_fields = Field.delete_all
 
-      BattleEngine.logger.info("[DB] Purge complete:")
+      BattleEngine.logger.info('[DB] Purge complete:')
       BattleEngine.logger.info("  - Positions: #{deleted_positions}")
       BattleEngine.logger.info("  - BattlePlayers: #{deleted_battle_players}")
       BattleEngine.logger.info("  - PokemonBattleSnapshots: #{deleted_snapshots}")
