@@ -562,3 +562,53 @@ Al recibir un mensaje válido, el servidor añade los detalles del remitente jun
 }
 ```
 
+---
+
+## 5. Entorno de Desarrollo Local con Tilt
+
+El proyecto cuenta con configuración de **[Tilt](https://tilt.dev/)** para orquestar y monitorear todos los servicios del ecosistema (`postgres`, `rabbitmq`, `battle_engine`, `battle_real_time`) de forma integrada.
+
+### 5.1 Requisitos Previos e Instalación
+
+El binario de `tilt` está configurado en `.tool-versions` mediante **mise**:
+
+```bash
+# Instalar Tilt automáticamente mediante mise
+mise install
+```
+
+### 5.2 Comandos Principales de Tilt
+
+| Comando | Descripción |
+| :--- | :--- |
+| `tilt up` | Inicia todos los servicios, abre el dashboard y comienza a monitorear cambios de archivos. |
+| `tilt up --stream=false` | Inicia los servicios en segundo plano mostrando la URL del dashboard Web. |
+| `tilt down` | Detiene y elimina los contenedores creados por Tilt. |
+| `tilt doctor` | Diagnostica el entorno (versión de Docker, Compose y Tilt). |
+
+### 5.3 Características del Dashboard de Tilt (`http://localhost:10350`)
+
+Al ejecutar `tilt up`, se abre una consola interactiva en terminal y una **Web UI** en [`http://localhost:10350`](http://localhost:10350) con:
+- **Paneles de logs aislados** por servicio con búsqueda regex y detección automática de errores.
+- **Acceso directo (Links)**:
+  - Consola de administración de RabbitMQ: [`http://localhost:15672`](http://localhost:15672) (Usuario: `guest` / Password: `admin`).
+  - Servidor Phoenix Real-Time: [`http://localhost:4000`](http://localhost:4000).
+- **Recarga automática / Live Reload**: Monitorea los archivos de `battle_engine/` y `battle_real_time/`, reiniciando los servicios solo cuando hay cambios relevantes (ignora logs, temporales y builds gracias a `.tiltignore`).
+- **Botones Interactivos de Tareas (On-Demand en Tilt UI)**:
+  - **Base de Datos (`database`)**:
+    - `db:create`: Crea la base de datos `battle_engine_development` en PostgreSQL si no existe.
+    - `db:migrate`: Ejecuta las migraciones pendientes de ActiveRecord.
+    - `db:seed`: Pobla las semillas de pokémons y movimientos.
+    - `db:setup`: Rutina completa inicial (`create`, `migrate` y `seed`).
+    - `db:purge`: Limpia batallas y snapshots para pruebas limpias.
+    - `db:drop`: Elimina la base de datos para reinicios limpios.
+  - **Recarga Rápida y DevOps (`devops`)**:
+    - `engine:restart`: Reinicio rápido de los workers de Ruby en < 1 segundo para aplicar cambios de código (`.rb`).
+    - `engine:rebuild`: Reconstrucción completa de la imagen Docker de Ruby (usar al modificar `Gemfile`).
+    - `realtime:restart`: Reinicio rápido del servidor Phoenix en < 1 segundo.
+  - **Pruebas Automatizadas (`tests`)**:
+    - `test:ruby`: Ejecuta los 44 tests RSpec del motor de batalla en tiempo récord.
+    - `test:elixir`: Ejecuta los 45 tests de Phoenix (`mix test`) sin conflicto de puertos.
+
+
+

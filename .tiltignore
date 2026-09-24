@@ -1,0 +1,30 @@
+# Git & VCS
+.git/
+
+# IDE & OS
+.idea/
+.vscode/
+.DS_Store
+*.swp
+*.swo
+*~
+
+# Tilt internals
+.tilt-dev/
+
+# Battle Engine (Ruby)
+battle_engine/log/
+battle_engine/tmp/
+battle_engine/coverage/
+battle_engine/spec/reports/
+battle_engine/spec/examples.txt
+
+# Battle Real Time (Elixir)
+battle_real_time/_build/
+battle_real_time/deps/
+battle_real_time/.elixir_ls/
+
+# Battle UI (Flutter)
+battle_ui/build/
+battle_ui/.dart_tool/
+battle_ui/.flutter-plugins-dependencies
